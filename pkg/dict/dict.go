@@ -64,8 +64,8 @@ type node[K cmp.Ordered, V any] struct {
 }
 
 type stack[K cmp.Ordered, V any] struct {
-	gp     *node[K, V]
-	parent *node[K, V]
+	pp *stack[K, V]
+	p  *node[K, V]
 }
 
 // Builders
@@ -173,7 +173,7 @@ func (d dict[K, V]) Insert(key K, v V) Dict[K, V] {
 		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, parent: nil, left: nil, right: nil}}
 	}
 
-	inserted, stk := insertHelp(key, v, pt, pt.root, &stack[K, V]{gp: nil, parent: nil})
+	inserted, stk := insertHelp(key, v, pt, pt.root, &stack[K, V]{pp: nil, p: nil})
 	newRoot := getRoot(inserted)
 	newD := &dict[K, V]{root: newRoot}
 	balance(newD, inserted, stk)
@@ -186,27 +186,27 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, 
 	case LT:
 		if n.left == nil {
 			n.left = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
-			stk.gp = stk.parent
-			stk.parent = n
-			return n.left, stk
+			newStk := &stack[K, V]{pp: stk}
+			newStk.p = n
+			return n.left, newStk
 		} else {
-			stk.gp = stk.parent
-			stk.parent = n
-			return insertHelp(key, value, d, n.left, stk)
+			newStk := &stack[K, V]{pp: stk}
+			newStk.p = n
+			return insertHelp(key, value, d, n.left, newStk)
 		}
 	case EQ:
 		n.value = value
 		return n, stk
 	case GT:
 		if n.right == nil {
-			stk.gp = stk.parent
-			stk.parent = n
+			newStk := &stack[K, V]{pp: stk}
+			newStk.p = n
 			n.right = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
-			return n.right, stk
+			return n.right, newStk
 		} else {
-			stk.gp = stk.parent
-			stk.parent = n
-			return insertHelp(key, value, d, n.right, stk)
+			newStk := &stack[K, V]{pp: stk}
+			newStk.p = n
+			return insertHelp(key, value, d, n.right, newStk)
 		}
 	}
 	panic("unreachable")
@@ -286,7 +286,7 @@ func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
 			return
 		}
 
-		pSide := parentSide(n)
+		pSide := parentSide(n, n.parent)
 
 		switch n.color {
 		// Case 1 - Red leaf
@@ -333,8 +333,8 @@ func fixDB[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
 		return
 	}
 	pColor := n.parent.color
-	pSide := parentSide(n)
-	sibling := findSibling(n)
+	pSide := parentSide(n, n.parent)
+	sibling := findSibling(n, n.parent)
 
 	// DB sibling is Black
 	if sibling.color == BLACK {
@@ -467,8 +467,8 @@ func findSuccessor[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 	return findSuccessor(n.left)
 }
 
-func findSibling[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
-	pDir := parentSide(n)
+func findSibling[K cmp.Ordered, V any](n *node[K, V], parent *node[K, V]) *node[K, V] {
+	pDir := parentSide(n, n.parent)
 	if pDir == LEFT {
 		return n.parent.right
 	} else {
@@ -478,26 +478,26 @@ func findSibling[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 
 func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V]) {
 	// Root case
-	if stk.parent == nil {
+	if stk.p == nil {
 		n.color = BLACK
 		d.root = n
 		return
 	}
-	pColor := stk.parent.color
+	pColor := stk.p.color
 	if pColor == BLACK {
 		// Nothing more to do
 		return
 	}
 	// Parent and n are red
-	nDir := parentSide(n)
-	pDir := parentSide(stk.parent)
-	uncle := getUncle(n)
-	grandparent := stk.gp
+	nDir := parentSide(n, stk.p)
+	pDir := parentSide(stk.p, stk.pp.p)
+	uncle := getUncle(stk.p, stk.pp.p)
+	grandparent := stk.pp.p
 
 	if uncle != nil && uncle.color == RED {
 		// Red uncle - push down blackness from root - balance root
 		uncle.color = grandparent.color
-		stk.parent.color = grandparent.color
+		stk.p.color = grandparent.color
 		grandparent.color = RED
 		newStk, _ := getStack(d, grandparent.key)
 		balance(d, grandparent, newStk)
@@ -509,7 +509,7 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 		switch nDir {
 		case LEFT:
 			// LL - right rotate on grandparent - balance
-			newRoot := stk.gp.srRotation()
+			newRoot := stk.pp.p.srRotation()
 			rCol := newRoot.right.color
 			// Push down newRoot color
 			newRoot.right.color = newRoot.color
@@ -520,7 +520,7 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 			return
 		case RIGHT:
 			// LR - rotate parent left - balance left of root
-			newRoot := stk.parent.slRotation()
+			newRoot := stk.p.slRotation()
 			newStk, _ := getStack(d, newRoot.left.key)
 			balance(d, newRoot.left, newStk)
 			return
@@ -529,7 +529,7 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 		switch nDir {
 		case RIGHT:
 			// RR - left rotate on grandparent - balance
-			newRoot := stk.gp.slRotation()
+			newRoot := stk.pp.p.slRotation()
 			// Swap color
 			lCol := newRoot.left.color
 			newRoot.left.color = newRoot.color
@@ -540,7 +540,7 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 			return
 		case LEFT:
 			//RL - rotate parent right - balance right of root
-			newRoot := stk.parent.srRotation()
+			newRoot := stk.p.srRotation()
 			newStk, _ := getStack(d, newRoot.right.key)
 			balance(d, newRoot.right, newStk)
 			return
@@ -553,7 +553,7 @@ func (x *node[K, V]) srRotation() *node[K, V] {
 
 	// Handle x's parent
 	if x.parent != nil {
-		pSide := parentSide(x)
+		pSide := parentSide(x, x.parent)
 
 		switch pSide {
 		case LEFT:
@@ -585,7 +585,7 @@ func (x *node[K, V]) slRotation() *node[K, V] {
 
 	// Handle x's parent
 	if x.parent != nil {
-		pSide := parentSide(x)
+		pSide := parentSide(x, x.parent)
 
 		switch pSide {
 		case LEFT:
@@ -613,24 +613,21 @@ func (x *node[K, V]) slRotation() *node[K, V] {
 	return right
 }
 
-func parentSide[K cmp.Ordered, V any](n *node[K, V]) int {
-	parent := n.parent
-	if parent.left != nil && n.key == parent.left.key {
+func parentSide[K cmp.Ordered, V any](n *node[K, V], p *node[K, V]) int {
+	if p.left != nil && n.key == p.left.key {
 		return LEFT
 	} else {
 		return RIGHT
 	}
 }
 
-func getUncle[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
-	grandparent := n.parent.parent
-	parent := n.parent
+func getUncle[K cmp.Ordered, V any](parent *node[K, V], gp *node[K, V]) *node[K, V] {
 
-	if parentSide(parent) == LEFT {
+	if parentSide(parent, gp) == LEFT {
 		// Uncle is right side
-		return grandparent.right
+		return gp.right
 	} else {
-		return grandparent.left
+		return gp.left
 	}
 }
 
@@ -643,11 +640,11 @@ func getRoot[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 }
 
 func getStack[K cmp.Ordered, V any](d *dict[K, V], k K) (*stack[K, V], error) {
-	baseStack := &stack[K, V]{gp: nil, parent: nil}
+	baseStack := &stack[K, V]{pp: nil, p: nil}
 	if d.root == nil {
 		return baseStack, nil
 	} else {
-		return getStackHelp(k, d.root, &stack[K, V]{gp: nil, parent: nil})
+		return getStackHelp(k, d.root, &stack[K, V]{pp: nil, p: nil})
 	}
 }
 
@@ -657,18 +654,18 @@ func getStackHelp[K cmp.Ordered, V any](k K, n *node[K, V], st *stack[K, V]) (*s
 		if n.left == nil {
 			return st, errors.New("Node does not exist in tree")
 		}
-		st.gp = st.parent
-		st.parent = n
-		return getStackHelp(k, n.left, st)
+		newStk := &stack[K, V]{pp: st, p: n}
+		newStk.p = n
+		return getStackHelp(k, n.left, newStk)
 	case EQ:
 		return st, nil
 	case GT:
 		if n.right == nil {
 			return st, errors.New("Node does not exist in tree")
 		}
-		st.gp = st.parent
-		st.parent = n
-		return getStackHelp(k, n.right, st)
+		newStk := &stack[K, V]{pp: st, p: n}
+		newStk.p = n
+		return getStackHelp(k, n.right, newStk)
 	}
 	panic("unreachable")
 }

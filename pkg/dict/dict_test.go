@@ -15,7 +15,7 @@ func TestStack(t *testing.T) {
 		SUT, ok := getStack(d.rbt(), 22)
 
 		asserts.Nil(ok)
-		asserts.Equal(&stack[int, struct{}]{gp: nil, parent: nil}, SUT)
+		asserts.Equal(&stack[int, struct{}]{pp: nil, p: nil}, SUT)
 
 	})
 
@@ -25,11 +25,11 @@ func TestStack(t *testing.T) {
 		SUT, ok := getStack(d.rbt(), 1)
 
 		asserts.Nil(ok)
-		asserts.Equal(&stack[int, int]{gp: nil, parent: nil}, SUT)
+		asserts.Equal(&stack[int, int]{pp: nil, p: nil}, SUT)
 
 	})
 
-	t.Run("getStack | parent = root | gp = nil", func(t *testing.T) {
+	t.Run("getStack | parent = root | pp = nil", func(t *testing.T) {
 		d := Singleton[int, int](10, 1)
 		d1 := d.Insert(20, 2)
 		d2 := d1.Insert(5, 3)
@@ -37,15 +37,21 @@ func TestStack(t *testing.T) {
 		SUT, ok := getStack(d2.rbt(), 20)
 
 		asserts.Nil(ok)
-		asserts.Equal(&stack[int, int]{gp: nil, parent: d2.rbt().root}, SUT)
+		asserts.Equal(&stack[int, int]{pp: &stack[int, int]{pp: nil, p: nil}, p: d2.rbt().root}, SUT)
 
 		SUT1, ok1 := getStack(d2.rbt(), 5)
 
 		asserts.Nil(ok1)
-		asserts.Equal(&stack[int, int]{gp: nil, parent: d2.rbt().root}, SUT1)
+		asserts.Equal(
+			&stack[int, int]{
+				pp: &stack[int, int]{pp: nil, p: nil},
+				p:  d2.rbt().root,
+			},
+			SUT1,
+		)
 	})
 
-	t.Run("getStack parent and gp not nil", func(t *testing.T) {
+	t.Run("getStack parent and pp not nil", func(t *testing.T) {
 		d := Singleton[int, int](10, 1)
 		d1 := d.Insert(20, 2)
 		d2 := d1.Insert(5, 3)
@@ -54,7 +60,16 @@ func TestStack(t *testing.T) {
 		SUT, ok := getStack(d3.rbt(), 30)
 
 		asserts.Nil(ok)
-		asserts.Equal(&stack[int, int]{gp: d3.rbt().root, parent: d3.rbt().root.right}, SUT)
+		asserts.Equal(
+			&stack[int, int]{
+				pp: &stack[int, int]{
+					pp: &stack[int, int]{pp: nil, p: nil},
+					p:  d3.rbt().root,
+				},
+				p: d3.rbt().root.right,
+			},
+			SUT,
+		)
 	})
 }
 
