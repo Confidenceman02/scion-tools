@@ -40,7 +40,7 @@ type Dict[K cmp.Ordered, V any] interface {
 	// Operations
 	Insert(k K, v V) Dict[K, V]
 	Get(k K) maybe.Maybe[V]
-	Remove(k K) Dict[K, V]
+	// Remove(k K) Dict[K, V]
 }
 
 /*
@@ -55,12 +55,11 @@ type dict[K cmp.Ordered, V any] struct {
 }
 
 type node[K cmp.Ordered, V any] struct {
-	key    K
-	value  V
-	color  int
-	parent *node[K, V]
-	left   *node[K, V]
-	right  *node[K, V]
+	key   K
+	value V
+	color int
+	left  *node[K, V]
+	right *node[K, V]
 }
 
 type stack[K cmp.Ordered, V any] struct {
@@ -77,12 +76,11 @@ func Singleton[K cmp.Ordered, V any](key K, value V) Dict[K, V] {
 	// Root nodes are always black
 	return dict[K, V]{
 		root: &node[K, V]{
-			key:    key,
-			value:  value,
-			color:  BLACK,
-			parent: nil,
-			left:   nil,
-			right:  nil},
+			key:   key,
+			value: value,
+			color: BLACK,
+			left:  nil,
+			right: nil},
 	}
 }
 
@@ -170,11 +168,11 @@ func (d dict[K, V]) Insert(key K, v V) Dict[K, V] {
 	pt := &d
 
 	if pt.root == nil {
-		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, parent: nil, left: nil, right: nil}}
+		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, left: nil, right: nil}}
 	}
 
 	inserted, stk := insertHelp(key, v, pt, pt.root, &stack[K, V]{pp: nil, p: nil})
-	newRoot := getRoot(inserted)
+	newRoot := getStackRoot(inserted, stk)
 	newD := &dict[K, V]{root: newRoot}
 	balance(newD, inserted, stk)
 	return newD
@@ -185,7 +183,7 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, 
 	switch cmp.Compare(key, nKey) {
 	case LT:
 		if n.left == nil {
-			n.left = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
+			n.left = &node[K, V]{key: key, value: value, color: RED, left: nil, right: nil}
 			newStk := &stack[K, V]{pp: stk}
 			newStk.p = n
 			return n.left, newStk
@@ -201,7 +199,7 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, 
 		if n.right == nil {
 			newStk := &stack[K, V]{pp: stk}
 			newStk.p = n
-			n.right = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
+			n.right = &node[K, V]{key: key, value: value, color: RED, left: nil, right: nil}
 			return n.right, newStk
 		} else {
 			newStk := &stack[K, V]{pp: stk}
@@ -248,202 +246,202 @@ Case 6 - DB sibling is black and far nephew is red
     6.4 Remove DB node to single black
 */
 
-func (d dict[K, V]) Remove(key K) Dict[K, V] {
-	pt := &d
-	if d.root == nil {
-		// Empty tree
-		return d
-	} else {
-		// Find node to delete
-		dn := d.getNode(key)
-		removeHelp(pt, dn)
-		return *pt
-	}
-}
+// func (d dict[K, V]) Remove(key K) Dict[K, V] {
+// 	pt := &d
+// 	if d.root == nil {
+// 		// Empty tree
+// 		return d
+// 	} else {
+// 		// Find node to delete
+// 		dn := d.getNode(key)
+// 		removeHelp(pt, dn)
+// 		return *pt
+// 	}
+// }
 
-func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
-	if n == nil {
-		// Node doesn't exist
-		return
-	}
-	// 2 non-nil children
-	if n.left != nil && n.right != nil {
-		suc := findSuccessor(n.right)
-		n.key = suc.key
-		n.value = suc.value
-		// root node
-		if n.parent == nil {
-			d.root = n
-		}
-		removeHelp(d, suc)
-		return
-	}
-	// 2 nil children
-	if n.left == nil && n.right == nil {
-		// root node
-		if n.parent == nil {
-			d.root = nil
-			return
-		}
+// func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
+// 	if n == nil {
+// 		// Node doesn't exist
+// 		return
+// 	}
+// 	// 2 non-nil children
+// 	if n.left != nil && n.right != nil {
+// 		suc := findSuccessor(n.right)
+// 		n.key = suc.key
+// 		n.value = suc.value
+// 		// root node
+// 		if n.parent == nil {
+// 			d.root = n
+// 		}
+// 		removeHelp(d, suc)
+// 		return
+// 	}
+// 	// 2 nil children
+// 	if n.left == nil && n.right == nil {
+// 		// root node
+// 		if n.parent == nil {
+// 			d.root = nil
+// 			return
+// 		}
+//
+// 		pSide := parentSide(n, n.parent)
+//
+// 		switch n.color {
+// 		// Case 1 - Red leaf
+// 		case RED:
+// 			switch pSide {
+// 			case LEFT:
+// 				// 1.1 - Remove node then exit
+// 				n.parent.left = nil
+// 				return
+// 			case RIGHT:
+// 				// 1.1 - Remove node then exit
+// 				n.parent.right = nil
+// 				return
+// 			}
+// 		case BLACK:
+// 			// Black leaf - DB
+// 			fixDB(d, n)
+// 			return
+// 		}
+// 	}
+// 	// Black node with red child
+// 	if n.left == nil {
+// 		// No child on the left
+//
+// 		// Replace node with child
+// 		n.key = n.right.key
+// 		n.value = n.right.value
+// 		removeHelp(d, n.right)
+// 		return
+// 	} else {
+// 		// No child on the right
+//
+// 		// Replace node with child
+// 		n.key = n.left.key
+// 		n.value = n.left.value
+// 		removeHelp(d, n.left)
+// 		return
+// 	}
+// }
 
-		pSide := parentSide(n, n.parent)
-
-		switch n.color {
-		// Case 1 - Red leaf
-		case RED:
-			switch pSide {
-			case LEFT:
-				// 1.1 - Remove node then exit
-				n.parent.left = nil
-				return
-			case RIGHT:
-				// 1.1 - Remove node then exit
-				n.parent.right = nil
-				return
-			}
-		case BLACK:
-			// Black leaf - DB
-			fixDB(d, n)
-			return
-		}
-	}
-	// Black node with red child
-	if n.left == nil {
-		// No child on the left
-
-		// Replace node with child
-		n.key = n.right.key
-		n.value = n.right.value
-		removeHelp(d, n.right)
-		return
-	} else {
-		// No child on the right
-
-		// Replace node with child
-		n.key = n.left.key
-		n.value = n.left.value
-		removeHelp(d, n.left)
-		return
-	}
-}
-
-func fixDB[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
-	// Case 2 - DB is root
-	if n.parent == nil {
-		return
-	}
-	pColor := n.parent.color
-	pSide := parentSide(n, n.parent)
-	sibling := findSibling(n, n.parent)
-
-	// DB sibling is Black
-	if sibling.color == BLACK {
-		// Case 3
-		if sibling.hasBlackChildren() {
-			// 3.2 Make sibling red
-			sibling.color = RED
-			// Push blackness to parent
-			n.parent.color = BLACK
-			if n.hasNilChildren() {
-				// Node is a leaf node to delete
-				switch pSide {
-				case LEFT:
-					// 3.1 remove node
-					n.parent.left = nil
-				case RIGHT:
-					// 3.1 remove node
-					n.parent.right = nil
-				}
-			}
-
-			if pColor != BLACK {
-				return
-			}
-			fixDB(d, n.parent)
-			return
-		}
-		switch pSide {
-		case LEFT:
-			if sibling.left.isRed() && sibling.right.isBlack() {
-				// Case 5 - far nephew is Black - near nephew is Red
-				// 5.1 - Swap colors of sibling and near nephew
-				sibling.color = RED
-				sibling.left.color = BLACK
-				// 5.2 Rotate sibling of DB node in opposite direction of DB node
-				sibling.srRotation()
-				// 5.3 Apply Case 6
-				fixDB(d, n)
-				return
-			} else {
-				// Case 6 - Far nephew is Red
-				// 6.1 Swap the colors of the DB parent and sibling
-				n.parent.color = sibling.color
-				sibling.color = pColor
-				// 6.2 Rotate DB parent in DB direction
-				newRoot := n.parent.slRotation()
-				// 6.3 Turn far nephew's color to black
-				newRoot.right.color = BLACK
-				// Check for a new root
-				if newRoot.parent == nil {
-					d.root = newRoot
-				}
-
-				// 6.4 Remove DB node to single black
-				if n.hasNilChildren() {
-					n.parent.left = nil
-				}
-				return
-			}
-		case RIGHT:
-			if sibling.right.isRed() && sibling.left.isBlack() {
-				// Case 5 - far nephew is Black - near nephew is Red
-				// 5.1 Swap colors of the DB sibling and near nephew
-				sibling.color = RED
-				sibling.right.color = BLACK
-				// 5.2 Rotate sibling of DB node in opposite direction of DB node
-				sibling.slRotation()
-				// 5.3 Apply case 6
-				fixDB(d, n)
-				return
-			} else {
-				// Case 6 - far newphew is Red
-				// 6.1 Swap the colors of the DB parent and sibling
-				n.parent.color = sibling.color
-				sibling.color = pColor
-				// 6.2 Rotate DB parent in DB direction
-				newRoot := n.parent.srRotation()
-				// 6.3 Turn far nephews color to black
-				newRoot.left.color = BLACK
-				// Check for a new root
-				if newRoot.parent == nil {
-					d.root = newRoot
-				}
-				// 6.4 Remove DB node to single black
-				if n.hasNilChildren() {
-					n.parent.right = nil
-				}
-				return
-			}
-		}
-	}
-	// Case 4 - Red sibling
-
-	// 4.1 Swap colors of sibling and parent
-	sibling.color = pColor
-	n.parent.color = RED
-
-	// 4.2 Rotate parent towards n's direction
-	switch pSide {
-	case LEFT:
-		n.parent.slRotation()
-	case RIGHT:
-		n.parent.srRotation()
-	}
-	if n.hasNilChildren() {
-		removeHelp(d, n)
-	}
-	return
-}
+// func fixDB[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
+// 	// Case 2 - DB is root
+// 	if n.parent == nil {
+// 		return
+// 	}
+// 	pColor := n.parent.color
+// 	pSide := parentSide(n, n.parent)
+// 	sibling := findSibling(n, n.parent)
+//
+// 	// DB sibling is Black
+// 	if sibling.color == BLACK {
+// 		// Case 3
+// 		if sibling.hasBlackChildren() {
+// 			// 3.2 Make sibling red
+// 			sibling.color = RED
+// 			// Push blackness to parent
+// 			n.parent.color = BLACK
+// 			if n.hasNilChildren() {
+// 				// Node is a leaf node to delete
+// 				switch pSide {
+// 				case LEFT:
+// 					// 3.1 remove node
+// 					n.parent.left = nil
+// 				case RIGHT:
+// 					// 3.1 remove node
+// 					n.parent.right = nil
+// 				}
+// 			}
+//
+// 			if pColor != BLACK {
+// 				return
+// 			}
+// 			fixDB(d, n.parent)
+// 			return
+// 		}
+// 		switch pSide {
+// 		case LEFT:
+// 			if sibling.left.isRed() && sibling.right.isBlack() {
+// 				// Case 5 - far nephew is Black - near nephew is Red
+// 				// 5.1 - Swap colors of sibling and near nephew
+// 				sibling.color = RED
+// 				sibling.left.color = BLACK
+// 				// 5.2 Rotate sibling of DB node in opposite direction of DB node
+// 				sibling.srRotation()
+// 				// 5.3 Apply Case 6
+// 				fixDB(d, n)
+// 				return
+// 			} else {
+// 				// Case 6 - Far nephew is Red
+// 				// 6.1 Swap the colors of the DB parent and sibling
+// 				n.parent.color = sibling.color
+// 				sibling.color = pColor
+// 				// 6.2 Rotate DB parent in DB direction
+// 				newRoot := n.parent.slRotation()
+// 				// 6.3 Turn far nephew's color to black
+// 				newRoot.right.color = BLACK
+// 				// Check for a new root
+// 				if newRoot.parent == nil {
+// 					d.root = newRoot
+// 				}
+//
+// 				// 6.4 Remove DB node to single black
+// 				if n.hasNilChildren() {
+// 					n.parent.left = nil
+// 				}
+// 				return
+// 			}
+// 		case RIGHT:
+// 			if sibling.right.isRed() && sibling.left.isBlack() {
+// 				// Case 5 - far nephew is Black - near nephew is Red
+// 				// 5.1 Swap colors of the DB sibling and near nephew
+// 				sibling.color = RED
+// 				sibling.right.color = BLACK
+// 				// 5.2 Rotate sibling of DB node in opposite direction of DB node
+// 				sibling.slRotation()
+// 				// 5.3 Apply case 6
+// 				fixDB(d, n)
+// 				return
+// 			} else {
+// 				// Case 6 - far newphew is Red
+// 				// 6.1 Swap the colors of the DB parent and sibling
+// 				n.parent.color = sibling.color
+// 				sibling.color = pColor
+// 				// 6.2 Rotate DB parent in DB direction
+// 				newRoot := n.parent.srRotation()
+// 				// 6.3 Turn far nephews color to black
+// 				newRoot.left.color = BLACK
+// 				// Check for a new root
+// 				if newRoot.parent == nil {
+// 					d.root = newRoot
+// 				}
+// 				// 6.4 Remove DB node to single black
+// 				if n.hasNilChildren() {
+// 					n.parent.right = nil
+// 				}
+// 				return
+// 			}
+// 		}
+// 	}
+// 	// Case 4 - Red sibling
+//
+// 	// 4.1 Swap colors of sibling and parent
+// 	sibling.color = pColor
+// 	n.parent.color = RED
+//
+// 	// 4.2 Rotate parent towards n's direction
+// 	switch pSide {
+// 	case LEFT:
+// 		n.parent.slRotation()
+// 	case RIGHT:
+// 		n.parent.srRotation()
+// 	}
+// 	if n.hasNilChildren() {
+// 		removeHelp(d, n)
+// 	}
+// 	return
+// }
 
 func (n *node[K, V]) hasNilChildren() bool {
 	return n.left == nil && n.right == nil
@@ -467,14 +465,14 @@ func findSuccessor[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 	return findSuccessor(n.left)
 }
 
-func findSibling[K cmp.Ordered, V any](n *node[K, V], parent *node[K, V]) *node[K, V] {
-	pDir := parentSide(n, n.parent)
-	if pDir == LEFT {
-		return n.parent.right
-	} else {
-		return n.parent.left
-	}
-}
+// func findSibling[K cmp.Ordered, V any](n *node[K, V], parent *node[K, V]) *node[K, V] {
+// 	pDir := parentSide(n, n.parent)
+// 	if pDir == LEFT {
+// 		return n.parent.right
+// 	} else {
+// 		return n.parent.left
+// 	}
+// }
 
 func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V]) {
 	// Root case
@@ -499,8 +497,7 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 		uncle.color = grandparent.color
 		stk.p.color = grandparent.color
 		grandparent.color = RED
-		newStk, _ := getStack(d, grandparent.key)
-		balance(d, grandparent, newStk)
+		balance(d, grandparent, stk.pp.pp)
 		return
 	}
 	// Black uncle
@@ -509,19 +506,19 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 		switch nDir {
 		case LEFT:
 			// LL - right rotate on grandparent - balance
-			newRoot := stk.pp.p.srRotation()
+			newRoot := stk.pp.p.srRotation(stk.pp.pp)
 			rCol := newRoot.right.color
 			// Push down newRoot color
 			newRoot.right.color = newRoot.color
 			newRoot.color = rCol
 			// balance newRoot
-			newStk, _ := getStack(d, newRoot.key)
-			balance(d, newRoot, newStk)
+			balance(d, newRoot, stk.pp.pp)
 			return
 		case RIGHT:
 			// LR - rotate parent left - balance left of root
-			newRoot := stk.p.slRotation()
-			newStk, _ := getStack(d, newRoot.left.key)
+			newRoot := stk.p.slRotation(stk.pp)
+			// Add new root to stack as parent
+			newStk := &stack[K, V]{p: newRoot, pp: stk.pp}
 			balance(d, newRoot.left, newStk)
 			return
 		}
@@ -529,85 +526,66 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 		switch nDir {
 		case RIGHT:
 			// RR - left rotate on grandparent - balance
-			newRoot := stk.pp.p.slRotation()
+			newRoot := stk.pp.p.slRotation(stk.pp.pp)
 			// Swap color
 			lCol := newRoot.left.color
 			newRoot.left.color = newRoot.color
 			newRoot.color = lCol
 			// balance newRoot
-			newStk, _ := getStack(d, newRoot.key)
-			balance(d, newRoot, newStk)
+			balance(d, newRoot, stk.pp.pp)
 			return
 		case LEFT:
 			//RL - rotate parent right - balance right of root
-			newRoot := stk.p.srRotation()
-			newStk, _ := getStack(d, newRoot.right.key)
+			newRoot := stk.p.srRotation(stk.pp)
+			// Add new root to stack as p
+			newStk := &stack[K, V]{p: newRoot, pp: stk.pp}
 			balance(d, newRoot.right, newStk)
 			return
 		}
 	}
 }
 
-func (x *node[K, V]) srRotation() *node[K, V] {
+func (x *node[K, V]) srRotation(stk *stack[K, V]) *node[K, V] {
 	left := x.left
 
 	// Handle x's parent
-	if x.parent != nil {
-		pSide := parentSide(x, x.parent)
+	if stk.p != nil {
+		pSide := parentSide(x, stk.p)
 
 		switch pSide {
 		case LEFT:
-			x.parent.left = left
+			stk.p.left = left
 		case RIGHT:
-			x.parent.right = left
+			stk.p.right = left
 		}
-		// 1. left becomes new subtree root
-		left.parent = x.parent
-	} else {
-		// 1. left becomes new tree root
-		left.parent = nil
 	}
-
-	// 2. x's parent is now left
-	x.parent = left
-
-	// 3. x's left is now lefts right
+	// 2. x's left is now lefts right
 	x.left = left.right
 
-	// 4. left's right is x
+	// 3. left's right is x
 	left.right = x
 
 	return left
 }
 
-func (x *node[K, V]) slRotation() *node[K, V] {
+func (x *node[K, V]) slRotation(stk *stack[K, V]) *node[K, V] {
 	right := x.right
 
 	// Handle x's parent
-	if x.parent != nil {
-		pSide := parentSide(x, x.parent)
+	if stk.p != nil {
+		pSide := parentSide(x, stk.p)
 
 		switch pSide {
 		case LEFT:
-			x.parent.left = right
+			stk.p.left = right
 		case RIGHT:
-			x.parent.right = right
+			stk.p.right = right
 		}
-		// 1. right becomes new root
-		right.parent = x.parent
-
-	} else {
-		// 1. right is root
-		right.parent = nil
 	}
-
-	// 2. x's parent is now right
-	x.parent = right
-
-	// 3. x's right is right's left
+	// 2. x's right is right's left
 	x.right = right.left
 
-	// 4. right's left is x
+	// 3. right's left is x
 	right.left = x
 
 	return right
@@ -631,11 +609,11 @@ func getUncle[K cmp.Ordered, V any](parent *node[K, V], gp *node[K, V]) *node[K,
 	}
 }
 
-func getRoot[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
-	if n.parent == nil {
+func getStackRoot[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) *node[K, V] {
+	if stk.p == nil {
 		return n
 	} else {
-		return getRoot(n.parent)
+		return getStackRoot(stk.p, stk.pp)
 	}
 }
 
