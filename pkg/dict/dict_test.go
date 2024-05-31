@@ -39,8 +39,8 @@ func TestInsert(t *testing.T) {
 		d1 := d.Insert(2, 2)
 
 		asserts.Equal(1, d.rbt().root.key)
-		asserts.Nil(d1.rbt().root.right)
-		asserts.Nil(d1.rbt().root)
+		asserts.Nil(d.rbt().root.right)
+		asserts.NotNil(d1.rbt().root.right)
 	})
 
 	t.Run("Empty", func(t *testing.T) {
