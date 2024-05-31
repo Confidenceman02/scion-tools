@@ -2,6 +2,7 @@ package dict
 
 import (
 	"cmp"
+	"errors"
 	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 )
 
@@ -60,6 +61,11 @@ type node[K cmp.Ordered, V any] struct {
 	parent *node[K, V]
 	left   *node[K, V]
 	right  *node[K, V]
+}
+
+type stack[K cmp.Ordered, V any] struct {
+	gp     *node[K, V]
+	parent *node[K, V]
 }
 
 // Builders
@@ -162,37 +168,48 @@ Case 4 - Parent is red and uncle is Black
 
 func (d dict[K, V]) Insert(key K, v V) Dict[K, V] {
 	pt := &d
-	balance(pt, insertHelp(key, v, pt, pt.root))
-	return *pt
+
+	if pt.root == nil {
+		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, parent: nil, left: nil, right: nil}}
+	}
+
+	inserted, stk := insertHelp(key, v, pt, pt.root, &stack[K, V]{gp: nil, parent: nil})
+	newRoot := getRoot(inserted)
+	newD := &dict[K, V]{root: newRoot}
+	balance(newD, inserted, stk)
+	return newD
 }
 
-func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, V]) *node[K, V] {
-	if d.root == nil {
-		d.root = &node[K, V]{key: key, value: value, color: RED, parent: nil, left: nil, right: nil}
-		return d.root
-	} else {
-		nKey := n.key
-		switch cmp.Compare(key, nKey) {
-		case LT:
-			if n.left == nil {
-				n.left = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
-				return n.left
-			} else {
-				return insertHelp(key, value, d, n.left)
-			}
-		case EQ:
-			n.value = value
-			return n
-		case GT:
-			if n.right == nil {
-				n.right = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
-				return n.right
-			} else {
-				return insertHelp(key, value, d, n.right)
-			}
+func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, V], stk *stack[K, V]) (*node[K, V], *stack[K, V]) {
+	nKey := n.key
+	switch cmp.Compare(key, nKey) {
+	case LT:
+		if n.left == nil {
+			n.left = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
+			stk.gp = stk.parent
+			stk.parent = n
+			return n.left, stk
+		} else {
+			stk.gp = stk.parent
+			stk.parent = n
+			return insertHelp(key, value, d, n.left, stk)
 		}
-		panic("unreachable")
+	case EQ:
+		n.value = value
+		return n, stk
+	case GT:
+		if n.right == nil {
+			stk.gp = stk.parent
+			stk.parent = n
+			n.right = &node[K, V]{key: key, value: value, color: RED, parent: n, left: nil, right: nil}
+			return n.right, stk
+		} else {
+			stk.gp = stk.parent
+			stk.parent = n
+			return insertHelp(key, value, d, n.right, stk)
+		}
 	}
+	panic("unreachable")
 }
 
 /*
@@ -459,30 +476,31 @@ func findSibling[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 	}
 }
 
-func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
+func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V]) {
 	// Root case
-	if n.parent == nil {
+	if stk.parent == nil {
 		n.color = BLACK
 		d.root = n
 		return
 	}
-	pColor := n.parent.color
+	pColor := stk.parent.color
 	if pColor == BLACK {
 		// Nothing more to do
 		return
 	}
 	// Parent and n are red
 	nDir := parentSide(n)
-	pDir := parentSide(n.parent)
+	pDir := parentSide(stk.parent)
 	uncle := getUncle(n)
-	grandparent := n.parent.parent
+	grandparent := stk.gp
 
 	if uncle != nil && uncle.color == RED {
 		// Red uncle - push down blackness from root - balance root
 		uncle.color = grandparent.color
-		n.parent.color = grandparent.color
+		stk.parent.color = grandparent.color
 		grandparent.color = RED
-		balance(d, grandparent)
+		newStk, _ := getStack(d, grandparent.key)
+		balance(d, grandparent, newStk)
 		return
 	}
 	// Black uncle
@@ -491,36 +509,40 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
 		switch nDir {
 		case LEFT:
 			// LL - right rotate on grandparent - balance
-			newRoot := n.parent.parent.srRotation()
+			newRoot := stk.gp.srRotation()
 			rCol := newRoot.right.color
 			// Push down newRoot color
 			newRoot.right.color = newRoot.color
 			newRoot.color = rCol
 			// balance newRoot
-			balance(d, newRoot)
+			newStk, _ := getStack(d, newRoot.key)
+			balance(d, newRoot, newStk)
 			return
 		case RIGHT:
 			// LR - rotate parent left - balance left of root
-			newRoot := n.parent.slRotation()
-			balance(d, newRoot.left)
+			newRoot := stk.parent.slRotation()
+			newStk, _ := getStack(d, newRoot.left.key)
+			balance(d, newRoot.left, newStk)
 			return
 		}
 	case RIGHT:
 		switch nDir {
 		case RIGHT:
 			// RR - left rotate on grandparent - balance
-			newRoot := n.parent.parent.slRotation()
+			newRoot := stk.gp.slRotation()
 			// Swap color
 			lCol := newRoot.left.color
 			newRoot.left.color = newRoot.color
 			newRoot.color = lCol
 			// balance newRoot
-			balance(d, newRoot)
+			newStk, _ := getStack(d, newRoot.key)
+			balance(d, newRoot, newStk)
 			return
 		case LEFT:
 			//RL - rotate parent right - balance right of root
-			newRoot := n.parent.srRotation()
-			balance(d, newRoot.right)
+			newRoot := stk.parent.srRotation()
+			newStk, _ := getStack(d, newRoot.right.key)
+			balance(d, newRoot.right, newStk)
 			return
 		}
 	}
@@ -610,4 +632,43 @@ func getUncle[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 	} else {
 		return grandparent.left
 	}
+}
+
+func getRoot[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
+	if n.parent == nil {
+		return n
+	} else {
+		return getRoot(n.parent)
+	}
+}
+
+func getStack[K cmp.Ordered, V any](d *dict[K, V], k K) (*stack[K, V], error) {
+	baseStack := &stack[K, V]{gp: nil, parent: nil}
+	if d.root == nil {
+		return baseStack, nil
+	} else {
+		return getStackHelp(k, d.root, &stack[K, V]{gp: nil, parent: nil})
+	}
+}
+
+func getStackHelp[K cmp.Ordered, V any](k K, n *node[K, V], st *stack[K, V]) (*stack[K, V], error) {
+	switch cmp.Compare(k, n.key) {
+	case LT:
+		if n.left == nil {
+			return st, errors.New("Node does not exist in tree")
+		}
+		st.gp = st.parent
+		st.parent = n
+		return getStackHelp(k, n.left, st)
+	case EQ:
+		return st, nil
+	case GT:
+		if n.right == nil {
+			return st, errors.New("Node does not exist in tree")
+		}
+		st.gp = st.parent
+		st.parent = n
+		return getStackHelp(k, n.right, st)
+	}
+	panic("unreachable")
 }

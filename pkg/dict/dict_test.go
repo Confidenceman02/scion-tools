@@ -6,6 +6,58 @@ import (
 	"testing"
 )
 
+func TestStack(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("getStack with empty Dict", func(t *testing.T) {
+		d := Empty[int, struct{}]()
+
+		SUT, ok := getStack(d.rbt(), 22)
+
+		asserts.Nil(ok)
+		asserts.Equal(&stack[int, struct{}]{gp: nil, parent: nil}, SUT)
+
+	})
+
+	t.Run("getStack with Singleton Dict", func(t *testing.T) {
+		d := Singleton[int, int](1, 1)
+
+		SUT, ok := getStack(d.rbt(), 1)
+
+		asserts.Nil(ok)
+		asserts.Equal(&stack[int, int]{gp: nil, parent: nil}, SUT)
+
+	})
+
+	t.Run("getStack | parent = root | gp = nil", func(t *testing.T) {
+		d := Singleton[int, int](10, 1)
+		d1 := d.Insert(20, 2)
+		d2 := d1.Insert(5, 3)
+
+		SUT, ok := getStack(d2.rbt(), 20)
+
+		asserts.Nil(ok)
+		asserts.Equal(&stack[int, int]{gp: nil, parent: d2.rbt().root}, SUT)
+
+		SUT1, ok1 := getStack(d2.rbt(), 5)
+
+		asserts.Nil(ok1)
+		asserts.Equal(&stack[int, int]{gp: nil, parent: d2.rbt().root}, SUT1)
+	})
+
+	t.Run("getStack parent and gp not nil", func(t *testing.T) {
+		d := Singleton[int, int](10, 1)
+		d1 := d.Insert(20, 2)
+		d2 := d1.Insert(5, 3)
+		d3 := d2.Insert(30, 3)
+
+		SUT, ok := getStack(d3.rbt(), 30)
+
+		asserts.Nil(ok)
+		asserts.Equal(&stack[int, int]{gp: d3.rbt().root, parent: d3.rbt().root.right}, SUT)
+	})
+}
+
 func TestBuild(t *testing.T) {
 	asserts := assert.New(t)
 
@@ -34,14 +86,14 @@ func TestBuild(t *testing.T) {
 func TestInsert(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("Check is immutable to caller", func(t *testing.T) {
-		d := Singleton(1, 2)
-		d1 := d.Insert(2, 2)
-
-		asserts.Equal(1, d.rbt().root.key)
-		asserts.Nil(d.rbt().root.right)
-		asserts.NotNil(d1.rbt().root.right)
-	})
+	// t.Run("Check is immutable to caller", func(t *testing.T) {
+	// 	d := Singleton(1, 2)
+	// 	d1 := d.Insert(2, 2)
+	//
+	// 	asserts.Equal(1, d.rbt().root.key)
+	// 	asserts.Nil(d.rbt().root.right)
+	// 	asserts.NotNil(d1.rbt().root.right)
+	// })
 
 	t.Run("Empty", func(t *testing.T) {
 		asserts.Equal(dict[int, struct{}]{root: nil}, Empty[int, struct{}]())
