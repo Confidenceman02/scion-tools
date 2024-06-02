@@ -203,7 +203,7 @@ func TestInsert(t *testing.T) {
 		asserts.Nil(d2.rbt().root.left.left)
 	})
 
-	t.Run("Immutable after granparent black pushdown", func(t *testing.T) {
+	t.Run("Immutable after granparent color pushdown", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := d.Insert(40, 2)
 		d2 := d1.Insert(45, 3)

@@ -172,10 +172,9 @@ func (d dict[K, V]) Insert(key K, v V) Dict[K, V] {
 
 	valRoot := *d.root
 	inserted, stk := insertHelp(key, v, &valRoot, &stack[K, V]{pp: nil, p: nil})
-	newRoot := getStackRoot(inserted, stk)
-	newD := &dict[K, V]{root: newRoot}
-	balance(newD, inserted, stk)
-	return newD
+	n, stk := balance(inserted, stk)
+	newRoot := getStackRoot(n, stk)
+	return &dict[K, V]{root: newRoot}
 }
 
 func insertHelp[K cmp.Ordered, V any](key K, value V, n *node[K, V], stk *stack[K, V]) (*node[K, V], *stack[K, V]) {
@@ -480,17 +479,16 @@ func findSuccessor[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
 // 	}
 // }
 
-func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V]) {
+func balance[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) (*node[K, V], *stack[K, V]) {
 	// Root case
 	if stk.p == nil {
 		n.color = BLACK
-		d.root = n
-		return
+		return n, stk
 	}
 	pColor := stk.p.color
 	if pColor == BLACK {
 		// Nothing more to do
-		return
+		return n, stk
 	}
 	// Parent and n are red
 	nDir := parentSide(n, stk.p)
@@ -499,16 +497,16 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 	grandparent := stk.pp.p
 
 	if uncle != nil && uncle.color == RED {
-		// Red uncle - push down blackness from root - balance root
-		// copy uncle for mutation
+		// Red uncle - push down blackness from grandparent - balance root
+
+		// Copy uncle for mutation
 		valU := *uncle
 		cpU := &valU
 		cpU.color = grandparent.color
 		stk.p.color = grandparent.color
 		grandparent.color = RED
 		setUncle(n, cpU, stk)
-		balance(d, grandparent, stk.pp.pp)
-		return
+		return balance(grandparent, stk.pp.pp)
 	}
 	// Black uncle
 	switch pDir {
@@ -522,15 +520,13 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 			newRoot.right.color = newRoot.color
 			newRoot.color = rCol
 			// balance newRoot
-			balance(d, newRoot, stk.pp.pp)
-			return
+			return balance(newRoot, stk.pp.pp)
 		case RIGHT:
 			// LR - rotate parent left - balance left of root
 			newRoot := stk.p.slRotation(stk.pp)
 			// Add new root to stack as parent
 			newStk := &stack[K, V]{p: newRoot, pp: stk.pp}
-			balance(d, newRoot.left, newStk)
-			return
+			return balance(newRoot.left, newStk)
 		}
 	case RIGHT:
 		switch nDir {
@@ -542,17 +538,16 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 			newRoot.left.color = newRoot.color
 			newRoot.color = lCol
 			// balance newRoot
-			balance(d, newRoot, stk.pp.pp)
-			return
+			return balance(newRoot, stk.pp.pp)
 		case LEFT:
 			//RL - rotate parent right - balance right of root
 			newRoot := stk.p.srRotation(stk.pp)
 			// Add new root to stack as p
 			newStk := &stack[K, V]{p: newRoot, pp: stk.pp}
-			balance(d, newRoot.right, newStk)
-			return
+			return balance(newRoot.right, newStk)
 		}
 	}
+	return n, stk
 }
 
 func (x *node[K, V]) srRotation(stk *stack[K, V]) *node[K, V] {
