@@ -79,7 +79,31 @@ func Singleton[K cmp.Ordered, V any](key K, value V) Dict[K, V] {
 	}
 }
 
-// Methods
+// Query
+func Member[K cmp.Ordered, V any](k K, d Dict[K, V]) bool {
+	root := d.rbt().root
+
+	if root == nil {
+		return false
+	} else {
+		return memberHelp(k, root)
+	}
+}
+
+func memberHelp[K cmp.Ordered, V any](k K, n *node[K, V]) bool {
+	if n != nil {
+		switch cmp.Compare(k, n.key) {
+		case LT:
+			return memberHelp(k, n.left)
+		case EQ:
+			return true
+		case GT:
+			return memberHelp(k, n.right)
+		}
+	}
+	return false
+}
+
 func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) maybe.Maybe[V] {
 	root := d.rbt().root
 	if root == nil {
@@ -497,6 +521,7 @@ func balance[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) (*node[K, V]
 		// Copy uncle for mutation
 		valU := *uncle
 		cpU := &valU
+
 		cpU.color = grandparent.color
 		stk.p.color = grandparent.color
 		grandparent.color = RED
@@ -510,15 +535,18 @@ func balance[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) (*node[K, V]
 		case LEFT:
 			// LL - right rotate on grandparent - balance
 			newRoot := stk.pp.p.srRotation(stk.pp.pp)
+
+			// Swap colors
 			rCol := newRoot.right.color
-			// Push down newRoot color
 			newRoot.right.color = newRoot.color
 			newRoot.color = rCol
+
 			// balance newRoot
 			return balance(newRoot, stk.pp.pp)
 		case RIGHT:
 			// LR - rotate parent left - balance left of root
 			newRoot := stk.p.slRotation(stk.pp)
+
 			// Add new root to stack as parent
 			newStk := &stack[K, V]{p: newRoot, pp: stk.pp}
 			return balance(newRoot.left, newStk)
@@ -528,16 +556,19 @@ func balance[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) (*node[K, V]
 		case RIGHT:
 			// RR - left rotate on grandparent - balance
 			newRoot := stk.pp.p.slRotation(stk.pp.pp)
+
 			// Swap color
 			lCol := newRoot.left.color
 			newRoot.left.color = newRoot.color
 			newRoot.color = lCol
+
 			// balance newRoot
 			return balance(newRoot, stk.pp.pp)
 		case LEFT:
 			//RL - rotate parent right - balance right of root
 			newRoot := stk.p.srRotation(stk.pp)
-			// Add new root to stack as p
+
+			// Add newRoot to stack as parent
 			newStk := &stack[K, V]{p: newRoot, pp: stk.pp}
 			return balance(newRoot.right, newStk)
 		}

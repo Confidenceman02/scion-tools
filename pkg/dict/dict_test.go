@@ -29,6 +29,40 @@ func TestBuild(t *testing.T) {
 	})
 }
 
+func TestMember(t *testing.T) {
+	asserts := assert.New(t)
+	t.Run("Member on Singleton", func(t *testing.T) {
+		d := Singleton(10, 23)
+
+		asserts.Equal(true, Member(10, d))
+		asserts.Equal(false, Member(2, d))
+	})
+
+	t.Run("Member on Empty", func(t *testing.T) {
+		d := Empty[int, int]()
+
+		asserts.Equal(false, Member(22, d))
+		asserts.Equal(false, Member(2, d))
+	})
+}
+
+func TestGet(t *testing.T) {
+	asserts := assert.New(t)
+	t.Run("Get existing node", func(t *testing.T) {
+		d := Singleton(10, 23)
+		SUT := Get(10, d)
+
+		asserts.Equal(maybe.Just[int]{Value: 23}, SUT)
+	})
+
+	t.Run("Get non-existing entry", func(t *testing.T) {
+		d := Empty[int, int]()
+		SUT := Get(10, d)
+
+		asserts.Equal(maybe.Nothing{}, SUT)
+	})
+}
+
 func TestInsert(t *testing.T) {
 	asserts := assert.New(t)
 
@@ -308,23 +342,6 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(0, SUT.root.left.left.key)
 		asserts.Equal(RED, SUT.root.left.right.color)
 		asserts.Equal(5, SUT.root.left.right.key)
-	})
-}
-
-func TestGet(t *testing.T) {
-	asserts := assert.New(t)
-	t.Run("Get existing node", func(t *testing.T) {
-		d := Singleton(10, 23)
-		SUT := Get(10, d)
-
-		asserts.Equal(maybe.Just[int]{Value: 23}, SUT)
-	})
-
-	t.Run("Get non-existing entry", func(t *testing.T) {
-		d := Empty[int, int]()
-		SUT := Get(10, d)
-
-		asserts.Equal(maybe.Nothing{}, SUT)
 	})
 }
 
