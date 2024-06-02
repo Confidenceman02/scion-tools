@@ -165,20 +165,20 @@ Case 4 - Parent is red and uncle is Black
 */
 
 func (d dict[K, V]) Insert(key K, v V) Dict[K, V] {
-	pt := &d
 
-	if pt.root == nil {
+	if d.root == nil {
 		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, left: nil, right: nil}}
 	}
 
-	inserted, stk := insertHelp(key, v, pt, pt.root, &stack[K, V]{pp: nil, p: nil})
+	valRoot := *d.root
+	inserted, stk := insertHelp(key, v, &valRoot, &stack[K, V]{pp: nil, p: nil})
 	newRoot := getStackRoot(inserted, stk)
 	newD := &dict[K, V]{root: newRoot}
 	balance(newD, inserted, stk)
 	return newD
 }
 
-func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, V], stk *stack[K, V]) (*node[K, V], *stack[K, V]) {
+func insertHelp[K cmp.Ordered, V any](key K, value V, n *node[K, V], stk *stack[K, V]) (*node[K, V], *stack[K, V]) {
 	nKey := n.key
 	switch cmp.Compare(key, nKey) {
 	case LT:
@@ -189,8 +189,11 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, 
 			return n.left, newStk
 		} else {
 			newStk := &stack[K, V]{pp: stk}
+			valL := *n.left
+			ptL := &valL
+			n.left = ptL
 			newStk.p = n
-			return insertHelp(key, value, d, n.left, newStk)
+			return insertHelp(key, value, n.left, newStk)
 		}
 	case EQ:
 		n.value = value
@@ -203,8 +206,11 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, d *dict[K, V], n *node[K, 
 			return n.right, newStk
 		} else {
 			newStk := &stack[K, V]{pp: stk}
+			valR := *n.right
+			ptR := &valR
+			n.right = ptR
 			newStk.p = n
-			return insertHelp(key, value, d, n.right, newStk)
+			return insertHelp(key, value, n.right, newStk)
 		}
 	}
 	panic("unreachable")
@@ -489,14 +495,18 @@ func balance[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V], stk *stack[K, V
 	// Parent and n are red
 	nDir := parentSide(n, stk.p)
 	pDir := parentSide(stk.p, stk.pp.p)
-	uncle := getUncle(stk.p, stk.pp.p)
+	uncle := getUncle(n, stk)
 	grandparent := stk.pp.p
 
 	if uncle != nil && uncle.color == RED {
 		// Red uncle - push down blackness from root - balance root
-		uncle.color = grandparent.color
+		// copy uncle for mutation
+		valU := *uncle
+		cpU := &valU
+		cpU.color = grandparent.color
 		stk.p.color = grandparent.color
 		grandparent.color = RED
+		setUncle(n, cpU, stk)
 		balance(d, grandparent, stk.pp.pp)
 		return
 	}
@@ -599,8 +609,21 @@ func parentSide[K cmp.Ordered, V any](n *node[K, V], p *node[K, V]) int {
 	}
 }
 
-func getUncle[K cmp.Ordered, V any](parent *node[K, V], gp *node[K, V]) *node[K, V] {
+func setUncle[K cmp.Ordered, V any](x *node[K, V], n *node[K, V], stk *stack[K, V]) {
+	parent := stk.p
+	gp := stk.pp.p
 
+	if parentSide(parent, gp) == LEFT {
+		// Uncle is right side
+		gp.right = n
+	} else {
+		gp.left = n
+	}
+}
+
+func getUncle[K cmp.Ordered, V any](x *node[K, V], stk *stack[K, V]) *node[K, V] {
+	parent := stk.p
+	gp := stk.pp.p
 	if parentSide(parent, gp) == LEFT {
 		// Uncle is right side
 		return gp.right

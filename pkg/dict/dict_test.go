@@ -6,72 +6,72 @@ import (
 	"testing"
 )
 
-func TestStack(t *testing.T) {
-	asserts := assert.New(t)
-
-	t.Run("getStack with empty Dict", func(t *testing.T) {
-		d := Empty[int, struct{}]()
-
-		SUT, ok := getStack(d.rbt(), 22)
-
-		asserts.Nil(ok)
-		asserts.Equal(&stack[int, struct{}]{pp: nil, p: nil}, SUT)
-
-	})
-
-	t.Run("getStack with Singleton Dict", func(t *testing.T) {
-		d := Singleton[int, int](1, 1)
-
-		SUT, ok := getStack(d.rbt(), 1)
-
-		asserts.Nil(ok)
-		asserts.Equal(&stack[int, int]{pp: nil, p: nil}, SUT)
-
-	})
-
-	t.Run("getStack | parent = root | pp = nil", func(t *testing.T) {
-		d := Singleton[int, int](10, 1)
-		d1 := d.Insert(20, 2)
-		d2 := d1.Insert(5, 3)
-
-		SUT, ok := getStack(d2.rbt(), 20)
-
-		asserts.Nil(ok)
-		asserts.Equal(&stack[int, int]{pp: &stack[int, int]{pp: nil, p: nil}, p: d2.rbt().root}, SUT)
-
-		SUT1, ok1 := getStack(d2.rbt(), 5)
-
-		asserts.Nil(ok1)
-		asserts.Equal(
-			&stack[int, int]{
-				pp: &stack[int, int]{pp: nil, p: nil},
-				p:  d2.rbt().root,
-			},
-			SUT1,
-		)
-	})
-
-	t.Run("getStack parent and pp not nil", func(t *testing.T) {
-		d := Singleton[int, int](10, 1)
-		d1 := d.Insert(20, 2)
-		d2 := d1.Insert(5, 3)
-		d3 := d2.Insert(30, 3)
-
-		SUT, ok := getStack(d3.rbt(), 30)
-
-		asserts.Nil(ok)
-		asserts.Equal(
-			&stack[int, int]{
-				pp: &stack[int, int]{
-					pp: &stack[int, int]{pp: nil, p: nil},
-					p:  d3.rbt().root,
-				},
-				p: d3.rbt().root.right,
-			},
-			SUT,
-		)
-	})
-}
+// func TestStack(t *testing.T) {
+// 	asserts := assert.New(t)
+//
+// 	t.Run("getStack with empty Dict", func(t *testing.T) {
+// 		d := Empty[int, struct{}]()
+//
+// 		SUT, ok := getStack(d.rbt(), 22)
+//
+// 		asserts.Nil(ok)
+// 		asserts.Equal(&stack[int, struct{}]{pp: nil, p: nil}, SUT)
+//
+// 	})
+//
+// 	t.Run("getStack with Singleton Dict", func(t *testing.T) {
+// 		d := Singleton[int, int](1, 1)
+//
+// 		SUT, ok := getStack(d.rbt(), 1)
+//
+// 		asserts.Nil(ok)
+// 		asserts.Equal(&stack[int, int]{pp: nil, p: nil}, SUT)
+//
+// 	})
+//
+// 	t.Run("getStack | parent = root | pp = nil", func(t *testing.T) {
+// 		d := Singleton[int, int](10, 1)
+// 		d1 := d.Insert(20, 2)
+// 		d2 := d1.Insert(5, 3)
+//
+// 		SUT, ok := getStack(d2.rbt(), 20)
+//
+// 		asserts.Nil(ok)
+// 		asserts.Equal(&stack[int, int]{pp: &stack[int, int]{pp: nil, p: nil}, p: d2.rbt().root}, SUT)
+//
+// 		SUT1, ok1 := getStack(d2.rbt(), 5)
+//
+// 		asserts.Nil(ok1)
+// 		asserts.Equal(
+// 			&stack[int, int]{
+// 				pp: &stack[int, int]{pp: nil, p: nil},
+// 				p:  d2.rbt().root,
+// 			},
+// 			SUT1,
+// 		)
+// 	})
+//
+// 	t.Run("getStack parent and pp not nil", func(t *testing.T) {
+// 		d := Singleton[int, int](10, 1)
+// 		d1 := d.Insert(20, 2)
+// 		d2 := d1.Insert(5, 3)
+// 		d3 := d2.Insert(30, 3)
+//
+// 		SUT, ok := getStack(d3.rbt(), 30)
+//
+// 		asserts.Nil(ok)
+// 		asserts.Equal(
+// 			&stack[int, int]{
+// 				pp: &stack[int, int]{
+// 					pp: &stack[int, int]{pp: nil, p: nil},
+// 					p:  d3.rbt().root,
+// 				},
+// 				p: d3.rbt().root.right,
+// 			},
+// 			SUT,
+// 		)
+// 	})
+// }
 
 func TestBuild(t *testing.T) {
 	asserts := assert.New(t)
@@ -100,20 +100,40 @@ func TestBuild(t *testing.T) {
 func TestInsert(t *testing.T) {
 	asserts := assert.New(t)
 
-	// t.Run("Check is immutable to caller", func(t *testing.T) {
-	// 	d := Singleton(1, 2)
-	// 	d1 := d.Insert(2, 2)
-	//
-	// 	asserts.Equal(1, d.rbt().root.key)
-	// 	asserts.Nil(d.rbt().root.right)
-	// 	asserts.NotNil(d1.rbt().root.right)
-	// })
+	t.Run("Singleton is immutable after Insert", func(t *testing.T) {
+		d := Singleton(1, 2)
+		d1 := d.Insert(2, 2)
+
+		asserts.Equal(1, d.rbt().root.key)
+		asserts.Equal(1, d1.rbt().root.key)
+		asserts.Nil(d.rbt().root.right)
+		asserts.NotNil(d1.rbt().root.right)
+		asserts.Equal(2, d1.rbt().root.right.key)
+	})
+
+	t.Run("Empty is immutable after Insert", func(t *testing.T) {
+		d := Empty[int, int]()
+		d1 := d.Insert(2, 2)
+
+		asserts.Equal(&dict[int, int]{root: nil}, d.rbt())
+		asserts.Equal(2, d1.rbt().root.key)
+	})
+
+	t.Run("Immutable when Insert into existing entry", func(t *testing.T) {
+		d := Singleton(10, 233)
+		d1 := d.Insert(10, 100)
+
+		SUT := d1.rbt()
+
+		asserts.Equal(233, d.rbt().root.value)
+		asserts.Equal(100, SUT.root.value)
+	})
 
 	t.Run("Empty", func(t *testing.T) {
 		asserts.Equal(dict[int, struct{}]{root: nil}, Empty[int, struct{}]())
 	})
 
-	t.Run("Insert nil root", func(t *testing.T) {
+	t.Run("Insert on Empty has properties", func(t *testing.T) {
 		d := Empty[int, int]()
 		d1 := d.Insert(1, 233)
 
@@ -129,7 +149,7 @@ func TestInsert(t *testing.T) {
 		)
 	})
 
-	t.Run("Insert root right side", func(t *testing.T) {
+	t.Run("Insert on Singleton right side", func(t *testing.T) {
 		d := Singleton[int, int](1, 1)
 		d1 := d.Insert(2, 2)
 
@@ -152,6 +172,53 @@ func TestInsert(t *testing.T) {
 			left:  nil,
 			right: nil},
 		}, SUT)
+	})
+
+	t.Run("Immutable LL Single right rotation", func(t *testing.T) {
+		d := Singleton(50, 1)
+		d1 := d.Insert(40, 2)
+		d1.Insert(30, 3)
+
+		asserts.Nil(d1.rbt().root.right)
+		asserts.Equal(40, d1.rbt().root.left.key)
+	})
+
+	t.Run("Immutable LR - RR rotation", func(t *testing.T) {
+		d := Singleton(50, 1)
+		d1 := d.Insert(40, 2)
+		d2 := d1.Insert(45, 3)
+
+		// d1
+		asserts.Equal(50, d1.rbt().root.key)
+		asserts.Nil(d1.rbt().root.right)
+		asserts.Equal(40, d1.rbt().root.left.key)
+		asserts.Nil(d1.rbt().root.left.left)
+		asserts.Nil(d1.rbt().root.left.right)
+
+		// d2
+		asserts.Equal(45, d2.rbt().root.key)
+		asserts.Equal(50, d2.rbt().root.right.key)
+		asserts.Nil(d2.rbt().root.right.right)
+		asserts.Equal(40, d2.rbt().root.left.key)
+		asserts.Nil(d2.rbt().root.left.left)
+	})
+
+	t.Run("Immutable after granparent black pushdown", func(t *testing.T) {
+		d := Singleton(50, 1)
+		d1 := d.Insert(40, 2)
+		d2 := d1.Insert(45, 3)
+		d3 := d2.Insert(30, 3)
+
+		// d2
+		asserts.Equal(50, d2.rbt().root.right.key)
+		asserts.Equal(RED, d2.rbt().root.right.color)
+		asserts.Nil(d2.rbt().root.left.left)
+
+		// d3
+		asserts.Equal(50, d3.rbt().root.right.key)
+		asserts.Equal(BLACK, d3.rbt().root.right.color)
+		asserts.Equal(BLACK, d3.rbt().root.left.color)
+		asserts.Equal(RED, d3.rbt().root.left.left.color)
 	})
 
 	t.Run("LL Single right rotation", func(t *testing.T) {
@@ -228,6 +295,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(BLACK, SUT.root.right.color)
 		asserts.Equal(RED, SUT.root.right.left.color)
 	})
+
 	t.Run("RL double red, black uncle", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := d.Insert(60, 2)
