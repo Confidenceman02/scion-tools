@@ -315,14 +315,14 @@ func TestGet(t *testing.T) {
 	asserts := assert.New(t)
 	t.Run("Get existing node", func(t *testing.T) {
 		d := Singleton(10, 23)
-		SUT := d.Get(10)
+		SUT := Get(10, d)
 
 		asserts.Equal(maybe.Just[int]{Value: 23}, SUT)
 	})
 
 	t.Run("Get non-existing entry", func(t *testing.T) {
 		d := Empty[int, int]()
-		SUT := d.Get(10)
+		SUT := Get(10, d)
 
 		asserts.Equal(maybe.Nothing{}, SUT)
 	})

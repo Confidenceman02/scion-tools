@@ -36,10 +36,6 @@ The rules are as follows for Red-Black trees:
 */
 type Dict[K cmp.Ordered, V any] interface {
 	rbt() *dict[K, V]
-
-	// Operations
-	Get(k K) maybe.Maybe[V]
-	// Remove(k K) Dict[K, V]
 }
 
 /*
@@ -84,11 +80,12 @@ func Singleton[K cmp.Ordered, V any](key K, value V) Dict[K, V] {
 }
 
 // Methods
-func (d dict[K, V]) Get(targetKey K) maybe.Maybe[V] {
-	if d.root == nil {
+func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) maybe.Maybe[V] {
+	root := d.rbt().root
+	if root == nil {
 		return maybe.Nothing{}
 	} else {
-		return getHelp(targetKey, d.root)
+		return getHelp(targetKey, root)
 	}
 }
 
