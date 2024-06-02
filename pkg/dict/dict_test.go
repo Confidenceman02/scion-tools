@@ -6,79 +6,11 @@ import (
 	"testing"
 )
 
-// func TestStack(t *testing.T) {
-// 	asserts := assert.New(t)
-//
-// 	t.Run("getStack with empty Dict", func(t *testing.T) {
-// 		d := Empty[int, struct{}]()
-//
-// 		SUT, ok := getStack(d.rbt(), 22)
-//
-// 		asserts.Nil(ok)
-// 		asserts.Equal(&stack[int, struct{}]{pp: nil, p: nil}, SUT)
-//
-// 	})
-//
-// 	t.Run("getStack with Singleton Dict", func(t *testing.T) {
-// 		d := Singleton[int, int](1, 1)
-//
-// 		SUT, ok := getStack(d.rbt(), 1)
-//
-// 		asserts.Nil(ok)
-// 		asserts.Equal(&stack[int, int]{pp: nil, p: nil}, SUT)
-//
-// 	})
-//
-// 	t.Run("getStack | parent = root | pp = nil", func(t *testing.T) {
-// 		d := Singleton[int, int](10, 1)
-// 		d1 := d.Insert(20, 2)
-// 		d2 := d1.Insert(5, 3)
-//
-// 		SUT, ok := getStack(d2.rbt(), 20)
-//
-// 		asserts.Nil(ok)
-// 		asserts.Equal(&stack[int, int]{pp: &stack[int, int]{pp: nil, p: nil}, p: d2.rbt().root}, SUT)
-//
-// 		SUT1, ok1 := getStack(d2.rbt(), 5)
-//
-// 		asserts.Nil(ok1)
-// 		asserts.Equal(
-// 			&stack[int, int]{
-// 				pp: &stack[int, int]{pp: nil, p: nil},
-// 				p:  d2.rbt().root,
-// 			},
-// 			SUT1,
-// 		)
-// 	})
-//
-// 	t.Run("getStack parent and pp not nil", func(t *testing.T) {
-// 		d := Singleton[int, int](10, 1)
-// 		d1 := d.Insert(20, 2)
-// 		d2 := d1.Insert(5, 3)
-// 		d3 := d2.Insert(30, 3)
-//
-// 		SUT, ok := getStack(d3.rbt(), 30)
-//
-// 		asserts.Nil(ok)
-// 		asserts.Equal(
-// 			&stack[int, int]{
-// 				pp: &stack[int, int]{
-// 					pp: &stack[int, int]{pp: nil, p: nil},
-// 					p:  d3.rbt().root,
-// 				},
-// 				p: d3.rbt().root.right,
-// 			},
-// 			SUT,
-// 		)
-// 	})
-// }
-
 func TestBuild(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Empty", func(t *testing.T) {
 		asserts.Equal(dict[int, struct{}]{root: nil}, Empty[int, struct{}]())
-
 	})
 
 	t.Run("Singleton", func(t *testing.T) {
@@ -102,7 +34,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Singleton is immutable after Insert", func(t *testing.T) {
 		d := Singleton(1, 2)
-		d1 := d.Insert(2, 2)
+		d1 := Insert(2, 2, d)
 
 		asserts.Equal(1, d.rbt().root.key)
 		asserts.Equal(1, d1.rbt().root.key)
@@ -113,7 +45,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Empty is immutable after Insert", func(t *testing.T) {
 		d := Empty[int, int]()
-		d1 := d.Insert(2, 2)
+		d1 := Insert(2, 2, d)
 
 		asserts.Equal(&dict[int, int]{root: nil}, d.rbt())
 		asserts.Equal(2, d1.rbt().root.key)
@@ -121,7 +53,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Immutable when Insert into existing entry", func(t *testing.T) {
 		d := Singleton(10, 233)
-		d1 := d.Insert(10, 100)
+		d1 := Insert(10, 100, d)
 
 		SUT := d1.rbt()
 
@@ -135,7 +67,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Insert on Empty has properties", func(t *testing.T) {
 		d := Empty[int, int]()
-		d1 := d.Insert(1, 233)
+		d1 := Insert(1, 233, d)
 
 		SUT := d1.rbt()
 
@@ -151,7 +83,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Insert on Singleton right side", func(t *testing.T) {
 		d := Singleton[int, int](1, 1)
-		d1 := d.Insert(2, 2)
+		d1 := Insert(2, 2, d)
 
 		SUT := d1.rbt()
 
@@ -161,7 +93,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Insert into existing entry", func(t *testing.T) {
 		d := Singleton(10, 233)
-		d1 := d.Insert(10, 100)
+		d1 := Insert(10, 100, d)
 
 		SUT := d1.rbt()
 
@@ -176,8 +108,8 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Immutable LL Single right rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(40, 2)
-		d1.Insert(30, 3)
+		d1 := Insert(40, 2, d)
+		Insert(30, 3, d1)
 
 		asserts.Nil(d1.rbt().root.right)
 		asserts.Equal(40, d1.rbt().root.left.key)
@@ -185,8 +117,8 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Immutable LR - RR rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(40, 2)
-		d2 := d1.Insert(45, 3)
+		d1 := Insert(40, 2, d)
+		d2 := Insert(45, 3, d1)
 
 		// d1
 		asserts.Equal(50, d1.rbt().root.key)
@@ -203,11 +135,40 @@ func TestInsert(t *testing.T) {
 		asserts.Nil(d2.rbt().root.left.left)
 	})
 
+	t.Run("Immutable RR Single left rotation", func(t *testing.T) {
+		d := Singleton(50, 1)
+		d1 := Insert(60, 2, d)
+		Insert(70, 3, d1)
+
+		asserts.Nil(d1.rbt().root.left)
+		asserts.Equal(60, d1.rbt().root.right.key)
+	})
+
+	t.Run("Immutable LR - LL rotation", func(t *testing.T) {
+		d := Singleton(50, 1)
+		d1 := Insert(60, 2, d)
+		d2 := Insert(55, 3, d1)
+
+		// d1
+		asserts.Equal(50, d1.rbt().root.key)
+		asserts.Nil(d1.rbt().root.left)
+		asserts.Equal(60, d1.rbt().root.right.key)
+		asserts.Nil(d1.rbt().root.right.right)
+		asserts.Nil(d1.rbt().root.right.left)
+
+		// d2
+		asserts.Equal(55, d2.rbt().root.key)
+		asserts.Equal(60, d2.rbt().root.right.key)
+		asserts.Nil(d2.rbt().root.left.left)
+		asserts.Equal(50, d2.rbt().root.left.key)
+		asserts.Nil(d2.rbt().root.right.right)
+	})
+
 	t.Run("Immutable after granparent color pushdown", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(40, 2)
-		d2 := d1.Insert(45, 3)
-		d3 := d2.Insert(30, 3)
+		d1 := Insert(40, 2, d)
+		d2 := Insert(45, 3, d1)
+		d3 := Insert(30, 3, d2)
 
 		// d2
 		asserts.Equal(50, d2.rbt().root.right.key)
@@ -223,8 +184,8 @@ func TestInsert(t *testing.T) {
 
 	t.Run("LL Single right rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(40, 2)
-		d2 := d1.Insert(30, 3)
+		d1 := Insert(40, 2, d)
+		d2 := Insert(30, 3, d1)
 
 		SUT := d2.rbt()
 
@@ -238,8 +199,8 @@ func TestInsert(t *testing.T) {
 
 	t.Run("RR Single right rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(60, 2)
-		d2 := d1.Insert(70, 3)
+		d1 := Insert(60, 2, d)
+		d2 := Insert(70, 3, d1)
 
 		SUT := d2.rbt()
 
@@ -254,9 +215,9 @@ func TestInsert(t *testing.T) {
 	t.Run("LR double red, red uncle", func(t *testing.T) {
 		d := Singleton(50, 1)
 		// Left
-		d1 := d.Insert(40, 2)
-		d2 := d1.Insert(60, 3)
-		d3 := d2.Insert(45, 4)
+		d1 := Insert(40, 2, d)
+		d2 := Insert(60, 3, d1)
+		d3 := Insert(45, 4, d2)
 
 		SUT := d3.rbt()
 
@@ -269,8 +230,8 @@ func TestInsert(t *testing.T) {
 	t.Run("LR double red, black uncle", func(t *testing.T) {
 		d := Singleton(50, 1)
 		// Left
-		d1 := d.Insert(40, 2)
-		d2 := d1.Insert(45, 3)
+		d1 := Insert(40, 2, d)
+		d2 := Insert(45, 3, d1)
 
 		SUT := d2.rbt()
 
@@ -284,9 +245,9 @@ func TestInsert(t *testing.T) {
 
 	t.Run("RL double red, red uncle", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(60, 2)
-		d2 := d1.Insert(40, 3)
-		d3 := d2.Insert(55, 4)
+		d1 := Insert(60, 2, d)
+		d2 := Insert(40, 3, d1)
+		d3 := Insert(55, 4, d2)
 
 		SUT := d3.rbt()
 
@@ -298,8 +259,8 @@ func TestInsert(t *testing.T) {
 
 	t.Run("RL double red, black uncle", func(t *testing.T) {
 		d := Singleton(50, 1)
-		d1 := d.Insert(60, 2)
-		d2 := d1.Insert(55, 4)
+		d1 := Insert(60, 2, d)
+		d2 := Insert(55, 4, d1)
 
 		SUT := d2.rbt()
 
@@ -313,10 +274,10 @@ func TestInsert(t *testing.T) {
 
 	t.Run("test the following inserts 7,5,10,20,15", func(t *testing.T) {
 		d := Singleton(7, 1)
-		d1 := d.Insert(5, 2)
-		d2 := d1.Insert(10, 3)
-		d3 := d2.Insert(20, 3)
-		d4 := d3.Insert(15, 3)
+		d1 := Insert(5, 2, d)
+		d2 := Insert(10, 3, d1)
+		d3 := Insert(20, 3, d2)
+		d4 := Insert(15, 3, d3)
 
 		SUT := d4.rbt()
 
@@ -328,15 +289,14 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(20, SUT.root.right.right.key)
 		asserts.Equal(RED, SUT.root.right.left.color)
 		asserts.Equal(10, SUT.root.right.left.key)
-
 	})
 
 	t.Run("test the following inserts 10,15,5,0,2", func(t *testing.T) {
 		d := Singleton(10, 1)
-		d1 := d.Insert(15, 2)
-		d2 := d1.Insert(5, 3)
-		d3 := d2.Insert(0, 3)
-		d4 := d3.Insert(2, 3)
+		d1 := Insert(15, 2, d)
+		d2 := Insert(5, 3, d1)
+		d3 := Insert(0, 3, d2)
+		d4 := Insert(2, 3, d3)
 
 		SUT := d4.rbt()
 
@@ -348,7 +308,6 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(0, SUT.root.left.left.key)
 		asserts.Equal(RED, SUT.root.left.right.color)
 		asserts.Equal(5, SUT.root.left.right.key)
-
 	})
 }
 
@@ -367,7 +326,6 @@ func TestGet(t *testing.T) {
 
 		asserts.Equal(maybe.Nothing{}, SUT)
 	})
-
 }
 
 // func TestRemove(t *testing.T) {

@@ -38,13 +38,12 @@ type Dict[K cmp.Ordered, V any] interface {
 	rbt() *dict[K, V]
 
 	// Operations
-	Insert(k K, v V) Dict[K, V]
 	Get(k K) maybe.Maybe[V]
 	// Remove(k K) Dict[K, V]
 }
 
 /*
-Retrieve the internal Red-Black trie
+Retrieve the internal Red-Black tree
 */
 func (d dict[K, V]) rbt() *dict[K, V] {
 	return &d
@@ -164,13 +163,14 @@ Case 4 - Parent is red and uncle is Black
         RL.2 Apply RR
 */
 
-func (d dict[K, V]) Insert(key K, v V) Dict[K, V] {
+func Insert[K cmp.Ordered, V any](key K, v V, d Dict[K, V]) Dict[K, V] {
+	root := d.rbt().root
 
-	if d.root == nil {
+	if root == nil {
 		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, left: nil, right: nil}}
 	}
 
-	valRoot := *d.root
+	valRoot := *root
 	inserted, stk := insertHelp(key, v, &valRoot, &stack[K, V]{pp: nil, p: nil})
 	n, stk := balance(inserted, stk)
 	newRoot := getStackRoot(n, stk)
@@ -189,8 +189,7 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, n *node[K, V], stk *stack[
 		} else {
 			newStk := &stack[K, V]{pp: stk}
 			valL := *n.left
-			ptL := &valL
-			n.left = ptL
+			n.left = &valL
 			newStk.p = n
 			return insertHelp(key, value, n.left, newStk)
 		}
@@ -206,8 +205,7 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, n *node[K, V], stk *stack[
 		} else {
 			newStk := &stack[K, V]{pp: stk}
 			valR := *n.right
-			ptR := &valR
-			n.right = ptR
+			n.right = &valR
 			newStk.p = n
 			return insertHelp(key, value, n.right, newStk)
 		}
@@ -632,15 +630,6 @@ func getStackRoot[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) *node[K
 		return n
 	} else {
 		return getStackRoot(stk.p, stk.pp)
-	}
-}
-
-func getStack[K cmp.Ordered, V any](d *dict[K, V], k K) (*stack[K, V], error) {
-	baseStack := &stack[K, V]{pp: nil, p: nil}
-	if d.root == nil {
-		return baseStack, nil
-	} else {
-		return getStackHelp(k, d.root, &stack[K, V]{pp: nil, p: nil})
 	}
 }
 
