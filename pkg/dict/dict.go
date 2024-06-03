@@ -36,13 +36,14 @@ The rules are as follows for Red-Black trees:
 */
 type Dict[K cmp.Ordered, V any] interface {
 	rbt() *dict[K, V]
+	getNodeStack(k K) maybe.Maybe[*nodeStack[K, V]]
 }
 
 /*
 Retrieve the internal Red-Black tree
 */
-func (d dict[K, V]) rbt() *dict[K, V] {
-	return &d
+func (d *dict[K, V]) rbt() *dict[K, V] {
+	return d
 }
 
 type dict[K cmp.Ordered, V any] struct {
@@ -62,14 +63,19 @@ type stack[K cmp.Ordered, V any] struct {
 	p  *node[K, V]
 }
 
+type nodeStack[K cmp.Ordered, V any] struct {
+	stack *stack[K, V]
+	node  *node[K, V]
+}
+
 // Builders
 func Empty[K cmp.Ordered, V any]() Dict[K, V] {
-	return dict[K, V]{root: nil}
+	return &dict[K, V]{root: nil}
 }
 
 func Singleton[K cmp.Ordered, V any](key K, value V) Dict[K, V] {
 	// Root nodes are always black
-	return dict[K, V]{
+	return &dict[K, V]{
 		root: &node[K, V]{
 			key:   key,
 			value: value,
@@ -127,31 +133,44 @@ func getHelp[K cmp.Ordered, V any](targetKey K, n *node[K, V]) maybe.Maybe[V] {
 	return maybe.Nothing{}
 }
 
-func (d *dict[K, V]) getNode(targetKey K) *node[K, V] {
-	if d.root != nil {
-		return getNodeHelp(targetKey, d.root)
+// Get a Just nodeStack or Nothing if node doesn't exist
+func (d *dict[K, V]) getNodeStack(targetKey K) maybe.Maybe[*nodeStack[K, V]] {
+	if d.root == nil {
+		return maybe.Nothing{}
+	} else {
+		return getNodeStackHelp(targetKey, &nodeStack[K, V]{stack: &stack[K, V]{p: nil, pp: nil}, node: d.root})
 	}
-	return d.root
 }
 
-func getNodeHelp[K cmp.Ordered, V any](targetKey K, n *node[K, V]) *node[K, V] {
-	if n != nil {
-		switch cmp.Compare(targetKey, n.key) {
-		case LT:
-			if n.left == nil {
-				return nil
-			}
-			return getNodeHelp(targetKey, n.left)
-		case EQ:
-			return n
-		case GT:
-			if n.right == nil {
-				return nil
-			}
-			return getNodeHelp(targetKey, n.right)
+/*
+Gets a 'Just' nodeStack or 'Nothing' if it doesn't exist
+*/
+func getNodeStackHelp[K cmp.Ordered, V any](targetKey K, ns *nodeStack[K, V]) maybe.Maybe[*node[K, V]] {
+	switch cmp.Compare(targetKey, ns.node.key) {
+	case LT:
+		if ns.node.left == nil {
+			return maybe.Nothing{}
+		} else {
+			newStack := &stack[K, V]{pp: ns.stack, p: ns.node}
+			valL := *ns.node.left
+			ns.node.left = &valL
+			newNs := &nodeStack[K, V]{node: ns.node.left, stack: newStack}
+			return getNodeStackHelp(targetKey, newNs)
+		}
+	case EQ:
+		return maybe.Just[*nodeStack[K, V]]{Value: ns}
+	case GT:
+		if ns.node.right == nil {
+			return maybe.Nothing{}
+		} else {
+			newStack := &stack[K, V]{pp: ns.stack, p: ns.node}
+			valR := *ns.node.right
+			ns.node.right = &valR
+			newNs := &nodeStack[K, V]{node: ns.node.right, stack: newStack}
+			return getNodeStackHelp(targetKey, newNs)
 		}
 	}
-	return nil
+	panic("getNodeHelp unreachable")
 }
 
 /*
@@ -270,36 +289,79 @@ Case 6 - DB sibling is black and far nephew is red
     6.4 Remove DB node to single black
 */
 
-// func (d dict[K, V]) Remove(key K) Dict[K, V] {
-// 	pt := &d
-// 	if d.root == nil {
-// 		// Empty tree
-// 		return d
-// 	} else {
-// 		// Find node to delete
-// 		dn := d.getNode(key)
-// 		removeHelp(pt, dn)
-// 		return *pt
-// 	}
-// }
+func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
+	root := d.rbt().root
+	if root == nil {
+		// Empty tree
+		return d
+	}
+
+	// 	// Find nodeStack to delete
+	maybeNodeStack := d.getNodeStack(key)
+
+	return maybe.MaybeWith(
+		maybeNodeStack,
+		func(j *maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
+			removed := removeHelp(j.Value)
+			newRoot := getStackRoot(removed.node, removed.stack)
+			return &dict[K, V]{root: newRoot}
+		},
+		func(n *maybe.Nothing) Dict[K, V] { return d },
+	)
+}
+
+func removeHelp[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
+	// 2 non-nil children
+	if ns.node.left != nil && ns.node.right != nil {
+		// Copy right node
+		valR := *ns.node.right
+		ns.node.right = &valR
+
+		// Create new stack for right child
+		rightStack := &nodeStack[K, V]{node: ns.node.right, stack: &stack[K, V]{p: ns.node, pp: ns.stack}}
+
+		// Find in order successor
+		succStk := findSuccessor(rightStack)
+
+		// Swap key and values
+		ns.node.key = succStk.node.key
+		ns.node.value = succStk.node.value
+
+		// Find new case
+		return removeHelp(succStk)
+	}
+	// 2 nil children
+	if ns.node.left == nil && ns.node.right == nil {
+		// root node
+		if ns.stack.p == nil {
+			return &nodeStack[K, V]{node: nil, stack: &stack[K, V]{p: nil, pp: nil}}
+		}
+		pSide := parentSide(ns.node, ns.stack.p)
+
+		switch ns.node.color {
+		// case 1 - red leaf
+		case RED:
+			switch pSide {
+			case LEFT:
+				// 1.1 - remove node then exit
+				ns.stack.p.left = nil
+				return ns
+			case RIGHT:
+				// 1.1 - remove node then exit
+				ns.stack.p.right = nil
+				return ns
+			}
+		case BLACK:
+			panic("Implement BLACK leaf with no children")
+			// black leaf - db
+			// fixdb(d, n)
+			// return
+		}
+	}
+	return ns
+}
 
 // func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
-// 	if n == nil {
-// 		// Node doesn't exist
-// 		return
-// 	}
-// 	// 2 non-nil children
-// 	if n.left != nil && n.right != nil {
-// 		suc := findSuccessor(n.right)
-// 		n.key = suc.key
-// 		n.value = suc.value
-// 		// root node
-// 		if n.parent == nil {
-// 			d.root = n
-// 		}
-// 		removeHelp(d, suc)
-// 		return
-// 	}
 // 	// 2 nil children
 // 	if n.left == nil && n.right == nil {
 // 		// root node
@@ -308,24 +370,24 @@ Case 6 - DB sibling is black and far nephew is red
 // 			return
 // 		}
 //
-// 		pSide := parentSide(n, n.parent)
+// 		pside := parentside(n, n.parent)
 //
 // 		switch n.color {
-// 		// Case 1 - Red leaf
-// 		case RED:
-// 			switch pSide {
-// 			case LEFT:
-// 				// 1.1 - Remove node then exit
+// 		// case 1 - red leaf
+// 		case red:
+// 			switch pside {
+// 			case left:
+// 				// 1.1 - remove node then exit
 // 				n.parent.left = nil
 // 				return
-// 			case RIGHT:
-// 				// 1.1 - Remove node then exit
+// 			case right:
+// 				// 1.1 - remove node then exit
 // 				n.parent.right = nil
 // 				return
 // 			}
-// 		case BLACK:
-// 			// Black leaf - DB
-// 			fixDB(d, n)
+// 		case black:
+// 			// black leaf - db
+// 			fixdb(d, n)
 // 			return
 // 		}
 // 	}
@@ -482,11 +544,15 @@ func (n *node[K, V]) isRed() bool {
 	return n != nil && n.color == RED
 }
 
-func findSuccessor[K cmp.Ordered, V any](n *node[K, V]) *node[K, V] {
-	if n.left == nil {
-		return n
+func findSuccessor[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
+	if ns.node.left == nil {
+		return ns
+	} else {
+		valL := *ns.node.left
+		ns.node.left = &valL
+		newStack := &nodeStack[K, V]{node: ns.node.left, stack: &stack[K, V]{p: ns.node, pp: ns.stack}}
+		return findSuccessor(newStack)
 	}
-	return findSuccessor(n.left)
 }
 
 // func findSibling[K cmp.Ordered, V any](n *node[K, V], parent *node[K, V]) *node[K, V] {

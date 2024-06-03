@@ -23,8 +23,18 @@ type Nothing struct {
 
 // Common helpers
 
+func WithDefault[A any](a A, m Maybe[A]) A {
+	return MaybeWith(
+		m,
+		func(j *Just[A]) A { return j.Value },
+		func(_ *Nothing) A { return a },
+	)
+}
+
 /*
 (a -> b) -> Maybe a -> Maybe b
+
+Transform a Maybe value with a given function:
 */
 func Map[A any, B any](f func(A) B, m Maybe[A]) Maybe[B] {
 	return MaybeWith(
@@ -32,12 +42,14 @@ func Map[A any, B any](f func(A) B, m Maybe[A]) Maybe[B] {
 		func(j *Just[A]) Maybe[B] {
 			return Just[B]{Value: f(j.Value)}
 		},
-		func(n *Nothing) Maybe[B] { return Nothing{} },
+		func(_ *Nothing) Maybe[B] { return Nothing{} },
 	)
 }
 
 /*
 (a -> b -> value) -> Maybe a -> Maybe b -> Maybe value
+
+Apply a function if all the arguments are Just a value.
 */
 func Map2[A any, B any, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe[B]) Maybe[value] {
 	return MaybeWith(
