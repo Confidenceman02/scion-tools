@@ -301,12 +301,12 @@ func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
 
 	return maybe.MaybeWith(
 		maybeNodeStack,
-		func(j *maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
+		func(j maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
 			removed := removeHelp(j.Value)
 			newRoot := getStackRoot(removed.node, removed.stack)
 			return &dict[K, V]{root: newRoot}
 		},
-		func(n *maybe.Nothing) Dict[K, V] { return d },
+		func(n maybe.Nothing) Dict[K, V] { return d },
 	)
 }
 
