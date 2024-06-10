@@ -397,6 +397,61 @@ func TestRemove(t *testing.T) {
 		// Different root d2, d3
 		asserts.NotEqual(d2.rbt().root, d3.rbt().root)
 	})
+
+	t.Run("Immutable persistent removal of | BLACK leaf, LEFT | BLACK sibling, RED near nephew, BLACK distant nephew", func(t *testing.T) {
+		var tree Dict[int, int]
+		tree = &dict[int, int]{
+			root: &node[int, int]{
+				key:   40,
+				value: 1,
+				color: BLACK,
+				left:  &node[int, int]{key: 30, value: 2, color: BLACK, left: nil, right: nil},
+				right: &node[int, int]{
+					key:   50,
+					value: 3,
+					color: BLACK,
+					left:  &node[int, int]{key: 45, value: 4, color: RED, left: nil, right: nil},
+					right: nil,
+				},
+			},
+		}
+
+		SUT := Remove(30, tree).rbt()
+
+		asserts.Equal(40, tree.rbt().root.key)
+		asserts.Equal(45, SUT.root.key)
+		asserts.Equal(50, SUT.root.right.key)
+		asserts.Equal(40, SUT.root.left.key)
+		asserts.NotEqual(tree.rbt().root.right, SUT.root.right)
+	})
+
+	t.Run("Immutable persistent removal of | BLACK leaf, RIGHT | BLACK sibling, RED near nephew, BLACK distant nephew", func(t *testing.T) {
+		var tree Dict[int, int]
+		tree = &dict[int, int]{
+			root: &node[int, int]{
+				key:   40,
+				value: 1,
+				color: BLACK,
+				left:  &node[int, int]{key: 30, value: 2, color: BLACK, left: nil, right: &node[int, int]{key: 35, value: 4, color: RED, left: nil, right: nil}},
+				right: &node[int, int]{
+					key:   50,
+					value: 3,
+					color: BLACK,
+					left:  nil,
+					right: nil,
+				},
+			},
+		}
+
+		SUT := Remove(50, tree).rbt()
+
+		asserts.Equal(40, tree.rbt().root.key)
+		asserts.Equal(35, SUT.root.key)
+		asserts.Equal(40, SUT.root.right.key)
+		asserts.Equal(30, SUT.root.left.key)
+		asserts.NotEqual(tree.rbt().root.left, SUT.root.left)
+	})
+
 	// t.Run("Immutable persistent removal of childless BLACK leaf", func(t *testing.T) {
 	// 	d := Singleton(40, 1)
 	// 	d1 := Insert(50, 2, d)

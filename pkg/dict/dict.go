@@ -394,60 +394,78 @@ func fixDB[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 				return fixDB(&nodeStack[K, V]{stack: ns.stack.pp, node: ns.stack.p})
 			}
 		}
+		switch pSide {
+		case LEFT:
+			if sNs.node.left.isRed() && sNs.node.right.isBlack() {
+				// Case 5 - far nephew is BLACK - near nephew is RED
+				// Copy near nephew
+				valSL := *sNs.node.left
+				// 5.1 - Swap colors of sibling and near nephew
+				valSL.color = BLACK
+				sNs.node.left = &valSL
+				sNs.node.color = RED
+
+				// 5.2 Rotate sibling of DB node in opposite direction of DB node
+				sNs.node.srRotation(sNs.stack)
+				// 5.3 Apply Case 6
+				return fixDB(ns)
+			} else {
+				// Case 6 - Far nephew is Red
+				valSR := *sNs.node.right
+				// 6.1 Swap the colors of the DB parent and sibling
+				ns.stack.p.color = sNs.node.color
+				sNs.node.color = pColor
+				// 6.2 Rotate DB parent in DB direction
+				grandparentStk := ns.stack.pp
+				newRoot := ns.stack.p.slRotation(grandparentStk)
+				newNs := &nodeStack[K, V]{stack: grandparentStk, node: newRoot}
+				// 6.3 Turn far nephew's color to black
+				valSR.color = BLACK
+				newNs.node.right = &valSR
+				// 6.4 Remove DB node to single black
+				if ns.node.hasNilChildren() {
+					ns.stack.p.left = nil
+				}
+				return newNs
+			}
+		case RIGHT:
+			if sNs.node.left.isBlack() && sNs.node.right.isRed() {
+				// Case 5 - far nephew is BLACK - near nephew is RED
+				// Copy near nephew
+				valSR := *sNs.node.right
+				// 5.1 - Swap colors of sibling and near nephew
+				valSR.color = BLACK
+				sNs.node.right = &valSR
+				sNs.node.color = RED
+
+				// 5.2 Rotate sibling of DB node in opposite direction of DB node
+				sNs.node.slRotation(sNs.stack)
+				// 5.3 Apply Case 6
+				return fixDB(ns)
+			} else {
+				// Case 6 - Far nephew is Red
+				valSL := *sNs.node.left
+				// 6.1 Swap the colors of the DB parent and sibling
+				ns.stack.p.color = sNs.node.color
+				sNs.node.color = pColor
+				// 6.2 Rotate DB parent in DB direction
+				grandparentStk := ns.stack.pp
+				newRoot := ns.stack.p.srRotation(grandparentStk)
+				newNs := &nodeStack[K, V]{stack: grandparentStk, node: newRoot}
+				// 6.3 Turn far nephew's color to black
+				valSL.color = BLACK
+				newNs.node.left = &valSL
+				// 6.4 Remove DB node to single black
+				if ns.node.hasNilChildren() {
+					ns.stack.p.right = nil
+				}
+				return newNs
+			}
+		}
+		// TODO fix
 	}
-	// TODO fix
 	return ns
 }
-
-// func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
-// 	// 2 nil children
-// 	if n.left == nil && n.right == nil {
-// 		// root node
-// 		if n.parent == nil {
-// 			d.root = nil
-// 			return
-// 		}
-//
-// 		pside := parentside(n, n.parent)
-//
-// 		switch n.color {
-// 		// case 1 - red leaf
-// 		case red:
-// 			switch pside {
-// 			case left:
-// 				// 1.1 - remove node then exit
-// 				n.parent.left = nil
-// 				return
-// 			case right:
-// 				// 1.1 - remove node then exit
-// 				n.parent.right = nil
-// 				return
-// 			}
-// 		case black:
-// 			// black leaf - db
-// 			fixdb(d, n)
-// 			return
-// 		}
-// 	}
-// 	// Black node with red child
-// 	if n.left == nil {
-// 		// No child on the left
-//
-// 		// Replace node with child
-// 		n.key = n.right.key
-// 		n.value = n.right.value
-// 		removeHelp(d, n.right)
-// 		return
-// 	} else {
-// 		// No child on the right
-//
-// 		// Replace node with child
-// 		n.key = n.left.key
-// 		n.value = n.left.value
-// 		removeHelp(d, n.left)
-// 		return
-// 	}
-// }
 
 // func fixDB[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
 // 	// Case 2 - DB is root
@@ -565,6 +583,56 @@ func fixDB[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 // 		removeHelp(d, n)
 // 	}
 // 	return
+// }
+
+// func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
+// 	// 2 nil children
+// 	if n.left == nil && n.right == nil {
+// 		// root node
+// 		if n.parent == nil {
+// 			d.root = nil
+// 			return
+// 		}
+//
+// 		pside := parentside(n, n.parent)
+//
+// 		switch n.color {
+// 		// case 1 - red leaf
+// 		case red:
+// 			switch pside {
+// 			case left:
+// 				// 1.1 - remove node then exit
+// 				n.parent.left = nil
+// 				return
+// 			case right:
+// 				// 1.1 - remove node then exit
+// 				n.parent.right = nil
+// 				return
+// 			}
+// 		case black:
+// 			// black leaf - db
+// 			fixdb(d, n)
+// 			return
+// 		}
+// 	}
+// 	// Black node with red child
+// 	if n.left == nil {
+// 		// No child on the left
+//
+// 		// Replace node with child
+// 		n.key = n.right.key
+// 		n.value = n.right.value
+// 		removeHelp(d, n.right)
+// 		return
+// 	} else {
+// 		// No child on the right
+//
+// 		// Replace node with child
+// 		n.key = n.left.key
+// 		n.value = n.left.value
+// 		removeHelp(d, n.left)
+// 		return
+// 	}
 // }
 
 func (n *node[K, V]) hasNilChildren() bool {
