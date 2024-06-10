@@ -66,7 +66,7 @@ func TestGet(t *testing.T) {
 func TestInsert(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("Singleton is immutable after Insert", func(t *testing.T) {
+	t.Run("Immutable persistent Insert of Singleton", func(t *testing.T) {
 		d := Singleton(1, 2)
 		d1 := Insert(2, 2, d)
 
@@ -77,7 +77,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(2, d1.rbt().root.right.key)
 	})
 
-	t.Run("Empty is immutable after Insert", func(t *testing.T) {
+	t.Run("Immutable persistent Insert of Empty", func(t *testing.T) {
 		d := Empty[int, int]()
 		d1 := Insert(2, 2, d)
 
@@ -85,7 +85,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(2, d1.rbt().root.key)
 	})
 
-	t.Run("Immutable when Insert into existing entry", func(t *testing.T) {
+	t.Run("Immutable persistent Insert into existing entry", func(t *testing.T) {
 		d := Singleton(10, 233)
 		d1 := Insert(10, 100, d)
 
@@ -93,6 +93,17 @@ func TestInsert(t *testing.T) {
 
 		asserts.Equal(233, d.rbt().root.value)
 		asserts.Equal(100, SUT.root.value)
+	})
+
+	t.Run("Immutable persistent Insert with color pushdown", func(t *testing.T) {
+		d := Singleton(40, 1)
+		d1 := Insert(50, 2, d)
+		d2 := Insert(30, 3, d1)
+		// Will cause color pushdown of parent node (40)
+		d3 := Insert(35, 3, d2)
+
+		asserts.Equal(d1.rbt().root.right, d2.rbt().root.right)
+		asserts.NotEqual(d2.rbt().root.right, d3.rbt().root.right)
 	})
 
 	t.Run("Empty", func(t *testing.T) {
@@ -140,7 +151,7 @@ func TestInsert(t *testing.T) {
 		}, SUT)
 	})
 
-	t.Run("Immutable LL Single right rotation", func(t *testing.T) {
+	t.Run("Immutable persistent LL Single right rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		Insert(30, 3, d1)
@@ -149,7 +160,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(40, d1.rbt().root.left.key)
 	})
 
-	t.Run("Immutable LR - RR rotation", func(t *testing.T) {
+	t.Run("Immutable persistent LR - RR rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		d2 := Insert(45, 3, d1)
@@ -169,7 +180,7 @@ func TestInsert(t *testing.T) {
 		asserts.Nil(d2.rbt().root.left.left)
 	})
 
-	t.Run("Immutable RR Single left rotation", func(t *testing.T) {
+	t.Run("Immutable persistent RR Single left rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(60, 2, d)
 		Insert(70, 3, d1)
@@ -178,7 +189,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(60, d1.rbt().root.right.key)
 	})
 
-	t.Run("Immutable LR - LL rotation", func(t *testing.T) {
+	t.Run("Immutable persistent LR - LL rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(60, 2, d)
 		d2 := Insert(55, 3, d1)
@@ -198,7 +209,7 @@ func TestInsert(t *testing.T) {
 		asserts.Nil(d2.rbt().root.right.right)
 	})
 
-	t.Run("Immutable after granparent color pushdown", func(t *testing.T) {
+	t.Run("Immutable persistent after granparent color pushdown", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		d2 := Insert(45, 3, d1)
@@ -348,21 +359,22 @@ func TestInsert(t *testing.T) {
 func TestRemove(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("Immutable removal of Empty Dict returns same pointer", func(t *testing.T) {
+	t.Run("Immutable persistent removal of Empty Dict", func(t *testing.T) {
 		d := Empty[int, int]()
 		d1 := Remove(50, d)
 
 		asserts.Equal(&d, &d1)
 	})
 
-	t.Run("Immutable removal of Singleton key that doesn't exist, returns same pointer", func(t *testing.T) {
+	t.Run("Immutable persistent removal of Singleton key that doesn't exist", func(t *testing.T) {
 		d := Singleton[int, int](1, 1)
 		d1 := Remove(50, d)
 
+		// Pointers match
 		asserts.Equal(&d, &d1)
 	})
 
-	t.Run("Immutable removal of Singleton", func(t *testing.T) {
+	t.Run("Immutable persistent removal of Singleton", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Remove(50, d)
 
@@ -370,6 +382,35 @@ func TestRemove(t *testing.T) {
 		asserts.Equal(50, d.rbt().root.key)
 		asserts.Nil(d1.rbt().root)
 	})
+
+	t.Run("Immutable persistent removal of childless RED leaf", func(t *testing.T) {
+		d := Singleton(50, 1)
+		d1 := Insert(40, 2, d)
+		d2 := Insert(60, 3, d1)
+		d3 := Remove(40, d2)
+
+		asserts.NotNil(d1.rbt().root.left)
+		asserts.NotNil(d2.rbt().root.left)
+		asserts.Nil(d3.rbt().root.left)
+		// Shared structure d2 - d3
+		asserts.Equal(d2.rbt().root.right, d3.rbt().root.right)
+		// Different root d2, d3
+		asserts.NotEqual(d2.rbt().root, d3.rbt().root)
+	})
+	// t.Run("Immutable persistent removal of childless BLACK leaf", func(t *testing.T) {
+	// 	d := Singleton(40, 1)
+	// 	d1 := Insert(50, 2, d)
+	// 	d2 := Insert(30, 3, d1)
+	// 	d3 := Insert(35, 3, d1)
+	//
+	// 	asserts.NotNil(d1.rbt().root.left)
+	// 	asserts.NotNil(d2.rbt().root.left)
+	// 	asserts.Nil(d3.rbt().root.left)
+	// 	// Shared structure d2 - d3
+	// 	asserts.Equal(d2.rbt().root.right, d3.rbt().root.right)
+	// 	// Different root d2, d3
+	// 	asserts.NotEqual(d2.rbt().root, d3.rbt().root)
+	// })
 
 	// t.Run("Removes root node with 2 red children", func(t *testing.T) {
 	// 	d := Singleton(50, 1)

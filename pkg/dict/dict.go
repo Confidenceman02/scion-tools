@@ -138,7 +138,8 @@ func (d *dict[K, V]) getNodeStack(targetKey K) maybe.Maybe[*nodeStack[K, V]] {
 	if d.root == nil {
 		return maybe.Nothing{}
 	} else {
-		return getNodeStackHelp(targetKey, &nodeStack[K, V]{stack: &stack[K, V]{p: nil, pp: nil}, node: d.root})
+		valRoot := *d.root
+		return getNodeStackHelp(targetKey, &nodeStack[K, V]{stack: &stack[K, V]{p: nil, pp: nil}, node: &valRoot})
 	}
 }
 
@@ -296,14 +297,14 @@ func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
 		return d
 	}
 
-	// 	// Find nodeStack to delete
+	// Find nodeStack to delete
 	maybeNodeStack := d.getNodeStack(key)
 
 	return maybe.MaybeWith(
 		maybeNodeStack,
 		func(j maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
-			removed := removeHelp(j.Value)
-			newRoot := getStackRoot(removed.node, removed.stack)
+			ns := removeHelp(j.Value)
+			newRoot := getStackRoot(ns.node, ns.stack)
 			return &dict[K, V]{root: newRoot}
 		},
 		func(n maybe.Nothing) Dict[K, V] { return d },
@@ -334,7 +335,8 @@ func removeHelp[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 	if ns.node.left == nil && ns.node.right == nil {
 		// root node
 		if ns.stack.p == nil {
-			return &nodeStack[K, V]{node: nil, stack: &stack[K, V]{p: nil, pp: nil}}
+			ns.node = nil
+			return ns
 		}
 		pSide := parentSide(ns.node, ns.stack.p)
 
@@ -352,12 +354,48 @@ func removeHelp[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 				return ns
 			}
 		case BLACK:
-			panic("Implement BLACK leaf with no children")
-			// black leaf - db
-			// fixdb(d, n)
-			// return
+			return fixDB(ns)
 		}
 	}
+	return ns
+}
+
+func fixDB[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
+	// Case 2 - DB is root
+	if ns.stack.p == nil {
+		return ns
+	}
+	pColor := ns.stack.p.color
+	pSide := parentSide(ns.node, ns.stack.p)
+	sNs := findSibling(ns)
+
+	// DB sibling is Black
+	if sNs.node.color == BLACK {
+
+		// Case 3
+		if sNs.node.hasBlackChildren() {
+			// 3.1 Remove node if leaf
+			if ns.node.hasNilChildren() {
+				switch pSide {
+				case RIGHT:
+					ns.stack.p.right = nil
+				case LEFT:
+					ns.stack.p.left = nil
+				}
+			}
+			// 3.2 Make sibling red
+			sNs.node.color = RED
+			// 3.3 Push blackness to parent
+			sNs.stack.p.color = BLACK
+			// Check if parent is DB
+			if pColor != BLACK {
+				return ns
+			} else {
+				return fixDB(&nodeStack[K, V]{stack: ns.stack.pp, node: ns.stack.p})
+			}
+		}
+	}
+	// TODO fix
 	return ns
 }
 
@@ -555,14 +593,19 @@ func findSuccessor[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 	}
 }
 
-// func findSibling[K cmp.Ordered, V any](n *node[K, V], parent *node[K, V]) *node[K, V] {
-// 	pDir := parentSide(n, n.parent)
-// 	if pDir == LEFT {
-// 		return n.parent.right
-// 	} else {
-// 		return n.parent.left
-// 	}
-// }
+// Find sibling nodeStack
+func findSibling[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
+	pDir := parentSide(ns.node, ns.stack.p)
+	if pDir == LEFT {
+		valR := *ns.stack.p.right
+		ns.stack.p.right = &valR
+		return &nodeStack[K, V]{stack: ns.stack, node: ns.stack.p.right}
+	} else {
+		valL := *ns.stack.p.left
+		ns.stack.p.left = &valL
+		return &nodeStack[K, V]{stack: ns.stack, node: ns.stack.p.left}
+	}
+}
 
 func balance[K cmp.Ordered, V any](n *node[K, V], stk *stack[K, V]) (*node[K, V], *stack[K, V]) {
 	// Root case
