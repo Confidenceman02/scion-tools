@@ -87,12 +87,13 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Immutable persistent Insert into existing entry", func(t *testing.T) {
 		d := Singleton(10, 233)
-		d1 := Insert(10, 100, d)
+		d1 := Insert(10, 233, d)
 
 		SUT := d1.rbt()
 
 		asserts.Equal(233, d.rbt().root.value)
-		asserts.Equal(100, SUT.root.value)
+		asserts.Equal(233, SUT.root.value)
+		asserts.NotSame(d.rbt().root, SUT.root)
 	})
 
 	t.Run("Immutable persistent Insert with color pushdown", func(t *testing.T) {
@@ -450,6 +451,47 @@ func TestRemove(t *testing.T) {
 		asserts.Equal(40, SUT.root.right.key)
 		asserts.Equal(30, SUT.root.left.key)
 		asserts.NotEqual(tree.rbt().root.left, SUT.root.left)
+	})
+
+	t.Run("Immutable persistent removal of | BLACK leaf, RIGHT | RED sibling", func(t *testing.T) {
+		var tree Dict[int, int]
+		tree = &dict[int, int]{
+			root: &node[int, int]{
+				key:   50,
+				value: 1,
+				color: BLACK,
+				left: &node[int, int]{
+					key:   40,
+					value: 2,
+					color: RED,
+					left:  &node[int, int]{key: 35, value: 5, color: BLACK, left: nil, right: nil},
+					right: &node[int, int]{
+						key:   45,
+						value: 6,
+						color: BLACK,
+						left:  nil,
+						right: nil,
+					},
+				},
+				right: &node[int, int]{
+					key:   60,
+					value: 3,
+					color: BLACK,
+					left:  nil,
+					right: nil,
+				},
+			},
+		}
+
+		SUT := Remove(60, tree).rbt()
+
+		asserts.Equal(50, tree.rbt().root.key)
+		asserts.Equal(40, SUT.root.key)
+		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(50, SUT.root.right.key)
+		asserts.Equal(45, SUT.root.right.left.key)
+		asserts.Equal(RED, SUT.root.right.left.color)
+		asserts.Equal(tree.rbt().root.left.left, SUT.root.left)
 	})
 
 	// t.Run("Immutable persistent removal of childless BLACK leaf", func(t *testing.T) {

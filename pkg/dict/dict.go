@@ -462,9 +462,27 @@ func fixDB[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 				return newNs
 			}
 		}
-		// TODO fix
 	}
-	return ns
+	// Case 4 - Red sibling
+	// 4.1 Swap colors of sibling and parent
+	ns.stack.p.color = sNs.node.color
+	sNs.node.color = pColor
+
+	// 4.2 Rotate parent towards n's direction
+	grandparentStk := ns.stack.pp
+	var newRoot = &node[K, V]{}
+	switch pSide {
+	case LEFT:
+		newRoot = ns.stack.p.slRotation(grandparentStk)
+
+	case RIGHT:
+		newRoot = ns.stack.p.srRotation(grandparentStk)
+	}
+	// Add new root to stack as parent
+	newRootStk := &stack[K, V]{p: newRoot, pp: ns.stack.pp}
+	newPStk := &stack[K, V]{p: ns.stack.p, pp: newRootStk}
+	ns.stack = newPStk
+	return fixDB(ns)
 }
 
 // func fixDB[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
