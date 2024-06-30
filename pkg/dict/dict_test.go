@@ -66,7 +66,7 @@ func TestGet(t *testing.T) {
 func TestInsert(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("Immutable persistent Insert of Singleton", func(t *testing.T) {
+	t.Run("Insert on Singleton", func(t *testing.T) {
 		d := Singleton(1, 2)
 		d1 := Insert(2, 2, d)
 
@@ -77,7 +77,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(2, d1.rbt().root.right.key)
 	})
 
-	t.Run("Immutable persistent Insert of Empty", func(t *testing.T) {
+	t.Run("Insert on Empty", func(t *testing.T) {
 		d := Empty[int, int]()
 		d1 := Insert(2, 2, d)
 
@@ -85,7 +85,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(2, d1.rbt().root.key)
 	})
 
-	t.Run("Immutable persistent Insert into existing entry", func(t *testing.T) {
+	t.Run("Insert into existing entry", func(t *testing.T) {
 		d := Singleton(10, 233)
 		d1 := Insert(10, 233, d)
 
@@ -96,7 +96,7 @@ func TestInsert(t *testing.T) {
 		asserts.NotSame(d.rbt().root, SUT.root)
 	})
 
-	t.Run("Immutable persistent Insert with color pushdown", func(t *testing.T) {
+	t.Run("Insert with color pushdown", func(t *testing.T) {
 		d := Singleton(40, 1)
 		d1 := Insert(50, 2, d)
 		d2 := Insert(30, 3, d1)
@@ -152,7 +152,7 @@ func TestInsert(t *testing.T) {
 		}, SUT)
 	})
 
-	t.Run("Immutable persistent LL Single right rotation", func(t *testing.T) {
+	t.Run("LL Single right rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		Insert(30, 3, d1)
@@ -161,7 +161,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(40, d1.rbt().root.left.key)
 	})
 
-	t.Run("Immutable persistent LR - RR rotation", func(t *testing.T) {
+	t.Run("LR -> RR rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		d2 := Insert(45, 3, d1)
@@ -181,7 +181,7 @@ func TestInsert(t *testing.T) {
 		asserts.Nil(d2.rbt().root.left.left)
 	})
 
-	t.Run("Immutable persistent RR Single left rotation", func(t *testing.T) {
+	t.Run("RR Single left rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(60, 2, d)
 		Insert(70, 3, d1)
@@ -190,7 +190,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(60, d1.rbt().root.right.key)
 	})
 
-	t.Run("Immutable persistent LR - LL rotation", func(t *testing.T) {
+	t.Run("LR -> LL rotation", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(60, 2, d)
 		d2 := Insert(55, 3, d1)
@@ -210,7 +210,7 @@ func TestInsert(t *testing.T) {
 		asserts.Nil(d2.rbt().root.right.right)
 	})
 
-	t.Run("Immutable persistent after granparent color pushdown", func(t *testing.T) {
+	t.Run("granparent color pushdown", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		d2 := Insert(45, 3, d1)
@@ -355,19 +355,30 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(RED, SUT.root.left.right.color)
 		asserts.Equal(5, SUT.root.left.right.key)
 	})
+
+	t.Run("Structure sharing right subtree", func(t *testing.T) {
+		d := Singleton(40, 1)
+		d1 := Insert(50, 2, d)
+		d2 := Insert(30, 3, d1)
+		d3 := Insert(35, 3, d1)
+
+		asserts.Equal(d1.rbt().root.right, d2.rbt().root.right)
+		asserts.Equal(d2.rbt().root.right, d3.rbt().root.right)
+	})
+
 }
 
 func TestRemove(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("Immutable persistent removal of Empty Dict", func(t *testing.T) {
+	t.Run("remove Empty Dict", func(t *testing.T) {
 		d := Empty[int, int]()
 		d1 := Remove(50, d)
 
 		asserts.Equal(&d, &d1)
 	})
 
-	t.Run("Immutable persistent removal of Singleton key that doesn't exist", func(t *testing.T) {
+	t.Run("remove Singleton key that doesn't exist", func(t *testing.T) {
 		d := Singleton[int, int](1, 1)
 		d1 := Remove(50, d)
 
@@ -375,7 +386,7 @@ func TestRemove(t *testing.T) {
 		asserts.Equal(&d, &d1)
 	})
 
-	t.Run("Immutable persistent removal of Singleton", func(t *testing.T) {
+	t.Run("remove Singleton", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Remove(50, d)
 
@@ -384,7 +395,7 @@ func TestRemove(t *testing.T) {
 		asserts.Nil(d1.rbt().root)
 	})
 
-	t.Run("Immutable persistent removal of childless RED leaf", func(t *testing.T) {
+	t.Run("remove childless RED leaf", func(t *testing.T) {
 		d := Singleton(50, 1)
 		d1 := Insert(40, 2, d)
 		d2 := Insert(60, 3, d1)
@@ -505,28 +516,80 @@ func TestRemove(t *testing.T) {
 		asserts.Equal(tree.rbt().root.left.left, SUT.root.left)
 	})
 
-	t.Run("Structure sharing right subtree", func(t *testing.T) {
-		d := Singleton(40, 1)
-		d1 := Insert(50, 2, d)
-		d2 := Insert(30, 3, d1)
-		d3 := Insert(35, 3, d1)
+	t.Run("BLACK node, LEFT | RED child, LEFT | NIL child, RIGHT", func(t *testing.T) {
+		var tree Dict[int, int]
+		tree = &dict[int, int]{
+			root: &node[int, int]{
+				key:   50,
+				value: 1,
+				color: BLACK,
+				left: &node[int, int]{
+					key:   40,
+					color: BLACK,
+					value: 3,
+					left:  nil,
+					right: &node[int, int]{key: 45, color: RED, value: 6, left: nil, right: nil}},
+				right: &node[int, int]{key: 60, color: BLACK, value: 2, left: nil, right: nil},
+			},
+		}
 
-		asserts.Equal(d1.rbt().root.right, d2.rbt().root.right)
-		asserts.Equal(d2.rbt().root.right, d3.rbt().root.right)
+		SUT := Remove(40, tree).rbt()
+
+		asserts.Nil(SUT.root.left.right)
+		asserts.Equal(45, SUT.root.left.key)
+
+		// Structure Sharing
+		asserts.Equal(tree.rbt().root.right, SUT.root.right)
 	})
 
-	// t.Run("Removes root node with 2 red children", func(t *testing.T) {
-	// 	d := Singleton(50, 1)
-	// 	d1 := Insert(60, 2, d)
-	// 	d2 := Insert(40, 3, d1)
-	// 	d3 := Remove(50, d2)
-	//
-	// 	SUT := d3.rbt()
-	//
-	// 	asserts.Equal(60, SUT.root.key)
-	// 	asserts.Nil(SUT.root.right)
-	// 	asserts.Equal(40, SUT.root.left.key)
-	// })
+	t.Run("BLACK node, RIGHT | RED child, LEFT | NIL child, RIGHT", func(t *testing.T) {
+		var tree Dict[int, int]
+		tree = &dict[int, int]{
+			root: &node[int, int]{
+				key:   50,
+				value: 1,
+				color: BLACK,
+				right: &node[int, int]{
+					key:   60,
+					color: BLACK,
+					value: 3,
+					left:  &node[int, int]{key: 55, color: RED, value: 6, left: nil, right: nil},
+					right: nil,
+				},
+				left: &node[int, int]{key: 40, color: BLACK, value: 2, left: nil, right: nil},
+			},
+		}
+
+		SUT := Remove(60, tree).rbt()
+
+		asserts.Nil(SUT.root.right.left)
+		asserts.Equal(55, SUT.root.right.key)
+
+		// Structure Sharing
+		asserts.Equal(tree.rbt().root.left, SUT.root.left)
+	})
+
+	t.Run("Removes root node with 2 red children", func(t *testing.T) {
+		var tree Dict[int, int]
+		tree = &dict[int, int]{
+			root: &node[int, int]{
+				key:   50,
+				color: BLACK,
+				value: 1,
+				left:  &node[int, int]{key: 40, color: RED, value: 2, left: nil, right: nil},
+				right: &node[int, int]{key: 60, color: RED, value: 3, left: nil, right: nil},
+			},
+		}
+
+		SUT := Remove(50, tree).rbt()
+
+		asserts.Equal(60, SUT.root.key)
+		asserts.Nil(SUT.root.right)
+		asserts.Equal(40, SUT.root.left.key)
+
+		// Structure Sharing
+		asserts.Equal(SUT.root.left, tree.rbt().root.left)
+	})
 	//
 	// t.Run("Removes red right leaf node with no children", func(t *testing.T) {
 	// 	d := Singleton(50, 1)
