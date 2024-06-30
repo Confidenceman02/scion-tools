@@ -357,7 +357,36 @@ func removeHelp[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 			return fixDB(ns)
 		}
 	}
-	return ns
+	// Black node with red child
+	if ns.node.left == nil {
+		// Copy right node
+		valR := *ns.node.right
+		ns.node.right = &valR
+
+		// Replace node with right node
+		ns.node.key = ns.node.right.key
+		ns.node.value = ns.node.right.value
+
+		// New nodeStack
+		newStack := &stack[K, V]{p: ns.node, pp: ns.stack}
+		newNs := &nodeStack[K, V]{node: ns.node.right, stack: newStack}
+
+		return removeHelp(newNs)
+	} else {
+		// Copy left node
+		valL := *ns.node.left
+		ns.node.left = &valL
+
+		// Replace node with right node
+		ns.node.key = ns.node.left.key
+		ns.node.value = ns.node.left.value
+
+		// New nodeStack
+		newStack := &stack[K, V]{p: ns.node, pp: ns.stack}
+		newNs := &nodeStack[K, V]{node: ns.node.left, stack: newStack}
+
+		return removeHelp(newNs)
+	}
 }
 
 func fixDB[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
