@@ -46,6 +46,24 @@ func TestMember(t *testing.T) {
 	})
 }
 
+func TestIsEmpty(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Empty dict", func(t *testing.T) {
+		d := Empty[int, int]()
+		SUT := IsEmpty(d)
+
+		asserts.True(SUT)
+	})
+
+	t.Run("Singleton dict", func(t *testing.T) {
+		d := Singleton[int, int](100, 1)
+		SUT := IsEmpty(d)
+
+		asserts.False(SUT)
+	})
+}
+
 func TestGet(t *testing.T) {
 	asserts := assert.New(t)
 	t.Run("Get existing node", func(t *testing.T) {
