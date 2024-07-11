@@ -85,7 +85,115 @@ func Singleton[K cmp.Ordered, V any](key K, value V) Dict[K, V] {
 	}
 }
 
+/*
+Insert with BST insertion
+
+- New nodes inserted are always red
+
+Case 1 - Node is root
+    1.1 Color node Black and exit
+
+Case 2 - Black parent
+    2.1 Exit
+
+Case 3 - Parent is red and uncle is red
+    3.1 Push down blackness from grandparent
+    3.2 Find new condition for grandparent
+
+Case 4 - Parent is red and uncle is Black
+    LL
+        ll.1 Rotate grandparent right
+        ll.2 Swap colors of grandparent and parent
+    LR
+        LR.1 Left rotation of parent
+        LR.2 Apply LL
+    RR
+        RR.1 Rotate grandparent left
+        RR.2 Swap colors of grandparent and parent
+    RL
+        RL.1 Right rotation of parent
+        RL.2 Apply RR
+*/
+
+func Insert[K cmp.Ordered, V any](key K, v V, d Dict[K, V]) Dict[K, V] {
+	root := d.rbt().root
+
+	if root == nil {
+		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, left: nil, right: nil}}
+	}
+
+	valRoot := *root
+	ns := &nodeStack[K, V]{node: &valRoot, stack: &stack[K, V]{p: nil, pp: nil}}
+	insertedNs := insertHelp(key, v, ns)
+	newNs := balance(insertedNs)
+	rootNs := getNodeStackRoot(newNs)
+	return &dict[K, V]{root: rootNs.node}
+}
+
+// TODO Update
+
+/*
+Removal is a bit more of a process to that of insertion
+
+For any node, the black height across all paths is equal.
+
+- Only leaf nodes can be removed
+
+Case 1 - Node is a red leaf
+    1.1
+        Delete node and exit
+Case 2 - Double Black (DB) is root
+    2.2
+        Remove DB
+Case 3 - DB sibling is black and both nephews are black
+    3.1
+        Remove DB node
+    3.2
+        Make sibling red
+    3.3
+        Add black to parent. If parent was red, make black
+        otherwise make it a DB and find appropriate CASE
+Case 4 - DB sibling is red
+    4.1 Swap colors of DB parent & sibling
+    4.2 Rotate parent in DB's direction
+    4.3 Find next case for DB
+Case 5 - DB sibling is black, far nephew is black and near nephew is red
+    5.1 Swap colors of the DB sibling and near nephew
+    5.2 Rotate sibling of DB node in opposite direction of DB node
+    5.3 Apply case 6
+Case 6 - DB sibling is black and far nephew is red
+    6.1 Swap the colors of the DB parent and sibling
+    6.2 Rotate DB parent in DB direction
+    6.3 Turn far nephews color to black
+    6.4 Remove DB node to single black
+*/
+
+func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
+	root := d.rbt().root
+	if root == nil {
+		// Empty tree
+		return d
+	}
+
+	// Find nodeStack to delete
+	maybeNodeStack := d.getNodeStack(key)
+
+	return maybe.MaybeWith(
+		maybeNodeStack,
+		func(j maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
+			ns := removeHelp(j.Value)
+			rootNs := getNodeStackRoot(ns)
+			return &dict[K, V]{root: rootNs.node}
+		},
+		func(n maybe.Nothing) Dict[K, V] { return d },
+	)
+}
+
 // Query
+func IsEmpty[K cmp.Ordered, V any](d Dict[K, V]) bool {
+	return d.rbt().root == nil
+}
+
 func Member[K cmp.Ordered, V any](k K, d Dict[K, V]) bool {
 	root := d.rbt().root
 
@@ -174,51 +282,6 @@ func getNodeStackHelp[K cmp.Ordered, V any](targetKey K, ns *nodeStack[K, V]) ma
 	panic("getNodeHelp unreachable")
 }
 
-/*
-Insert with BST insertion
-
-- New nodes inserted are always red
-
-Case 1 - Node is root
-    1.1 Color node Black and exit
-
-Case 2 - Black parent
-    2.1 Exit
-
-Case 3 - Parent is red and uncle is red
-    3.1 Push down blackness from grandparent
-    3.2 Find new condition for grandparent
-
-Case 4 - Parent is red and uncle is Black
-    LL
-        ll.1 Rotate grandparent right
-        ll.2 Swap colors of grandparent and parent
-    LR
-        LR.1 Left rotation of parent
-        LR.2 Apply LL
-    RR
-        RR.1 Rotate grandparent left
-        RR.2 Swap colors of grandparent and parent
-    RL
-        RL.1 Right rotation of parent
-        RL.2 Apply RR
-*/
-
-func Insert[K cmp.Ordered, V any](key K, v V, d Dict[K, V]) Dict[K, V] {
-	root := d.rbt().root
-
-	if root == nil {
-		return &dict[K, V]{root: &node[K, V]{key: key, value: v, color: BLACK, left: nil, right: nil}}
-	}
-
-	valRoot := *root
-	ns := &nodeStack[K, V]{node: &valRoot, stack: &stack[K, V]{p: nil, pp: nil}}
-	insertedNs := insertHelp(key, v, ns)
-	newNs := balance(insertedNs)
-	rootNs := getNodeStackRoot(newNs)
-	return &dict[K, V]{root: rootNs.node}
-}
-
 func insertHelp[K cmp.Ordered, V any](key K, value V, ns *nodeStack[K, V]) *nodeStack[K, V] {
 	nKey := ns.node.key
 	switch cmp.Compare(key, nKey) {
@@ -253,63 +316,6 @@ func insertHelp[K cmp.Ordered, V any](key K, value V, ns *nodeStack[K, V]) *node
 		}
 	}
 	panic("unreachable")
-}
-
-/*
-Removal is a bit more of a process to that of insertion
-
-For any node, the black height across all paths is equal.
-
-- Only leaf nodes can be removed
-
-Case 1 - Node is a red leaf
-    1.1
-        Delete node and exit
-Case 2 - Double Black (DB) is root
-    2.2
-        Remove DB
-Case 3 - DB sibling is black and both nephews are black
-    3.1
-        Remove DB node
-    3.2
-        Make sibling red
-    3.3
-        Add black to parent. If parent was red, make black
-        otherwise make it a DB and find appropriate CASE
-Case 4 - DB sibling is red
-    4.1 Swap colors of DB parent & sibling
-    4.2 Rotate parent in DB's direction
-    4.3 Find next case for DB
-Case 5 - DB sibling is black, far nephew is black and near nephew is red
-    5.1 Swap colors of the DB sibling and near nephew
-    5.2 Rotate sibling of DB node in opposite direction of DB node
-    5.3 Apply case 6
-Case 6 - DB sibling is black and far nephew is red
-    6.1 Swap the colors of the DB parent and sibling
-    6.2 Rotate DB parent in DB direction
-    6.3 Turn far nephews color to black
-    6.4 Remove DB node to single black
-*/
-
-func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
-	root := d.rbt().root
-	if root == nil {
-		// Empty tree
-		return d
-	}
-
-	// Find nodeStack to delete
-	maybeNodeStack := d.getNodeStack(key)
-
-	return maybe.MaybeWith(
-		maybeNodeStack,
-		func(j maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
-			ns := removeHelp(j.Value)
-			rootNs := getNodeStackRoot(ns)
-			return &dict[K, V]{root: rootNs.node}
-		},
-		func(n maybe.Nothing) Dict[K, V] { return d },
-	)
 }
 
 func removeHelp[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
@@ -514,174 +520,6 @@ func fixDB[K cmp.Ordered, V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 	ns.stack = newPStk
 	return fixDB(ns)
 }
-
-// func fixDB[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
-// 	// Case 2 - DB is root
-// 	if n.parent == nil {
-// 		return
-// 	}
-// 	pColor := n.parent.color
-// 	pSide := parentSide(n, n.parent)
-// 	sibling := findSibling(n, n.parent)
-//
-// 	// DB sibling is Black
-// 	if sibling.color == BLACK {
-// 		// Case 3
-// 		if sibling.hasBlackChildren() {
-// 			// 3.2 Make sibling red
-// 			sibling.color = RED
-// 			// Push blackness to parent
-// 			n.parent.color = BLACK
-// 			if n.hasNilChildren() {
-// 				// Node is a leaf node to delete
-// 				switch pSide {
-// 				case LEFT:
-// 					// 3.1 remove node
-// 					n.parent.left = nil
-// 				case RIGHT:
-// 					// 3.1 remove node
-// 					n.parent.right = nil
-// 				}
-// 			}
-//
-// 			if pColor != BLACK {
-// 				return
-// 			}
-// 			fixDB(d, n.parent)
-// 			return
-// 		}
-// 		switch pSide {
-// 		case LEFT:
-// 			if sibling.left.isRed() && sibling.right.isBlack() {
-// 				// Case 5 - far nephew is Black - near nephew is Red
-// 				// 5.1 - Swap colors of sibling and near nephew
-// 				sibling.color = RED
-// 				sibling.left.color = BLACK
-// 				// 5.2 Rotate sibling of DB node in opposite direction of DB node
-// 				sibling.srRotation()
-// 				// 5.3 Apply Case 6
-// 				fixDB(d, n)
-// 				return
-// 			} else {
-// 				// Case 6 - Far nephew is Red
-// 				// 6.1 Swap the colors of the DB parent and sibling
-// 				n.parent.color = sibling.color
-// 				sibling.color = pColor
-// 				// 6.2 Rotate DB parent in DB direction
-// 				newRoot := n.parent.slRotation()
-// 				// 6.3 Turn far nephew's color to black
-// 				newRoot.right.color = BLACK
-// 				// Check for a new root
-// 				if newRoot.parent == nil {
-// 					d.root = newRoot
-// 				}
-//
-// 				// 6.4 Remove DB node to single black
-// 				if n.hasNilChildren() {
-// 					n.parent.left = nil
-// 				}
-// 				return
-// 			}
-// 		case RIGHT:
-// 			if sibling.right.isRed() && sibling.left.isBlack() {
-// 				// Case 5 - far nephew is Black - near nephew is Red
-// 				// 5.1 Swap colors of the DB sibling and near nephew
-// 				sibling.color = RED
-// 				sibling.right.color = BLACK
-// 				// 5.2 Rotate sibling of DB node in opposite direction of DB node
-// 				sibling.slRotation()
-// 				// 5.3 Apply case 6
-// 				fixDB(d, n)
-// 				return
-// 			} else {
-// 				// Case 6 - far newphew is Red
-// 				// 6.1 Swap the colors of the DB parent and sibling
-// 				n.parent.color = sibling.color
-// 				sibling.color = pColor
-// 				// 6.2 Rotate DB parent in DB direction
-// 				newRoot := n.parent.srRotation()
-// 				// 6.3 Turn far nephews color to black
-// 				newRoot.left.color = BLACK
-// 				// Check for a new root
-// 				if newRoot.parent == nil {
-// 					d.root = newRoot
-// 				}
-// 				// 6.4 Remove DB node to single black
-// 				if n.hasNilChildren() {
-// 					n.parent.right = nil
-// 				}
-// 				return
-// 			}
-// 		}
-// 	}
-// 	// Case 4 - Red sibling
-//
-// 	// 4.1 Swap colors of sibling and parent
-// 	sibling.color = pColor
-// 	n.parent.color = RED
-//
-// 	// 4.2 Rotate parent towards n's direction
-// 	switch pSide {
-// 	case LEFT:
-// 		n.parent.slRotation()
-// 	case RIGHT:
-// 		n.parent.srRotation()
-// 	}
-// 	if n.hasNilChildren() {
-// 		removeHelp(d, n)
-// 	}
-// 	return
-// }
-
-// func removeHelp[K cmp.Ordered, V any](d *dict[K, V], n *node[K, V]) {
-// 	// 2 nil children
-// 	if n.left == nil && n.right == nil {
-// 		// root node
-// 		if n.parent == nil {
-// 			d.root = nil
-// 			return
-// 		}
-//
-// 		pside := parentside(n, n.parent)
-//
-// 		switch n.color {
-// 		// case 1 - red leaf
-// 		case red:
-// 			switch pside {
-// 			case left:
-// 				// 1.1 - remove node then exit
-// 				n.parent.left = nil
-// 				return
-// 			case right:
-// 				// 1.1 - remove node then exit
-// 				n.parent.right = nil
-// 				return
-// 			}
-// 		case black:
-// 			// black leaf - db
-// 			fixdb(d, n)
-// 			return
-// 		}
-// 	}
-// 	// Black node with red child
-// 	if n.left == nil {
-// 		// No child on the left
-//
-// 		// Replace node with child
-// 		n.key = n.right.key
-// 		n.value = n.right.value
-// 		removeHelp(d, n.right)
-// 		return
-// 	} else {
-// 		// No child on the right
-//
-// 		// Replace node with child
-// 		n.key = n.left.key
-// 		n.value = n.left.value
-// 		removeHelp(d, n.left)
-// 		return
-// 	}
-// }
 
 func (n *node[K, V]) hasNilChildren() bool {
 	return n.left == nil && n.right == nil
