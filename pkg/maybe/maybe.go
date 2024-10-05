@@ -1,7 +1,11 @@
+// Package maybe can help you with optional arguments, error handling, and records with optional fields.
 package maybe
 
-// Definition
+// DEFINITION
 
+// Maybe represents values that may or may not exist.
+// It can be useful if you have a record field that is only filled in sometimes.
+// Or if a function takes a value sometimes, but does not absolutely need it.
 type Maybe[A any] interface {
 	maybe() _maybe
 }
@@ -12,18 +16,23 @@ func (m _maybe) maybe() _maybe {
 	return m
 }
 
-// Variants
+// VARIANTS
+
+// Just - Represent an existing optional value.
 type Just[A any] struct {
 	_maybe
 	Value A
 }
 
+// Nothing - Represent a missing optional value.
 type Nothing struct {
 	_maybe
 }
 
 // Common helpers
 
+// Provide a default value, turning an optional value into a normal value.
+// This comes in handy when paired with functions like [dict.Get] which gives back a Maybe.
 func WithDefault[A any](a A, m Maybe[A]) A {
 	return MaybeWith(
 		m,
@@ -33,8 +42,6 @@ func WithDefault[A any](a A, m Maybe[A]) A {
 }
 
 // Transform a Maybe value with a given function:
-//
-// (a -> b) -> Maybe a -> Maybe b
 func Map[A any, B any](f func(A) B, m Maybe[A]) Maybe[B] {
 	return MaybeWith(
 		m,
@@ -46,8 +53,6 @@ func Map[A any, B any](f func(A) B, m Maybe[A]) Maybe[B] {
 }
 
 // Apply a function if all the arguments are Just a value.
-//
-// (a -> b -> value) -> Maybe a -> Maybe b -> Maybe value
 func Map2[A any, B any, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe[B]) Maybe[value] {
 	return MaybeWith(
 		m1,
@@ -64,7 +69,7 @@ func Map2[A any, B any, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe
 	)
 }
 
-// (a -> b -> c -> value) -> Maybe a -> Maybe b -> Maybe c -> Maybe value
+// Map3
 func Map3[A any, B any, C any, value any](f func(a A, b B, c C) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C]) Maybe[value] {
 	return MaybeWith(
 		m1,
@@ -85,7 +90,7 @@ func Map3[A any, B any, C any, value any](f func(a A, b B, c C) value, m1 Maybe[
 	)
 }
 
-// (a -> b -> c -> d -> value) -> Maybe a -> Maybe b -> Maybe c -> Maybe d -> Maybe value
+// Map4
 func Map4[A any, B any, C any, D any, value any](f func(a A, b B, c C, d D) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D]) Maybe[value] {
 	return MaybeWith(
 		m1,
@@ -112,7 +117,7 @@ func Map4[A any, B any, C any, D any, value any](f func(a A, b B, c C, d D) valu
 	)
 }
 
-// (a -> b -> c -> d -> e -> value) -> Maybe a -> Maybe b -> Maybe c -> Maybe d -> Maybe e -> Maybe value
+// Map5
 func Map5[A any, B any, C any, D any, E any, value any](f func(a A, b B, c C, d D, e E) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D], m5 Maybe[E]) Maybe[value] {
 	return MaybeWith(
 		m1,
@@ -147,9 +152,7 @@ func Map5[A any, B any, C any, D any, E any, value any](f func(a A, b B, c C, d 
 	)
 }
 
-// Chain together many computations that may fail
-//
-//	(a -> Maybe b) -> Maybe a -> Maybe b
+// Chain together many computations that may fail.
 func AndThen[A any, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B] {
 	return MaybeWith(
 		m,
@@ -158,7 +161,7 @@ func AndThen[A any, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B] {
 	)
 }
 
-// Pattern matching for the poor man
+// Provide functions for a Maybe's Just and Nothing variants
 func MaybeWith[V any, R any](
 	m Maybe[V],
 	j func(Just[V]) R,
