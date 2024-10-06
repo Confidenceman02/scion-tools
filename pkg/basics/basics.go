@@ -5,17 +5,11 @@ import (
 	"math"
 )
 
+type Int int
+type Float float64
+
 type Number interface {
 	Int | Float
-}
-
-type Int interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
-}
-
-type Float interface {
-	~float64
 }
 
 // Add two numbers. The number type variable means this operation can be specialized to any Number type.
@@ -24,26 +18,26 @@ func Add[T Number](a, b T) T {
 }
 
 // ToFloat - Convert an integer into a float. Useful when mixing Int and Float values.
-func ToFloat[T Int](x T) float64 {
-	return float64(x)
+func ToFloat[T Int](x T) Float {
+	return Float(x)
 }
 
 // Round a number to the nearest integer.
-func Round(x float64) int {
-	return int(math.Round(x))
+func Round(x Float) Int {
+	return Int(math.Round(float64(x)))
 }
 
 // Floor function, rounding down.
-func Floor(x float64) int {
-	return int(math.Floor(x))
+func Floor(x Float) Int {
+	return Int(math.Floor(float64(x)))
 }
 
 // Ceiling function, rounding up.
-func Ceiling(x float64) int {
-	return int(math.Ceil(x))
+func Ceiling(x Float) Int {
+	return Int(math.Ceil(float64(x)))
 }
 
 // Truncate a number, rounding towards zero
-func Truncate(x float64) int {
-	return int(math.Trunc(x))
+func Truncate(x Float) Int {
+	return Int(math.Trunc(float64(x)))
 }

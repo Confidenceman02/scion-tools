@@ -3,7 +3,7 @@ package basics
 import "fmt"
 
 func ExampleAdd() {
-	fmt.Println(Add(2, 3))
+	fmt.Println(Add(Int(2), Int(3)))
 	// Output: 5
 }
 
