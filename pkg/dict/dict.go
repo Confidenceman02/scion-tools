@@ -1,3 +1,6 @@
+// Package dict implements an immutable dictionary, mapping unique keys to values.
+// The keys can be any [cmp.Ordered] type.
+// Insert, remove, and query operations all take O(log n) time.
 package dict
 
 import (
@@ -34,6 +37,9 @@ The rules are as follows for Red-Black trees:
  3. If a node is red, then both its children are black. (No consecutive red nodes)
  4. Every simple path from a node to a descendant leaf contains the same number of black nodes.
 */
+
+// Dict represents a dictionary of keys and values.
+// So a Dict[string, User] is a dictionary that lets you look up a string (such as user names) and find the associated User.
 type Dict[K cmp.Ordered, V any] interface {
 	rbt() *dict[K, V]
 	getNodeStack(k K) maybe.Maybe[*nodeStack[K, V]]
@@ -68,11 +74,14 @@ type nodeStack[K cmp.Ordered, V any] struct {
 	node  *node[K, V]
 }
 
-// Builders
+// BUILDERS
+
+// Create an empty dictionary.
 func Empty[K cmp.Ordered, V any]() Dict[K, V] {
 	return &dict[K, V]{root: nil}
 }
 
+// Create a dictionary with one key-value pair.
 func Singleton[K cmp.Ordered, V any](key K, value V) Dict[K, V] {
 	// Root nodes are always black
 	return &dict[K, V]{
@@ -115,6 +124,7 @@ Case 4 - Parent is red and uncle is Black
         RL.2 Apply RR
 */
 
+// Insert a key-value pair into a dictionary. Replaces the value when there is a collision.
 func Insert[K cmp.Ordered, V any](key K, v V, d Dict[K, V]) Dict[K, V] {
 	root := d.rbt().root
 
@@ -168,6 +178,7 @@ Case 6 - DB sibling is black and far nephew is red
     6.4 Remove DB node to single black
 */
 
+// Remove a key-value pair from a dictionary. If the key is not found, no changes are made.
 func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
 	root := d.rbt().root
 	if root == nil {
@@ -189,11 +200,14 @@ func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
 	)
 }
 
-// Query
+// QUERY
+
+// Determine if a dictionary is empty.
 func IsEmpty[K cmp.Ordered, V any](d Dict[K, V]) bool {
 	return d.rbt().root == nil
 }
 
+// Member - Determine if a key is in a dictionary.
 func Member[K cmp.Ordered, V any](k K, d Dict[K, V]) bool {
 	root := d.rbt().root
 
@@ -218,6 +232,9 @@ func memberHelp[K cmp.Ordered, V any](k K, n *node[K, V]) bool {
 	return false
 }
 
+// Get the value associated with a key.
+// If the key is not found, return [maybe.Nothing].
+// This is useful when you are not sure if a key will be in the dictionary.
 func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) maybe.Maybe[V] {
 	root := d.rbt().root
 	if root == nil {
