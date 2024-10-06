@@ -14,7 +14,7 @@ func TestBuild(t *testing.T) {
 	})
 
 	t.Run("Singleton", func(t *testing.T) {
-		d := Singleton[int, struct{}](1, struct{}{})
+		d := Singleton(1, struct{}{})
 		SUT := d.rbt()
 		asserts.Equal(&dict[int, struct{}]{
 			root: &node[int, struct{}]{

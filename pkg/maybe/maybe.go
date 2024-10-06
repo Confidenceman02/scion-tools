@@ -1,6 +1,11 @@
 // Package maybe can help you with optional arguments, error handling, and records with optional fields.
 package maybe
 
+import (
+	"fmt"
+	"reflect"
+)
+
 // DEFINITION
 
 // Maybe represents values that may or may not exist.
@@ -172,6 +177,14 @@ func MaybeWith[V any, R any](
 		return j(m)
 	case Nothing:
 		return n(m)
+	default:
+		var zero [0]V
+		panic(
+			fmt.Sprintf(
+				"\nI was expecting a type of: \n    maybe.Maybe[%v]\n\nBut instead got a\n    %v\n",
+				reflect.TypeOf(zero).Elem(),
+				reflect.TypeOf(m),
+			),
+		)
 	}
-	panic("unreachable")
 }
