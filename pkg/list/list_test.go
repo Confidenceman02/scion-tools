@@ -16,14 +16,20 @@ func TestEmpty(t *testing.T) {
 	})
 }
 
-func TestSingleton(t *testing.T) {
+func TestRange(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("Singleton", func(t *testing.T) {
-		ls := Singleton[basics.Int](10)
+	t.Run("Range", func(t *testing.T) {
+		SUT := Range(2, 3)
 
-		SUT := ls._list()
-		asserts.Equal(&list[basics.Int]{&cons[basics.Int]{10, nil}}, SUT)
+		asserts.Equal(basics.Int(2), SUT._list()._cons.head)
+		asserts.Equal(basics.Int(3), SUT._list()._cons.tail._cons.head)
+		asserts.Nil(SUT._list()._cons.tail._cons.tail._cons)
+	})
+
+	t.Run("Range - hi is lower than low", func(t *testing.T) {
+		SUT := Range(2, 1)
+		asserts.Equal(Empty[basics.Int](), SUT)
 	})
 }
 
@@ -36,6 +42,18 @@ func TestRepeat(t *testing.T) {
 		asserts.Nil(SUT._list()._cons.tail._list()._cons.tail._cons)
 		asserts.Equal(basics.Int(10), SUT._list()._cons.head)
 		asserts.Equal(basics.Int(10), SUT._list()._cons.tail._cons.head)
+	})
+
+}
+
+func TestSingleton(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Singleton", func(t *testing.T) {
+		ls := Singleton[basics.Int](10)
+
+		SUT := ls._list()
+		asserts.Equal(&list[basics.Int]{&cons[basics.Int]{10, nil}}, SUT)
 	})
 }
 
