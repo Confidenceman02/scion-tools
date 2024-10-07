@@ -3,11 +3,12 @@ package list
 import (
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
+
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestSingleton(t *testing.T) {
+func TestCreateFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Singleton", func(t *testing.T) {
@@ -15,10 +16,6 @@ func TestSingleton(t *testing.T) {
 
 		asserts.Equal(&list[Int]{consList{}, &cons[Int]{10, empty[Int]{}}}, SUT)
 	})
-}
-
-func TestRepeat(t *testing.T) {
-	asserts := assert.New(t)
 
 	t.Run("Repeat", func(t *testing.T) {
 		SUT := Repeat(2, 10)
@@ -39,10 +36,6 @@ func TestRepeat(t *testing.T) {
 			SUT,
 		)
 	})
-}
-
-func TestRange(t *testing.T) {
-	asserts := assert.New(t)
 
 	t.Run("Range", func(t *testing.T) {
 		SUT := Range(2, 3)
@@ -62,16 +55,11 @@ func TestRange(t *testing.T) {
 			},
 			SUT,
 		)
+		t.Run("hi is lower than low", func(t *testing.T) {
+			SUT := Range(2, 1)
+			asserts.Equal(Empty[Int](), SUT)
+		})
 	})
-
-	t.Run("Range - hi is lower than low", func(t *testing.T) {
-		SUT := Range(2, 1)
-		asserts.Equal(Empty[Int](), SUT)
-	})
-}
-
-func TestCons(t *testing.T) {
-	asserts := assert.New(t)
 
 	t.Run("Cons", func(t *testing.T) {
 		ls := Singleton(10)
@@ -90,65 +78,100 @@ func TestCons(t *testing.T) {
 	})
 }
 
-func TestIsEmpty(t *testing.T) {
+func TestTransformFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
-	t.Run("When empty", func(t *testing.T) {
-		SUT := Empty[Int]()
-		asserts.True(IsEmpty[Int](SUT))
-	})
+	t.Run("Foldl", func(t *testing.T) {
+		t.Run("Add", func(t *testing.T) {
+			ls := Range(1, 3)
+			SUT := Foldl[Int](Add, 0, ls)
 
-	t.Run("When has cons", func(t *testing.T) {
-		SUT := Singleton[Int](2)
+			asserts.Equal(Int(6), SUT)
+		})
+		t.Run("Concat", func(t *testing.T) {
+			ls := Range(1, 3)
+			SUT := Foldl[Int, List[Int]](Cons, Empty[Int](), ls)
 
-		asserts.False(IsEmpty[Int](SUT))
-	})
-}
-
-func TestHead(t *testing.T) {
-	asserts := assert.New(t)
-
-	t.Run("When empty", func(t *testing.T) {
-		SUT := Empty[Int]()
-		asserts.Equal(Nothing{}, Head[Int](SUT))
-	})
-
-	t.Run("When has cons", func(t *testing.T) {
-		SUT := Singleton(23)
-		asserts.Equal(Just[int]{Value: 23}, Head[int](SUT))
-	})
-}
-
-func TestTail(t *testing.T) {
-	asserts := assert.New(t)
-
-	t.Run("When emtpy", func(t *testing.T) {
-		SUT := Empty[Int]()
-
-		asserts.Equal(Nothing{}, Tail[Int](SUT))
-	})
-
-	t.Run("When has empty cons", func(t *testing.T) {
-		SUT := Singleton(23)
-
-		asserts.Equal(Just[List[int]]{Value: empty[int]{}}, Tail[int](SUT))
-	})
-
-	t.Run("When has cons", func(t *testing.T) {
-		SUT := Cons(22, Singleton(23))
-
-		asserts.Equal(
-			Just[List[int]]{
-				Value: &list[int]{
+			asserts.Equal(
+				&list[Int]{
 					consList{},
-					&cons[int]{
-						23,
-						empty[int]{},
+					&cons[Int]{
+						head: 3,
+						tail: &list[Int]{
+							consList{},
+							&cons[Int]{
+								head: 2,
+								tail: &list[Int]{
+									consList{},
+									&cons[Int]{
+										head: 1,
+										tail: empty[Int]{},
+									},
+								},
+							},
+						},
 					},
 				},
-			},
-			Tail[int](SUT),
-		)
+				SUT,
+			)
+		})
+	})
+}
+
+func TestDeconstructFunctions(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("IsEmpty", func(t *testing.T) {
+		t.Run("When empty", func(t *testing.T) {
+			SUT := Empty[Int]()
+			asserts.True(IsEmpty[Int](SUT))
+		})
+		t.Run("When has cons", func(t *testing.T) {
+			SUT := Singleton[Int](2)
+
+			asserts.False(IsEmpty[Int](SUT))
+		})
+	})
+
+	t.Run("Head", func(t *testing.T) {
+		t.Run("When empty", func(t *testing.T) {
+			SUT := Empty[Int]()
+			asserts.Equal(Nothing{}, Head[Int](SUT))
+		})
+		t.Run("When has cons", func(t *testing.T) {
+			SUT := Singleton(23)
+			asserts.Equal(Just[int]{Value: 23}, Head[int](SUT))
+		})
+	})
+
+	t.Run("Tail", func(t *testing.T) {
+		t.Run("When emtpy", func(t *testing.T) {
+			SUT := Empty[Int]()
+
+			asserts.Equal(Nothing{}, Tail[Int](SUT))
+		})
+		t.Run("When has empty cons", func(t *testing.T) {
+			SUT := Singleton(23)
+
+			asserts.Equal(Just[List[int]]{Value: empty[int]{}}, Tail[int](SUT))
+		})
+		t.Run("When has cons", func(t *testing.T) {
+			SUT := Cons(22, Singleton(23))
+
+			asserts.Equal(
+				Just[List[int]]{
+					Value: &list[int]{
+						consList{},
+						&cons[int]{
+							23,
+							empty[int]{},
+						},
+					},
+				},
+				Tail[int](SUT),
+			)
+		})
+
 	})
 }
 

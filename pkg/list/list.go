@@ -40,11 +40,6 @@ func Singleton[T any](val T) List[T] {
 	return &list[T]{consList{}, &cons[T]{val, Empty[T]()}}
 }
 
-// Add an element to the front of a list.
-func Cons[T any](val T, l List[T]) List[T] {
-	return &list[T]{consList{}, &cons[T]{val, l}}
-}
-
 // Create a list with *n* copies of a value.
 func Repeat[T any](n Int, val T) List[T] {
 	return repeatHelp(Empty[T](), n, val)
@@ -71,6 +66,25 @@ func rangeHelp(low Int, hi Int, ls List[Int]) List[Int] {
 		return ls
 	}
 }
+
+// Add an element to the front of a list.
+func Cons[T any](val T, l List[T]) List[T] {
+	return &list[T]{consList{}, &cons[T]{val, l}}
+}
+
+// TRANSFORM
+
+// Reduce a list from the left.
+func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
+	return ListWith(
+		ls,
+		func(List[A]) B { return acc },
+		func(head A, tail List[A]) B { return Foldl(f, f(head, acc), tail) },
+	)
+}
+
+// UTILITY
+// TODO length
 
 // DECONSTRUCT
 
