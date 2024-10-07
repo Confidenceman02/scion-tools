@@ -172,4 +172,13 @@ func TestBasics(t *testing.T) {
 			asserts.True(Eq(map_1, map_2))
 		})
 	})
+
+	t.Run("Not", func(t *testing.T) {
+		asserts.True(Not(false))
+		asserts.False(Not(true))
+	})
+
+	t.Run("Sqrt", func(t *testing.T) {
+		asserts.Equal(Float(6), Sqrt(36))
+	})
 }

@@ -53,3 +53,20 @@ func Eq[T any](x, y T) bool {
 		return reflect.DeepEqual(x, y)
 	}
 }
+
+// Negate a boolean value.
+func Not(pred bool) bool {
+	return !pred
+}
+
+// Take the square root of a number.
+func Sqrt(n Float) Float {
+	return Float(math.Sqrt(float64(n)))
+}
+
+// FUNCTION HELPERS
+
+// Function composition, passing results along to the left direction.
+func ComposeL[A any, B any, C any](g func(B) C, f func(A) B) func(A) C {
+	return func(x A) C { return g(f(x)) }
+}
