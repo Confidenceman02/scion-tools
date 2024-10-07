@@ -13,10 +13,6 @@ type List[T any] interface {
 
 type consList struct{}
 
-func Empty[T any]() List[T] {
-	return empty[T]{}
-}
-
 func (cl consList) _consList() consList {
 	return cl
 }
@@ -33,6 +29,13 @@ type list[T any] struct {
 type cons[T any] struct {
 	head T
 	tail List[T]
+}
+
+// CREATE
+
+// Create a list with no elements
+func Empty[T any]() List[T] {
+	return empty[T]{}
 }
 
 // Create a list with only one element.

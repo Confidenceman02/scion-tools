@@ -64,6 +64,19 @@ func Sqrt(n Float) Float {
 	return Float(math.Sqrt(float64(n)))
 }
 
+func ModBy(modulus Int, x Int) Int {
+	answer := math.Mod(float64(x), float64(modulus))
+	if modulus == 0 {
+		panic("ModBy: modulus cannot be zero")
+	}
+
+	if (answer > 0 && modulus < 0) || (answer < 0 && modulus > 0) {
+		return Int(answer) + modulus
+	} else {
+		return Int(answer)
+	}
+}
+
 // FUNCTION HELPERS
 
 // Function composition, passing results along to the left direction.

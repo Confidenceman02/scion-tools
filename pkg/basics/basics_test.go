@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestBasics(t *testing.T) {
+func TestMath(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Add", func(t *testing.T) {
@@ -14,6 +14,10 @@ func TestBasics(t *testing.T) {
 
 		asserts.Equal(Int(2), Add(SUT, SUT))
 	})
+}
+
+func TestIntToFloatFloatToInt(t *testing.T) {
+	asserts := assert.New(t)
 
 	t.Run("ToFloat", func(t *testing.T) {
 		var SUT Int
@@ -133,7 +137,10 @@ func TestBasics(t *testing.T) {
 
 		asserts.Equal(Int(1), Truncate(SUT))
 	})
+}
 
+func TestEquality(t *testing.T) {
+	asserts := assert.New(t)
 	t.Run("Eq", func(t *testing.T) {
 		t.Run("When true", func(t *testing.T) {
 			SUT := 23
@@ -172,13 +179,40 @@ func TestBasics(t *testing.T) {
 			asserts.True(Eq(map_1, map_2))
 		})
 	})
+}
+
+func TestBooleans(t *testing.T) {
+	asserts := assert.New(t)
 
 	t.Run("Not", func(t *testing.T) {
 		asserts.True(Not(false))
 		asserts.False(Not(true))
 	})
+}
+
+func TestFancierMath(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("ModBy", func(t *testing.T) {
+		asserts.Equal(Int(0), ModBy(2, 0))
+		asserts.Equal(Int(1), ModBy(2, 1))
+		asserts.Equal(Int(0), ModBy(2, 2))
+		asserts.Equal(Int(1), ModBy(2, 3))
+		asserts.Equal(Int(3), ModBy(4, -5))
+		asserts.Equal(Int(0), ModBy(4, -4))
+		asserts.Equal(Int(1), ModBy(4, -3))
+		asserts.Equal(Int(2), ModBy(4, -2))
+		asserts.Equal(Int(3), ModBy(4, -1))
+		asserts.Equal(Int(0), ModBy(4, 0))
+		asserts.Equal(Int(1), ModBy(4, 1))
+		asserts.Equal(Int(2), ModBy(4, 2))
+		asserts.Equal(Int(3), ModBy(4, 3))
+		asserts.Equal(Int(0), ModBy(4, 4))
+		asserts.Equal(Int(1), ModBy(4, 5))
+	})
 
 	t.Run("Sqrt", func(t *testing.T) {
 		asserts.Equal(Float(6), Sqrt(36))
 	})
+
 }
