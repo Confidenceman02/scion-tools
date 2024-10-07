@@ -214,5 +214,21 @@ func TestFancierMath(t *testing.T) {
 	t.Run("Sqrt", func(t *testing.T) {
 		asserts.Equal(Float(6), Sqrt(36))
 	})
+}
 
+func TestFunctionHelpers(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("ComposeL", func(t *testing.T) {
+		isEven := func(i Float) bool { return ModBy(2, Int(i)) == 0 }
+
+		SUT1 := ComposeL(Not, ComposeL(isEven, Sqrt))
+		SUT2 := ComposeL(isEven, Sqrt)
+
+		asserts.False(SUT1(4))
+		asserts.False(SUT1(36))
+		asserts.True(SUT1(2))
+		asserts.True(SUT2(4))
+		asserts.True(SUT2(36))
+	})
 }
