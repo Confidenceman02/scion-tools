@@ -2,7 +2,7 @@ package list
 
 import (
 	"fmt"
-	"github.com/Confidenceman02/scion-tools/pkg/basics"
+	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"reflect"
 )
@@ -46,12 +46,12 @@ func Cons[T any](val T, l List[T]) List[T] {
 }
 
 // Create a list with *n* copies of a value.
-func Repeat[T any](n basics.Int, val T) List[T] {
+func Repeat[T any](n Int, val T) List[T] {
 	return repeatHelp(Empty[T](), n, val)
 
 }
 
-func repeatHelp[T any](result List[T], n basics.Int, val T) List[T] {
+func repeatHelp[T any](result List[T], n Int, val T) List[T] {
 	if n <= 0 {
 		return result
 	} else {
@@ -60,11 +60,11 @@ func repeatHelp[T any](result List[T], n basics.Int, val T) List[T] {
 }
 
 // Create a list of numbers, every element increasing by one. You give the lowest and highest number that should be in the list.
-func Range(low basics.Int, hi basics.Int) List[basics.Int] {
-	return rangeHelp(low, hi, Empty[basics.Int]())
+func Range(low Int, hi Int) List[Int] {
+	return rangeHelp(low, hi, Empty[Int]())
 }
 
-func rangeHelp(low basics.Int, hi basics.Int, ls List[basics.Int]) List[basics.Int] {
+func rangeHelp(low Int, hi Int, ls List[Int]) List[Int] {
 	if low <= hi {
 		return rangeHelp(low, hi-1, Cons(hi, ls))
 	} else {

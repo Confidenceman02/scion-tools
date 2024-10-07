@@ -1,20 +1,19 @@
 package list
 
 import (
-	"testing"
-
-	"github.com/Confidenceman02/scion-tools/pkg/basics"
+	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSingleton(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Singleton", func(t *testing.T) {
-		SUT := Singleton[basics.Int](10)
+		SUT := Singleton[Int](10)
 
-		asserts.Equal(&list[basics.Int]{consList{}, &cons[basics.Int]{10, empty[basics.Int]{}}}, SUT)
+		asserts.Equal(&list[Int]{consList{}, &cons[Int]{10, empty[Int]{}}}, SUT)
 	})
 }
 
@@ -49,14 +48,14 @@ func TestRange(t *testing.T) {
 		SUT := Range(2, 3)
 
 		asserts.Equal(
-			&list[basics.Int]{
+			&list[Int]{
 				consList{},
-				&cons[basics.Int]{
+				&cons[Int]{
 					head: 2,
-					tail: &list[basics.Int]{consList{},
-						&cons[basics.Int]{
+					tail: &list[Int]{consList{},
+						&cons[Int]{
 							head: 3,
-							tail: empty[basics.Int]{},
+							tail: empty[Int]{},
 						},
 					},
 				},
@@ -67,7 +66,7 @@ func TestRange(t *testing.T) {
 
 	t.Run("Range - hi is lower than low", func(t *testing.T) {
 		SUT := Range(2, 1)
-		asserts.Equal(Empty[basics.Int](), SUT)
+		asserts.Equal(Empty[Int](), SUT)
 	})
 }
 
@@ -95,14 +94,14 @@ func TestIsEmpty(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("When empty", func(t *testing.T) {
-		SUT := Empty[basics.Int]()
-		asserts.True(IsEmpty[basics.Int](SUT))
+		SUT := Empty[Int]()
+		asserts.True(IsEmpty[Int](SUT))
 	})
 
 	t.Run("When has cons", func(t *testing.T) {
-		SUT := Singleton[basics.Int](2)
+		SUT := Singleton[Int](2)
 
-		asserts.False(IsEmpty[basics.Int](SUT))
+		asserts.False(IsEmpty[Int](SUT))
 	})
 }
 
@@ -110,8 +109,8 @@ func TestHead(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("When empty", func(t *testing.T) {
-		SUT := Empty[basics.Int]()
-		asserts.Equal(maybe.Nothing{}, Head[basics.Int](SUT))
+		SUT := Empty[Int]()
+		asserts.Equal(maybe.Nothing{}, Head[Int](SUT))
 	})
 
 	t.Run("When has cons", func(t *testing.T) {
@@ -124,9 +123,9 @@ func TestTail(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("When emtpy", func(t *testing.T) {
-		SUT := Empty[basics.Int]()
+		SUT := Empty[Int]()
 
-		asserts.Equal(maybe.Nothing{}, Tail[basics.Int](SUT))
+		asserts.Equal(maybe.Nothing{}, Tail[Int](SUT))
 	})
 
 	t.Run("When has empty cons", func(t *testing.T) {
@@ -157,8 +156,8 @@ func TestEmpty(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Empty", func(t *testing.T) {
-		SUT := Empty[basics.Int]()
+		SUT := Empty[Int]()
 
-		asserts.Equal(empty[basics.Int]{}, SUT)
+		asserts.Equal(empty[Int]{}, SUT)
 	})
 }
