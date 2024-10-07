@@ -43,6 +43,8 @@ func Truncate(x Float) Int {
 	return Int(math.Trunc(float64(x)))
 }
 
+// EQUALITY
+
 // Check if values are structurally &ldquo;the same&rdquo;.
 func Eq[T any](x, y T) bool {
 	switch reflect.TypeOf(x).Kind() {
@@ -53,6 +55,10 @@ func Eq[T any](x, y T) bool {
 		return reflect.DeepEqual(x, y)
 	}
 }
+
+// COMPARISON
+
+// BOOLEANS
 
 // Negate a boolean value.
 func Not(pred bool) bool {

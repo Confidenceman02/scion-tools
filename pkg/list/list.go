@@ -103,6 +103,11 @@ func Member[T any](val T, l List[T]) bool {
 	return Any(func(x T) bool { return Eq(x, val) }, l)
 }
 
+// Determine if all elements satisfy some test.
+func All[T any](isOkay func(T) bool, l List[T]) bool {
+	return Not(Any(ComposeL(Not, isOkay), l))
+}
+
 // Determine if any elements satisfy some test.
 func Any[T any](isOkay func(T) bool, l List[T]) bool {
 	return ListWith(

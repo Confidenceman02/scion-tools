@@ -188,6 +188,22 @@ func TestUtilityFunctions(t *testing.T) {
 		})
 	})
 
+	t.Run("All", func(t *testing.T) {
+		t.Run("When false", func(t *testing.T) {
+			isEven := func(i Int) bool { return ModBy(2, i) == 0 }
+			l := Range(2, 3) // [2,3]
+
+			asserts.False(All(isEven, l))
+		})
+		t.Run("When true", func(t *testing.T) {
+			isEven := func(i Int) bool { return ModBy(2, i) == 0 }
+			l := Cons[Int](2, Singleton[Int](4)) // [2,4]
+
+			asserts.True(All(isEven, l))
+
+		})
+	})
+
 	t.Run("Any", func(t *testing.T) {
 		t.Run("When true", func(t *testing.T) {
 			ls := Range(1, 10)
