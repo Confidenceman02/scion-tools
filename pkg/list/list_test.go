@@ -118,6 +118,23 @@ func TestTransformFunctions(t *testing.T) {
 	})
 }
 
+func TestUtilityFunctions(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Length", func(t *testing.T) {
+		t.Run("Empty list", func(t *testing.T) {
+			ls := Empty[Int]()
+
+			asserts.Equal(Int(0), Length(ls))
+		})
+		t.Run("With cons", func(t *testing.T) {
+			ls := Range(1, 3)
+
+			asserts.Equal(Int(3), Length(ls))
+		})
+	})
+}
+
 func TestDeconstructFunctions(t *testing.T) {
 	asserts := assert.New(t)
 

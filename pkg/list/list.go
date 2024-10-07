@@ -84,7 +84,11 @@ func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
 }
 
 // UTILITY
-// TODO length
+
+// Determine the length of a list.
+func Length(ls List[any]) Int {
+	return Foldl(func(_, y Int) Int { return y + 1 }, 0, ls)
+}
 
 // DECONSTRUCT
 
