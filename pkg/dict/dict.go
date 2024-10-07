@@ -6,7 +6,7 @@ package dict
 import (
 	"cmp"
 	"errors"
-	"github.com/Confidenceman02/scion-tools/pkg/maybe"
+	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 )
 
 const (
@@ -42,7 +42,7 @@ The rules are as follows for Red-Black trees:
 // So a Dict[string, User] is a dictionary that lets you look up a string (such as user names) and find the associated User.
 type Dict[K cmp.Ordered, V any] interface {
 	rbt() *dict[K, V]
-	getNodeStack(k K) maybe.Maybe[*nodeStack[K, V]]
+	getNodeStack(k K) Maybe[*nodeStack[K, V]]
 }
 
 /*
@@ -189,14 +189,14 @@ func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
 	// Find nodeStack to delete
 	maybeNodeStack := d.getNodeStack(key)
 
-	return maybe.MaybeWith(
+	return MaybeWith(
 		maybeNodeStack,
-		func(j maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
+		func(j Just[*nodeStack[K, V]]) Dict[K, V] {
 			ns := removeHelp(j.Value)
 			rootNs := getNodeStackRoot(ns)
 			return &dict[K, V]{root: rootNs.node}
 		},
-		func(n maybe.Nothing) Dict[K, V] { return d },
+		func(n Nothing) Dict[K, V] { return d },
 	)
 }
 
@@ -233,35 +233,35 @@ func memberHelp[K cmp.Ordered, V any](k K, n *node[K, V]) bool {
 }
 
 // Get the value associated with a key.
-// If the key is not found, return [maybe.Nothing].
+// If the key is not found, return [Nothing].
 // This is useful when you are not sure if a key will be in the dictionary.
-func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) maybe.Maybe[V] {
+func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) Maybe[V] {
 	root := d.rbt().root
 	if root == nil {
-		return maybe.Nothing{}
+		return Nothing{}
 	} else {
 		return getHelp(targetKey, root)
 	}
 }
 
-func getHelp[K cmp.Ordered, V any](targetKey K, n *node[K, V]) maybe.Maybe[V] {
+func getHelp[K cmp.Ordered, V any](targetKey K, n *node[K, V]) Maybe[V] {
 	if n != nil {
 		switch cmp.Compare(targetKey, n.key) {
 		case LT:
 			return getHelp(targetKey, n.left)
 		case EQ:
-			return maybe.Just[V]{Value: n.value}
+			return Just[V]{Value: n.value}
 		case GT:
 			return getHelp(targetKey, n.right)
 		}
 	}
-	return maybe.Nothing{}
+	return Nothing{}
 }
 
 // Get a Just nodeStack or Nothing if node doesn't exist
-func (d *dict[K, V]) getNodeStack(targetKey K) maybe.Maybe[*nodeStack[K, V]] {
+func (d *dict[K, V]) getNodeStack(targetKey K) Maybe[*nodeStack[K, V]] {
 	if d.root == nil {
-		return maybe.Nothing{}
+		return Nothing{}
 	} else {
 		valRoot := *d.root
 		return getNodeStackHelp(targetKey, &nodeStack[K, V]{stack: &stack[K, V]{p: nil, pp: nil}, node: &valRoot})
@@ -271,11 +271,11 @@ func (d *dict[K, V]) getNodeStack(targetKey K) maybe.Maybe[*nodeStack[K, V]] {
 /*
 Gets a 'Just' nodeStack or 'Nothing' if it doesn't exist
 */
-func getNodeStackHelp[K cmp.Ordered, V any](targetKey K, ns *nodeStack[K, V]) maybe.Maybe[*node[K, V]] {
+func getNodeStackHelp[K cmp.Ordered, V any](targetKey K, ns *nodeStack[K, V]) Maybe[*node[K, V]] {
 	switch cmp.Compare(targetKey, ns.node.key) {
 	case LT:
 		if ns.node.left == nil {
-			return maybe.Nothing{}
+			return Nothing{}
 		} else {
 			newStack := &stack[K, V]{pp: ns.stack, p: ns.node}
 			valL := *ns.node.left
@@ -284,10 +284,10 @@ func getNodeStackHelp[K cmp.Ordered, V any](targetKey K, ns *nodeStack[K, V]) ma
 			return getNodeStackHelp(targetKey, newNs)
 		}
 	case EQ:
-		return maybe.Just[*nodeStack[K, V]]{Value: ns}
+		return Just[*nodeStack[K, V]]{Value: ns}
 	case GT:
 		if ns.node.right == nil {
-			return maybe.Nothing{}
+			return Nothing{}
 		} else {
 			newStack := &stack[K, V]{pp: ns.stack, p: ns.node}
 			valR := *ns.node.right

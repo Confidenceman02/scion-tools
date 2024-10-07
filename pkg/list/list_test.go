@@ -2,7 +2,7 @@ package list
 
 import (
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
-	"github.com/Confidenceman02/scion-tools/pkg/maybe"
+	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -110,12 +110,12 @@ func TestHead(t *testing.T) {
 
 	t.Run("When empty", func(t *testing.T) {
 		SUT := Empty[Int]()
-		asserts.Equal(maybe.Nothing{}, Head[Int](SUT))
+		asserts.Equal(Nothing{}, Head[Int](SUT))
 	})
 
 	t.Run("When has cons", func(t *testing.T) {
 		SUT := Singleton(23)
-		asserts.Equal(maybe.Just[int]{Value: 23}, Head[int](SUT))
+		asserts.Equal(Just[int]{Value: 23}, Head[int](SUT))
 	})
 }
 
@@ -125,20 +125,20 @@ func TestTail(t *testing.T) {
 	t.Run("When emtpy", func(t *testing.T) {
 		SUT := Empty[Int]()
 
-		asserts.Equal(maybe.Nothing{}, Tail[Int](SUT))
+		asserts.Equal(Nothing{}, Tail[Int](SUT))
 	})
 
 	t.Run("When has empty cons", func(t *testing.T) {
 		SUT := Singleton(23)
 
-		asserts.Equal(maybe.Just[List[int]]{Value: empty[int]{}}, Tail[int](SUT))
+		asserts.Equal(Just[List[int]]{Value: empty[int]{}}, Tail[int](SUT))
 	})
 
 	t.Run("When has cons", func(t *testing.T) {
 		SUT := Cons(22, Singleton(23))
 
 		asserts.Equal(
-			maybe.Just[List[int]]{
+			Just[List[int]]{
 				Value: &list[int]{
 					consList{},
 					&cons[int]{

@@ -3,7 +3,7 @@ package list
 import (
 	"fmt"
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
-	"github.com/Confidenceman02/scion-tools/pkg/maybe"
+	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"reflect"
 )
 
@@ -78,37 +78,37 @@ func rangeHelp(low Int, hi Int, ls List[Int]) List[Int] {
 func IsEmpty[T any](l List[T]) bool {
 	return ListWith(
 		l,
-		func(empty[T]) bool { return true },
-		func(*list[T]) bool { return false },
+		func(List[T]) bool { return true },
+		func(head T, tail List[T]) bool { return false },
 	)
 }
 
 // Extract the first element of a list.
-func Head[T any](l List[T]) maybe.Maybe[T] {
+func Head[T any](l List[T]) Maybe[T] {
 	return ListWith(
 		l,
-		func(empty[T]) maybe.Maybe[T] { return maybe.Nothing{} },
-		func(l *list[T]) maybe.Maybe[T] { return maybe.Just[T]{Value: l._cons.head} },
+		func(List[T]) Maybe[T] { return Nothing{} },
+		func(head T, tail List[T]) Maybe[T] { return Just[T]{Value: head} },
 	)
 }
 
 // Extract the rest of the list.
-func Tail[T any](l List[T]) maybe.Maybe[List[T]] {
+func Tail[T any](l List[T]) Maybe[List[T]] {
 	return ListWith(
 		l,
-		func(empty[T]) maybe.Maybe[List[T]] { return maybe.Nothing{} },
-		func(l *list[T]) maybe.Maybe[List[T]] { return maybe.Just[List[T]]{Value: l._cons.tail} },
+		func(List[T]) Maybe[List[T]] { return Nothing{} },
+		func(head T, tail List[T]) Maybe[List[T]] { return Just[List[T]]{Value: tail} },
 	)
 }
 
 // PATTERN MATCH
 
-func ListWith[T any, R any](l1 List[T], e func(empty[T]) R, ne func(*list[T]) R) R {
+func ListWith[T any, R any](l1 List[T], e func(List[T]) R, ht func(T, List[T]) R) R {
 	switch l1 := l1.(type) {
 	case empty[T]:
 		return e(l1)
 	case *list[T]:
-		return ne(l1)
+		return ht(l1._cons.head, l1._cons.tail)
 	default:
 		var zero [0]T
 		panic(
