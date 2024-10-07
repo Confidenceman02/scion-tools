@@ -160,7 +160,32 @@ func TestUtilityFunctions(t *testing.T) {
 			},
 			SUT,
 		)
+	})
 
+	t.Run("Member", func(t *testing.T) {
+		t.Run("When member is int", func(t *testing.T) {
+			l := Range(1, 10)
+
+			asserts.True(Member[Int](9, l))
+			asserts.False(Member[Int](11, l))
+		})
+		t.Run("When member is List", func(t *testing.T) {
+			haystack := &list[List[Int]]{
+				consList{},
+				&cons[List[Int]]{
+					head: &list[Int]{
+						consList{},
+						&cons[Int]{
+							head: 12,
+							tail: empty[Int]{},
+						},
+					},
+				}}
+
+			needle := &list[Int]{consList{}, &cons[Int]{head: 12, tail: empty[Int]{}}}
+
+			asserts.True(Member[List[Int]](needle, haystack))
+		})
 	})
 
 	t.Run("Any", func(t *testing.T) {

@@ -96,7 +96,9 @@ func Reverse[T any](ls List[T]) List[T] {
 }
 
 // Figure out whether a list contains a value.
-// TODO Member
+func Member[T any](val T, l List[T]) bool {
+	return Any(func(x T) bool { return Eq(x, val) }, l)
+}
 
 // Determine if any elements satisfy some test.
 func Any[T any](isOkay func(T) bool, l List[T]) bool {
