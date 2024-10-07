@@ -95,6 +95,24 @@ func Reverse[T any](ls List[T]) List[T] {
 	return Foldl(Cons[T], Empty[T](), ls)
 }
 
+// Figure out whether a list contains a value.
+// TODO Member
+
+// Determine if any elements satisfy some test.
+func Any[T any](isOkay func(T) bool, l List[T]) bool {
+	return ListWith(
+		l,
+		func(List[T]) bool { return false },
+		func(head T, tail List[T]) bool {
+			if isOkay(head) {
+				return true
+			} else {
+				return Any(isOkay, tail)
+			}
+		},
+	)
+}
+
 // DECONSTRUCT
 
 // Determine if a list is empty.
@@ -102,7 +120,7 @@ func IsEmpty[T any](l List[T]) bool {
 	return ListWith(
 		l,
 		func(List[T]) bool { return true },
-		func(head T, tail List[T]) bool { return false },
+		func(_ T, _ List[T]) bool { return false },
 	)
 }
 
@@ -111,7 +129,7 @@ func Head[T any](l List[T]) Maybe[T] {
 	return ListWith(
 		l,
 		func(List[T]) Maybe[T] { return Nothing{} },
-		func(head T, tail List[T]) Maybe[T] { return Just[T]{Value: head} },
+		func(head T, _ List[T]) Maybe[T] { return Just[T]{Value: head} },
 	)
 }
 
@@ -120,7 +138,7 @@ func Tail[T any](l List[T]) Maybe[List[T]] {
 	return ListWith(
 		l,
 		func(List[T]) Maybe[List[T]] { return Nothing{} },
-		func(head T, tail List[T]) Maybe[List[T]] { return Just[List[T]]{Value: tail} },
+		func(_ T, tail List[T]) Maybe[List[T]] { return Just[List[T]]{Value: tail} },
 	)
 }
 

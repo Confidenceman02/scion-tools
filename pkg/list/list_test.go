@@ -162,6 +162,19 @@ func TestUtilityFunctions(t *testing.T) {
 		)
 
 	})
+
+	t.Run("Any", func(t *testing.T) {
+		t.Run("When true", func(t *testing.T) {
+			ls := Range(1, 10)
+
+			asserts.True(Any(func(a Int) bool { return a >= 10 }, ls))
+		})
+		t.Run("When false", func(t *testing.T) {
+			ls := Range(1, 10)
+
+			asserts.False(Any(func(a Int) bool { return a > 10 }, ls))
+		})
+	})
 }
 
 func TestDeconstructFunctions(t *testing.T) {
