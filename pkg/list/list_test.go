@@ -133,6 +133,35 @@ func TestUtilityFunctions(t *testing.T) {
 			asserts.Equal(Int(3), Length(ls))
 		})
 	})
+
+	t.Run("Reverse", func(t *testing.T) {
+		ls := Range(1, 3)
+		SUT := Reverse[Int](ls)
+
+		asserts.Equal(
+			&list[Int]{
+				consList{},
+				&cons[Int]{
+					head: 3,
+					tail: &list[Int]{
+						consList{},
+						&cons[Int]{
+							head: 2,
+							tail: &list[Int]{
+								consList{},
+								&cons[Int]{
+									head: 1,
+									tail: empty[Int]{},
+								},
+							},
+						},
+					},
+				},
+			},
+			SUT,
+		)
+
+	})
 }
 
 func TestDeconstructFunctions(t *testing.T) {

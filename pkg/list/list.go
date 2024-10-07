@@ -90,6 +90,11 @@ func Length(ls List[any]) Int {
 	return Foldl(func(_, y Int) Int { return y + 1 }, 0, ls)
 }
 
+// Reverse a list.
+func Reverse[T any](ls List[T]) List[T] {
+	return Foldl(Cons[T], Empty[T](), ls)
+}
+
 // DECONSTRUCT
 
 // Determine if a list is empty.
