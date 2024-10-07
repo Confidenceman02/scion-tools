@@ -133,4 +133,43 @@ func TestBasics(t *testing.T) {
 
 		asserts.Equal(Int(1), Truncate(SUT))
 	})
+
+	t.Run("Eq", func(t *testing.T) {
+		t.Run("When true", func(t *testing.T) {
+			SUT := 23
+
+			asserts.True(Eq(23, SUT))
+		})
+		t.Run("When false", func(t *testing.T) {
+			SUT := 23
+
+			asserts.False(Eq(22, SUT))
+		})
+		t.Run("When function", func(t *testing.T) {
+			SUT := func() int { return 34 }
+
+			f := func() bool { return Eq(SUT, SUT) }
+
+			asserts.Panics(func() { f() })
+		})
+		t.Run("When list", func(t *testing.T) {
+			map_1 := map[int]string{
+
+				200: "Anita",
+				201: "Neha",
+				203: "Suman",
+				204: "Robin",
+				205: "Rohit",
+			}
+			map_2 := map[int]string{
+
+				200: "Anita",
+				201: "Neha",
+				203: "Suman",
+				204: "Robin",
+				205: "Rohit",
+			}
+			asserts.True(Eq(map_1, map_2))
+		})
+	})
 }

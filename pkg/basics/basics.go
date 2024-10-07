@@ -3,6 +3,7 @@ package basics
 
 import (
 	"math"
+	"reflect"
 )
 
 type Int int
@@ -40,4 +41,15 @@ func Ceiling(x Float) Int {
 // Truncate a number, rounding towards zero
 func Truncate(x Float) Int {
 	return Int(math.Trunc(float64(x)))
+}
+
+// Check if values are structurally &ldquo;the same&rdquo;.
+func Eq[T any](x, y T) bool {
+	switch reflect.TypeOf(x).Kind() {
+	case reflect.Func:
+		// mimic Elm's behavior
+		panic("Can't compare functions")
+	default:
+		return reflect.DeepEqual(x, y)
+	}
 }
