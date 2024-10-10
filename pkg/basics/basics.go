@@ -2,15 +2,32 @@
 package basics
 
 import (
+	"cmp"
 	"math"
 	"reflect"
 )
 
+type Number interface {
+	Int | Float
+}
+
 type Int int
 type Float float64
 
-type Number interface {
-	Int | Float
+func (i Int) Cmp(x, y Int) int {
+	return cmp.Compare(x, y)
+}
+func (i Float) Cmp(x, y Float) int {
+	return cmp.Compare(x, y)
+}
+
+type Comparable[T any] interface {
+	Cmp(T) int
+}
+
+func Something[T any](x, y Comparable[T]) int {
+	return 22
+
 }
 
 // Add two numbers. The number type variable means this operation can be specialized to any Number type.
@@ -57,6 +74,32 @@ func Eq[T any](x, y T) bool {
 }
 
 // COMPARISON
+
+func Gt[T any](x Comparable[T], y Comparable[T]) bool {
+	return true
+}
+
+type Order interface {
+	_order() order
+}
+
+type order struct{}
+
+func (ord order) _order() order {
+	return ord
+}
+
+type LT struct {
+	order
+}
+
+type EQ struct {
+	order
+}
+
+type GT struct {
+	order
+}
 
 // BOOLEANS
 

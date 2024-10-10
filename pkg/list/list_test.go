@@ -8,6 +8,73 @@ import (
 	"testing"
 )
 
+func TestCmp(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("When empty equal", func(t *testing.T) {
+		l1 := Empty[Int]()
+		l2 := Empty[Int]()
+
+		asserts.Equal(0, l1.Cmp(l2))
+	})
+
+	t.Run("When cons equal Int", func(t *testing.T) {
+		l1 := Singleton[Int](1)
+		l2 := Singleton[Int](1)
+
+		asserts.Equal(0, l1.Cmp(l2))
+	})
+
+	t.Run("When cons equal Float", func(t *testing.T) {
+		l1 := Singleton[Float](1.0)
+		l2 := Singleton[Float](1.0)
+
+		asserts.Equal(0, l1.Cmp(l2))
+	})
+
+	t.Run("When cons greater Int", func(t *testing.T) {
+		l1 := Singleton[Int](2)
+		l2 := Singleton[Int](1)
+
+		asserts.Equal(+1, l1.Cmp(l2))
+	})
+
+	t.Run("When cons greater Float", func(t *testing.T) {
+		l1 := Singleton[Float](1.1)
+		l2 := Singleton[Float](1.0)
+
+		asserts.Equal(+1, l1.Cmp(l2))
+	})
+
+	t.Run("When cons less Int", func(t *testing.T) {
+		l1 := Singleton[Int](1)
+		l2 := Singleton[Int](2)
+
+		asserts.Equal(-1, l1.Cmp(l2))
+	})
+
+	t.Run("When cons less Float", func(t *testing.T) {
+		l1 := Singleton[Float](1)
+		l2 := Singleton[Float](2)
+
+		asserts.Equal(-1, l1.Cmp(l2))
+	})
+
+	t.Run("When empty and cons Int", func(t *testing.T) {
+		l1 := Empty[Int]()
+		l2 := Singleton[Int](2)
+
+		asserts.Equal(-1, l1.Cmp(l2))
+	})
+
+	t.Run("When empty and cons Float", func(t *testing.T) {
+		l1 := Empty[Float]()
+		l2 := Singleton[Float](2)
+
+		asserts.Equal(-1, l1.Cmp(l2))
+	})
+}
+
 func TestCreateFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
@@ -136,7 +203,7 @@ func TestUtilityFunctions(t *testing.T) {
 
 	t.Run("Reverse", func(t *testing.T) {
 		ls := Range(1, 3)
-		SUT := Reverse[Int](ls)
+		SUT := Reverse(ls)
 
 		asserts.Equal(
 			&list[Int]{

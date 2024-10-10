@@ -1,6 +1,7 @@
 package list
 
 import (
+	"cmp"
 	"fmt"
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
@@ -9,6 +10,7 @@ import (
 
 type List[T any] interface {
 	_consList() consList
+	Cmp(List[T]) int
 }
 
 type consList struct{}
@@ -24,6 +26,92 @@ type empty[T any] struct {
 type list[T any] struct {
 	consList
 	_cons *cons[T]
+}
+
+// Comparable
+
+func (x *list[T]) Cmp(y List[T]) int {
+	switch y := y.(type) {
+	case empty[T]:
+		return +1
+	case *list[T]:
+		// traverse conses until end of a list or a mismatch
+		var ord = cmpHelp(x._cons.head, y._cons.head)
+		var x1 *list[T] = x
+		var y1 *list[T] = y
+		for !IsEmpty(x1._cons.tail) && !IsEmpty(y1._cons.tail) && ord == 0 {
+			switch x2 := x1._cons.tail.(type) {
+			case *list[T]:
+				switch y2 := y1._cons.tail.(type) {
+				case *list[T]:
+					x1 = x2
+					y1 = y2
+					ord = cmpHelp(x2._cons.head, y2._cons.head)
+					continue
+				}
+			default:
+				panic("unreachable")
+			}
+		}
+		if IsEmpty(x1._cons.tail) && IsEmpty(y1._cons.tail) {
+			return ord
+		} else if !IsEmpty(x1._cons.tail) {
+			return +1
+		} else {
+			return -1
+		}
+	default:
+		var zero [0]T
+		panic(
+			fmt.Sprintf(
+				"\nI was expecting a Comparable type, but instead got: \n    %v",
+				reflect.TypeOf(zero).Elem(),
+			),
+		)
+	}
+}
+
+func cmpHelp(x any, y any) int {
+	switch x1 := x.(type) {
+	case Int:
+		switch y1 := y.(type) {
+		case Int:
+			return cmp.Compare(x1, y1)
+		default:
+			panic("Not an Int")
+		}
+	case Float:
+		switch y1 := y.(type) {
+		case Float:
+			return cmp.Compare(x1, y1)
+		default:
+			panic("Not a Float")
+		}
+	case List[Int]:
+		switch y1 := y.(type) {
+		case List[Int]:
+			return x1.Cmp(y1)
+		default:
+			panic("I was expecting a List[Int]")
+		}
+	case List[Float]:
+		switch y1 := y.(type) {
+		case List[Float]:
+			return x1.Cmp(y1)
+		default:
+			panic("I was expecting a List[Float]")
+		}
+	default:
+		panic(fmt.Sprintf("Cmp Not implemented for: %v", reflect.TypeOf(x1)))
+	}
+}
+
+func (x empty[T]) Cmp(y List[T]) int {
+	if reflect.DeepEqual(x, y) {
+		return 0
+	} else {
+		return -1
+	}
 }
 
 type cons[T any] struct {
@@ -89,8 +177,8 @@ func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
 // UTILITY
 
 // Determine the length of a list.
-func Length(ls List[any]) Int {
-	return Foldl(func(_, y Int) Int { return y + 1 }, 0, ls)
+func Length[T any](ls List[T]) Int {
+	return Foldl(func(_ T, y Int) Int { return y + 1 }, 0, ls)
 }
 
 // Reverse a list.
