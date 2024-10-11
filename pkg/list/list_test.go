@@ -87,6 +87,40 @@ func TestCmp(t *testing.T) {
 func TestCreateFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
+	t.Run("FromArray", func(t *testing.T) {
+		arr := []Int{1, 2, 3, 4}
+
+		SUT := FromArray(arr)
+
+		asserts.Equal(
+			&list[Int]{
+				consList{},
+				&cons[Int]{
+					head: 1,
+					tail: &list[Int]{consList{},
+						&cons[Int]{
+							head: 2,
+							tail: &list[Int]{
+								consList{},
+								&cons[Int]{
+									head: 3,
+									tail: &list[Int]{
+										consList{},
+										&cons[Int]{
+											head: 4,
+											tail: empty[Int]{},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			SUT,
+		)
+	})
+
 	t.Run("Singleton", func(t *testing.T) {
 		SUT := Singleton[Int](10)
 

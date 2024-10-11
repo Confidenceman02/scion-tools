@@ -121,6 +121,15 @@ type cons[T any] struct {
 
 // CREATE
 
+func FromArray[T any](arr []T) List[T] {
+	var result List[T] = Empty[T]()
+	// TODO Handle runes
+	for i := len(arr) - 1; i >= 0; i-- {
+		result = Cons(arr[i], result)
+	}
+	return result
+}
+
 // Create a list with no elements
 func Empty[T any]() List[T] {
 	return empty[T]{}
