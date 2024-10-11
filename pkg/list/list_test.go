@@ -21,8 +21,11 @@ func TestCmp(t *testing.T) {
 	t.Run("When cons equal Int", func(t *testing.T) {
 		l1 := Singleton[Int](1)
 		l2 := Singleton[Int](1)
+		l3 := Range(1, 10)
+		l4 := Range(1, 10)
 
 		asserts.Equal(0, l1.Cmp(l2))
+		asserts.Equal(0, l3.Cmp(l4))
 	})
 
 	t.Run("When cons equal Float", func(t *testing.T) {
@@ -35,8 +38,11 @@ func TestCmp(t *testing.T) {
 	t.Run("When cons greater Int", func(t *testing.T) {
 		l1 := Singleton[Int](2)
 		l2 := Singleton[Int](1)
+		l3 := Range(1, 11)
+		l4 := Range(1, 10)
 
 		asserts.Equal(+1, l1.Cmp(l2))
+		asserts.Equal(+1, l3.Cmp(l4))
 	})
 
 	t.Run("When cons greater Float", func(t *testing.T) {
@@ -49,8 +55,11 @@ func TestCmp(t *testing.T) {
 	t.Run("When cons less Int", func(t *testing.T) {
 		l1 := Singleton[Int](1)
 		l2 := Singleton[Int](2)
+		l3 := Range(1, 10)
+		l4 := Range(1, 11)
 
 		asserts.Equal(-1, l1.Cmp(l2))
+		asserts.Equal(-1, l3.Cmp(l4))
 	})
 
 	t.Run("When cons less Float", func(t *testing.T) {
