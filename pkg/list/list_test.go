@@ -8,6 +8,14 @@ import (
 	"testing"
 )
 
+func fromArray[T any](arr []T) List[T] {
+	var result List[T] = Empty[T]()
+	for i := len(arr) - 1; i >= 0; i-- {
+		result = Cons(arr[i], result)
+	}
+	return result
+}
+
 func TestCmp(t *testing.T) {
 	asserts := assert.New(t)
 
@@ -48,8 +56,11 @@ func TestCmp(t *testing.T) {
 	t.Run("When cons greater Float", func(t *testing.T) {
 		l1 := Singleton[Float](1.1)
 		l2 := Singleton[Float](1.0)
+		l3 := fromArray([]Float{1.1, 2.2})
+		l4 := fromArray([]Float{1.1, 2.1})
 
 		asserts.Equal(+1, l1.Cmp(l2))
+		asserts.Equal(+1, l3.Cmp(l4))
 	})
 
 	t.Run("When cons less Int", func(t *testing.T) {
@@ -65,8 +76,11 @@ func TestCmp(t *testing.T) {
 	t.Run("When cons less Float", func(t *testing.T) {
 		l1 := Singleton[Float](1)
 		l2 := Singleton[Float](2)
+		l3 := fromArray([]Float{1.0, 2.0})
+		l4 := fromArray([]Float{1.0, 2.1})
 
 		asserts.Equal(-1, l1.Cmp(l2))
+		asserts.Equal(-1, l3.Cmp(l4))
 	})
 
 	t.Run("When empty and cons Int", func(t *testing.T) {
@@ -86,40 +100,6 @@ func TestCmp(t *testing.T) {
 
 func TestCreateFunctions(t *testing.T) {
 	asserts := assert.New(t)
-
-	t.Run("FromArray", func(t *testing.T) {
-		arr := []Int{1, 2, 3, 4}
-
-		SUT := FromArray(arr)
-
-		asserts.Equal(
-			&list[Int]{
-				consList{},
-				&cons[Int]{
-					head: 1,
-					tail: &list[Int]{consList{},
-						&cons[Int]{
-							head: 2,
-							tail: &list[Int]{
-								consList{},
-								&cons[Int]{
-									head: 3,
-									tail: &list[Int]{
-										consList{},
-										&cons[Int]{
-											head: 4,
-											tail: empty[Int]{},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			SUT,
-		)
-	})
 
 	t.Run("Singleton", func(t *testing.T) {
 		SUT := Singleton[Int](10)
@@ -194,7 +174,7 @@ func TestTransformFunctions(t *testing.T) {
 	t.Run("Foldl", func(t *testing.T) {
 		t.Run("Add", func(t *testing.T) {
 			ls := Range(1, 3)
-			SUT := Foldl[Int](Add, 0, ls)
+			SUT := Foldl(Add, 0, ls)
 
 			asserts.Equal(Int(6), SUT)
 		})
