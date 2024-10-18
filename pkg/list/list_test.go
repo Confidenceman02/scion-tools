@@ -206,6 +206,36 @@ func TestTransformFunctions(t *testing.T) {
 			)
 		})
 	})
+	t.Run("Foldr", func(t *testing.T) {
+		ls1 := Range(1, 3)
+		ls2 := Range(1, 3)
+		SUT1 := Foldr(Add, 0, ls1)
+		SUT2 := Foldr(Cons[Int], Empty[Int](), ls2)
+
+		asserts.Equal(Int(6), SUT1)
+		asserts.Equal(
+			&list[Int]{
+				consList{},
+				&cons[Int]{
+					head: 1,
+					tail: &list[Int]{
+						consList{},
+						&cons[Int]{
+							head: 2,
+							tail: &list[Int]{
+								consList{},
+								&cons[Int]{
+									head: 3,
+									tail: empty[Int]{},
+								},
+							},
+						},
+					},
+				},
+			},
+			SUT2,
+		)
+	})
 }
 
 func TestUtilityFunctions(t *testing.T) {

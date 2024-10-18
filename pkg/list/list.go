@@ -178,6 +178,44 @@ func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
 	)
 }
 
+// Reduce a list from the right.
+func Foldr[A any, B any](fn func(A, B) B, acc B, ls List[A]) B {
+	return foldrHelper(fn, acc, 0, ls)
+}
+
+func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr Int, ls List[A]) B {
+	return ListWith(ls,
+		func(List[A]) B { return acc },
+		func(a A, r1 List[A]) B {
+			return ListWith(
+				r1,
+				func(List[A]) B { return fn(a, acc) },
+				func(b A, r2 List[A]) B {
+					return ListWith(
+						r2,
+						func(List[A]) B { return fn(a, fn(b, acc)) },
+						func(c A, r3 List[A]) B {
+							return ListWith(
+								r3,
+								func(List[A]) B { return fn(a, fn(b, fn(c, acc))) },
+								func(d A, r4 List[A]) B {
+									var res B
+									if Gt(ctr, 500) {
+										res = Foldl(fn, acc, Reverse(r4))
+									} else {
+										res = foldrHelper(fn, acc, Add(ctr, 1), r4)
+									}
+									return fn(a, fn(b, fn(c, fn(d, res))))
+								},
+							)
+						},
+					)
+				},
+			)
+		},
+	)
+}
+
 // UTILITY
 
 // Determine the length of a list.
