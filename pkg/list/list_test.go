@@ -2,6 +2,7 @@ package list
 
 import (
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
+	kernel "github.com/Confidenceman02/scion-tools/pkg/list/internal"
 	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 
 	"github.com/stretchr/testify/assert"
@@ -104,7 +105,7 @@ func TestCreateFunctions(t *testing.T) {
 	t.Run("Singleton", func(t *testing.T) {
 		SUT := Singleton[Int](10)
 
-		asserts.Equal(&list[Int]{consList{}, &cons[Int]{10, empty[Int]{}}}, SUT)
+		asserts.Equal(&list[Int]{consList{}, &kernel.Cons[Int, List[Int]]{Head: 10, Tail: empty[Int]{}}}, SUT)
 	})
 
 	t.Run("Repeat", func(t *testing.T) {
@@ -113,12 +114,12 @@ func TestCreateFunctions(t *testing.T) {
 		asserts.Equal(
 			&list[int]{
 				consList{},
-				&cons[int]{
-					head: 10,
-					tail: &list[int]{consList{},
-						&cons[int]{
-							head: 10,
-							tail: empty[int]{},
+				&kernel.Cons[int, List[int]]{
+					Head: 10,
+					Tail: &list[int]{consList{},
+						&kernel.Cons[int, List[int]]{
+							Head: 10,
+							Tail: empty[int]{},
 						},
 					},
 				},
@@ -133,12 +134,12 @@ func TestCreateFunctions(t *testing.T) {
 		asserts.Equal(
 			&list[Int]{
 				consList{},
-				&cons[Int]{
-					head: 2,
-					tail: &list[Int]{consList{},
-						&cons[Int]{
-							head: 3,
-							tail: empty[Int]{},
+				&kernel.Cons[Int, List[Int]]{
+					Head: 2,
+					Tail: &list[Int]{consList{},
+						&kernel.Cons[Int, List[Int]]{
+							Head: 3,
+							Tail: empty[Int]{},
 						},
 					},
 				},
@@ -158,9 +159,9 @@ func TestCreateFunctions(t *testing.T) {
 		asserts.Equal(
 			&list[int]{
 				consList{},
-				&cons[int]{
-					head: 20,
-					tail: ls,
+				&kernel.Cons[int, List[int]]{
+					Head: 20,
+					Tail: ls,
 				},
 			},
 			SUT,
@@ -185,17 +186,17 @@ func TestTransformFunctions(t *testing.T) {
 			asserts.Equal(
 				&list[Int]{
 					consList{},
-					&cons[Int]{
-						head: 3,
-						tail: &list[Int]{
+					&kernel.Cons[Int, List[Int]]{
+						Head: 3,
+						Tail: &list[Int]{
 							consList{},
-							&cons[Int]{
-								head: 2,
-								tail: &list[Int]{
+							&kernel.Cons[Int, List[Int]]{
+								Head: 2,
+								Tail: &list[Int]{
 									consList{},
-									&cons[Int]{
-										head: 1,
-										tail: empty[Int]{},
+									&kernel.Cons[Int, List[Int]]{
+										Head: 1,
+										Tail: empty[Int]{},
 									},
 								},
 							},
@@ -216,17 +217,17 @@ func TestTransformFunctions(t *testing.T) {
 		asserts.Equal(
 			&list[Int]{
 				consList{},
-				&cons[Int]{
-					head: 1,
-					tail: &list[Int]{
+				&kernel.Cons[Int, List[Int]]{
+					Head: 1,
+					Tail: &list[Int]{
 						consList{},
-						&cons[Int]{
-							head: 2,
-							tail: &list[Int]{
+						&kernel.Cons[Int, List[Int]]{
+							Head: 2,
+							Tail: &list[Int]{
 								consList{},
-								&cons[Int]{
-									head: 3,
-									tail: empty[Int]{},
+								&kernel.Cons[Int, List[Int]]{
+									Head: 3,
+									Tail: empty[Int]{},
 								},
 							},
 						},
@@ -261,17 +262,17 @@ func TestUtilityFunctions(t *testing.T) {
 		asserts.Equal(
 			&list[Int]{
 				consList{},
-				&cons[Int]{
-					head: 3,
-					tail: &list[Int]{
+				&kernel.Cons[Int, List[Int]]{
+					Head: 3,
+					Tail: &list[Int]{
 						consList{},
-						&cons[Int]{
-							head: 2,
-							tail: &list[Int]{
+						&kernel.Cons[Int, List[Int]]{
+							Head: 2,
+							Tail: &list[Int]{
 								consList{},
-								&cons[Int]{
-									head: 1,
-									tail: empty[Int]{},
+								&kernel.Cons[Int, List[Int]]{
+									Head: 1,
+									Tail: empty[Int]{},
 								},
 							},
 						},
@@ -286,23 +287,23 @@ func TestUtilityFunctions(t *testing.T) {
 		t.Run("When member is int", func(t *testing.T) {
 			l := Range(1, 10)
 
-			asserts.True(Member[Int](9, l))
-			asserts.False(Member[Int](11, l))
+			asserts.True(Member(9, l))
+			asserts.False(Member(11, l))
 		})
 		t.Run("When member is List", func(t *testing.T) {
 			haystack := &list[List[Int]]{
 				consList{},
-				&cons[List[Int]]{
-					head: &list[Int]{
+				&kernel.Cons[List[Int], List[List[Int]]]{
+					Head: &list[Int]{
 						consList{},
-						&cons[Int]{
-							head: 12,
-							tail: empty[Int]{},
+						&kernel.Cons[Int, List[Int]]{
+							Head: 12,
+							Tail: empty[Int]{},
 						},
 					},
 				}}
 
-			needle := &list[Int]{consList{}, &cons[Int]{head: 12, tail: empty[Int]{}}}
+			needle := &list[Int]{consList{}, &kernel.Cons[Int, List[Int]]{Head: 12, Tail: empty[Int]{}}}
 
 			asserts.True(Member[List[Int]](needle, haystack))
 		})
@@ -317,7 +318,7 @@ func TestUtilityFunctions(t *testing.T) {
 		})
 		t.Run("When true", func(t *testing.T) {
 			isEven := func(i Int) bool { return ModBy(2, i) == 0 }
-			l := Cons[Int](2, Singleton[Int](4)) // [2,4]
+			l := Cons(2, Singleton[Int](4)) // [2,4]
 
 			asserts.True(All(isEven, l))
 
@@ -344,23 +345,23 @@ func TestDeconstructFunctions(t *testing.T) {
 	t.Run("IsEmpty", func(t *testing.T) {
 		t.Run("When empty", func(t *testing.T) {
 			SUT := Empty[Int]()
-			asserts.True(IsEmpty[Int](SUT))
+			asserts.True(IsEmpty(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
 			SUT := Singleton[Int](2)
 
-			asserts.False(IsEmpty[Int](SUT))
+			asserts.False(IsEmpty(SUT))
 		})
 	})
 
 	t.Run("Head", func(t *testing.T) {
 		t.Run("When empty", func(t *testing.T) {
 			SUT := Empty[Int]()
-			asserts.Equal(Nothing{}, Head[Int](SUT))
+			asserts.Equal(Nothing{}, Head(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
 			SUT := Singleton(23)
-			asserts.Equal(Just[int]{Value: 23}, Head[int](SUT))
+			asserts.Equal(Just[int]{Value: 23}, Head(SUT))
 		})
 	})
 
@@ -368,12 +369,12 @@ func TestDeconstructFunctions(t *testing.T) {
 		t.Run("When emtpy", func(t *testing.T) {
 			SUT := Empty[Int]()
 
-			asserts.Equal(Nothing{}, Tail[Int](SUT))
+			asserts.Equal(Nothing{}, Tail(SUT))
 		})
 		t.Run("When has empty cons", func(t *testing.T) {
 			SUT := Singleton(23)
 
-			asserts.Equal(Just[List[int]]{Value: empty[int]{}}, Tail[int](SUT))
+			asserts.Equal(Just[List[int]]{Value: empty[int]{}}, Tail(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
 			SUT := Cons(22, Singleton(23))
@@ -382,13 +383,13 @@ func TestDeconstructFunctions(t *testing.T) {
 				Just[List[int]]{
 					Value: &list[int]{
 						consList{},
-						&cons[int]{
-							23,
-							empty[int]{},
+						&kernel.Cons[int, List[int]]{
+							Head: 23,
+							Tail: empty[int]{},
 						},
 					},
 				},
-				Tail[int](SUT),
+				Tail(SUT),
 			)
 		})
 

@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
+	kernel "github.com/Confidenceman02/scion-tools/pkg/list/internal"
 	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"reflect"
 )
@@ -25,7 +26,7 @@ type empty[T any] struct {
 
 type list[T any] struct {
 	consList
-	_cons *cons[T]
+	_cons *kernel.Cons[T, List[T]]
 }
 
 // Comparable
@@ -36,26 +37,26 @@ func (x *list[T]) Cmp(y List[T]) int {
 		return +1
 	case *list[T]:
 		// traverse conses until end of a list or a mismatch
-		var ord = cmpHelp(x._cons.head, y._cons.head)
+		var ord = cmpHelp(x._cons.Head, y._cons.Head)
 		var x1 *list[T] = x
 		var y1 *list[T] = y
-		for !IsEmpty(x1._cons.tail) && !IsEmpty(y1._cons.tail) && ord == 0 {
-			switch x2 := x1._cons.tail.(type) {
+		for !IsEmpty(x1._cons.Tail) && !IsEmpty(y1._cons.Tail) && ord == 0 {
+			switch x2 := x1._cons.Tail.(type) {
 			case *list[T]:
-				switch y2 := y1._cons.tail.(type) {
+				switch y2 := y1._cons.Tail.(type) {
 				case *list[T]:
 					x1 = x2
 					y1 = y2
-					ord = cmpHelp(x2._cons.head, y2._cons.head)
+					ord = cmpHelp(x2._cons.Head, y2._cons.Head)
 					continue
 				}
 			default:
 				panic("unreachable")
 			}
 		}
-		if IsEmpty(x1._cons.tail) && IsEmpty(y1._cons.tail) {
+		if IsEmpty(x1._cons.Tail) && IsEmpty(y1._cons.Tail) {
 			return ord
-		} else if !IsEmpty(x1._cons.tail) {
+		} else if !IsEmpty(x1._cons.Tail) {
 			return +1
 		} else {
 			return -1
@@ -118,10 +119,10 @@ func (x empty[T]) Cmp(y List[T]) int {
 	}
 }
 
-type cons[T any] struct {
-	head T
-	tail List[T]
-}
+// type cons[T any] struct {
+// 	head T
+// 	tail List[T]
+// }
 
 // CREATE
 
@@ -132,7 +133,7 @@ func Empty[T any]() List[T] {
 
 // Create a list with only one element.
 func Singleton[T any](val T) List[T] {
-	return &list[T]{consList{}, &cons[T]{val, Empty[T]()}}
+	return &list[T]{consList{}, &kernel.Cons[T, List[T]]{Head: val, Tail: Empty[T]()}}
 }
 
 // Create a list with *n* copies of a value.
@@ -164,7 +165,7 @@ func rangeHelp(low Int, hi Int, ls List[Int]) List[Int] {
 
 // Add an element to the front of a list.
 func Cons[T any](val T, l List[T]) List[T] {
-	return &list[T]{consList{}, &cons[T]{val, l}}
+	return &list[T]{consList{}, &kernel.Cons[T, List[T]]{Head: val, Tail: l}}
 }
 
 // TRANSFORM
@@ -289,7 +290,7 @@ func ListWith[T any, R any](l1 List[T], e func(List[T]) R, ht func(T, List[T]) R
 	case empty[T]:
 		return e(l1)
 	case *list[T]:
-		return ht(l1._cons.head, l1._cons.tail)
+		return ht(l1._cons.Head, l1._cons.Tail)
 	default:
 		var zero [0]T
 		panic(
