@@ -207,6 +207,18 @@ func TestComparisons(t *testing.T) {
 		asserts.True(Ge(Int(3), 2))
 		asserts.False(Ge(Int(2), 3))
 	})
+
+	t.Run("Max", func(t *testing.T) {
+		asserts.Equal(Int(2), Max(Int(1), 2))
+		asserts.Equal(Int(3), Max(Int(1), 3))
+		asserts.Equal(Int(12345678), Max(Int(42), 12345678))
+		asserts.Equal(String("xyz"), Max(String("abc"), "xyz"))
+	})
+
+	t.Run("Min", func(t *testing.T) {
+		asserts.Equal(Int(42), Min(Int(42), 12345678))
+		asserts.Equal(String("abc"), Min(String("abc"), "xyz"))
+	})
 }
 
 func TestBooleans(t *testing.T) {

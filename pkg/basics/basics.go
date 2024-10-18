@@ -13,6 +13,7 @@ type Number interface {
 
 type Int int
 type Float float64
+type String string
 
 func (i Int) Cmp(y Int) int {
 	return cmp.Compare(i, y)
@@ -20,9 +21,22 @@ func (i Int) Cmp(y Int) int {
 func (i Float) Cmp(y Float) int {
 	return cmp.Compare(i, y)
 }
+func (i String) Cmp(y String) int {
+	return cmp.Compare(i, y)
+}
+func (i Int) T() Int {
+	return i
+}
+func (i Float) T() Float {
+	return i
+}
+func (i String) T() String {
+	return i
+}
 
 type Comparable[T any] interface {
 	Cmp(T) int
+	T() T
 }
 
 // Add two numbers. The number type variable means this operation can be specialized to any Number type.
@@ -110,6 +124,22 @@ type EQ struct {
 
 type GT struct {
 	order
+}
+
+func Max[T any](x Comparable[T], y T) T {
+	if Gt(x, y) {
+		return x.T()
+	} else {
+		return y
+	}
+}
+
+func Min[T any](x Comparable[T], y T) T {
+	if Lt(x, y) {
+		return x.T()
+	} else {
+		return y
+	}
 }
 
 func Compare[T any](x Comparable[T], y T) Order {

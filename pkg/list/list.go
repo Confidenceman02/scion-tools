@@ -106,6 +106,10 @@ func cmpHelp(x any, y any) int {
 	}
 }
 
+func (l *list[T]) T() *list[T] {
+	return l
+}
+
 func (x empty[T]) Cmp(y List[T]) int {
 	if reflect.DeepEqual(x, y) {
 		return 0
