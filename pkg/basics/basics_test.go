@@ -181,6 +181,34 @@ func TestEquality(t *testing.T) {
 	})
 }
 
+func TestComparisons(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Lt", func(t *testing.T) {
+		asserts.True(Lt(Int(1), 3))
+		asserts.True(Lt(Int(-9), -2))
+		asserts.False(Lt(Int(2), 1))
+	})
+
+	t.Run("Gt", func(t *testing.T) {
+		asserts.True(Gt(Int(3), 1))
+		asserts.True(Gt(Int(-2), -9))
+		asserts.False(Gt(Int(1), 2))
+	})
+
+	t.Run("Le", func(t *testing.T) {
+		asserts.True(Le(Int(3), 3))
+		asserts.True(Le(Int(2), 3))
+		asserts.False(Le(Int(2), 1))
+	})
+
+	t.Run("Ge", func(t *testing.T) {
+		asserts.True(Ge(Int(3), 3))
+		asserts.True(Ge(Int(3), 2))
+		asserts.False(Ge(Int(2), 3))
+	})
+}
+
 func TestBooleans(t *testing.T) {
 	asserts := assert.New(t)
 

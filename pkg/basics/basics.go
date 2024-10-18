@@ -14,20 +14,15 @@ type Number interface {
 type Int int
 type Float float64
 
-func (i Int) Cmp(x, y Int) int {
-	return cmp.Compare(x, y)
+func (i Int) Cmp(y Int) int {
+	return cmp.Compare(i, y)
 }
-func (i Float) Cmp(x, y Float) int {
-	return cmp.Compare(x, y)
+func (i Float) Cmp(y Float) int {
+	return cmp.Compare(i, y)
 }
 
 type Comparable[T any] interface {
 	Cmp(T) int
-}
-
-func Something[T any](x, y Comparable[T]) int {
-	return 22
-
 }
 
 // Add two numbers. The number type variable means this operation can be specialized to any Number type.
@@ -75,8 +70,24 @@ func Eq[T any](x, y T) bool {
 
 // COMPARISON
 
-func Gt[T any](x Comparable[T], y Comparable[T]) bool {
-	return true
+// <
+func Lt[T any](x Comparable[T], y T) bool {
+	return x.Cmp(y) < 0
+}
+
+// <=
+func Le[T any](x Comparable[T], y T) bool {
+	return x.Cmp(y) <= 0
+}
+
+// >
+func Gt[T any](x Comparable[T], y T) bool {
+	return x.Cmp(y) > 0
+}
+
+// >=
+func Ge[T any](x Comparable[T], y T) bool {
+	return x.Cmp(y) >= 0
 }
 
 type Order interface {
@@ -99,6 +110,17 @@ type EQ struct {
 
 type GT struct {
 	order
+}
+
+func Compare[T any](x Comparable[T], y T) Order {
+	n := x.Cmp(y)
+	if n < 0 {
+		return LT{}
+	} else if n == 0 {
+		return EQ{}
+	} else {
+		return GT{}
+	}
 }
 
 // BOOLEANS
