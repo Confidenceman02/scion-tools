@@ -74,7 +74,7 @@ type nodeStack[K cmp.Ordered, V any] struct {
 	node  *node[K, V]
 }
 
-// BUILDERS
+// BUILD
 
 // Create an empty dictionary.
 func Empty[K cmp.Ordered, V any]() Dict[K, V] {
@@ -140,8 +140,6 @@ func Insert[K cmp.Ordered, V any](key K, v V, d Dict[K, V]) Dict[K, V] {
 	return &dict[K, V]{root: rootNs.node}
 }
 
-// TODO Update
-
 /*
 Removal is a bit more of a process to that of insertion
 
@@ -198,64 +196,6 @@ func Remove[K cmp.Ordered, V any](key K, d Dict[K, V]) Dict[K, V] {
 		},
 		func(n Nothing) Dict[K, V] { return d },
 	)
-}
-
-// QUERY
-
-// Determine if a dictionary is empty.
-func IsEmpty[K cmp.Ordered, V any](d Dict[K, V]) bool {
-	return d.rbt().root == nil
-}
-
-// Member - Determine if a key is in a dictionary.
-func Member[K cmp.Ordered, V any](k K, d Dict[K, V]) bool {
-	root := d.rbt().root
-
-	if root == nil {
-		return false
-	} else {
-		return memberHelp(k, root)
-	}
-}
-
-func memberHelp[K cmp.Ordered, V any](k K, n *node[K, V]) bool {
-	if n != nil {
-		switch cmp.Compare(k, n.key) {
-		case LT:
-			return memberHelp(k, n.left)
-		case EQ:
-			return true
-		case GT:
-			return memberHelp(k, n.right)
-		}
-	}
-	return false
-}
-
-// Get the value associated with a key.
-// If the key is not found, return [Nothing].
-// This is useful when you are not sure if a key will be in the dictionary.
-func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) Maybe[V] {
-	root := d.rbt().root
-	if root == nil {
-		return Nothing{}
-	} else {
-		return getHelp(targetKey, root)
-	}
-}
-
-func getHelp[K cmp.Ordered, V any](targetKey K, n *node[K, V]) Maybe[V] {
-	if n != nil {
-		switch cmp.Compare(targetKey, n.key) {
-		case LT:
-			return getHelp(targetKey, n.left)
-		case EQ:
-			return Just[V]{Value: n.value}
-		case GT:
-			return getHelp(targetKey, n.right)
-		}
-	}
-	return Nothing{}
 }
 
 // Get a Just nodeStack or Nothing if node doesn't exist
@@ -769,3 +709,65 @@ func getStackHelp[K cmp.Ordered, V any](k K, n *node[K, V], st *stack[K, V]) (*s
 	}
 	panic("unreachable")
 }
+
+// QUERY
+
+// Determine if a dictionary is empty.
+func IsEmpty[K cmp.Ordered, V any](d Dict[K, V]) bool {
+	return d.rbt().root == nil
+}
+
+// Member - Determine if a key is in a dictionary.
+func Member[K cmp.Ordered, V any](k K, d Dict[K, V]) bool {
+	root := d.rbt().root
+
+	if root == nil {
+		return false
+	} else {
+		return memberHelp(k, root)
+	}
+}
+
+func memberHelp[K cmp.Ordered, V any](k K, n *node[K, V]) bool {
+	if n != nil {
+		switch cmp.Compare(k, n.key) {
+		case LT:
+			return memberHelp(k, n.left)
+		case EQ:
+			return true
+		case GT:
+			return memberHelp(k, n.right)
+		}
+	}
+	return false
+}
+
+// Get the value associated with a key.
+// If the key is not found, return [Nothing].
+// This is useful when you are not sure if a key will be in the dictionary.
+func Get[K cmp.Ordered, V any](targetKey K, d Dict[K, V]) Maybe[V] {
+	root := d.rbt().root
+	if root == nil {
+		return Nothing{}
+	} else {
+		return getHelp(targetKey, root)
+	}
+}
+
+func getHelp[K cmp.Ordered, V any](targetKey K, n *node[K, V]) Maybe[V] {
+	if n != nil {
+		switch cmp.Compare(targetKey, n.key) {
+		case LT:
+			return getHelp(targetKey, n.left)
+		case EQ:
+			return Just[V]{Value: n.value}
+		case GT:
+			return getHelp(targetKey, n.right)
+		}
+	}
+	return Nothing{}
+}
+
+// LISTS
+// TRANSFORM
+// COMBINE

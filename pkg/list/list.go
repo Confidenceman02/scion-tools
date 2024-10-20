@@ -10,23 +10,31 @@ import (
 )
 
 type List[T any] interface {
-	_consList() consList
+	cons() *kernel.Cons[T, List[T]]
 	Cmp(List[T]) int
+	T() List[T]
 }
 
-type consList struct{}
+func (c empty[T]) cons() *kernel.Cons[T, List[T]] {
+	return &kernel.Cons[T, List[T]]{}
+}
+func (c *list[T]) cons() *kernel.Cons[T, List[T]] {
+	return &kernel.Cons[T, List[T]]{}
+}
 
-func (cl consList) _consList() consList {
-	return cl
+func (c empty[T]) T() List[T] {
+	return c
+}
+func (c *list[T]) T() List[T] {
+	return c
 }
 
 type empty[T any] struct {
-	consList
+	*kernel.Cons[T, List[T]]
 }
 
 type list[T any] struct {
-	consList
-	_cons *kernel.Cons[T, List[T]]
+	*kernel.Cons[T, List[T]]
 }
 
 // Comparable
@@ -37,26 +45,26 @@ func (x *list[T]) Cmp(y List[T]) int {
 		return +1
 	case *list[T]:
 		// traverse conses until end of a list or a mismatch
-		var ord = cmpHelp(x._cons.Head, y._cons.Head)
+		var ord = cmpHelp(x.Head, y.Head)
 		var x1 *list[T] = x
 		var y1 *list[T] = y
-		for !IsEmpty(x1._cons.Tail) && !IsEmpty(y1._cons.Tail) && ord == 0 {
-			switch x2 := x1._cons.Tail.(type) {
+		for !IsEmpty(x1.Tail) && !IsEmpty(y1.Tail) && ord == 0 {
+			switch x2 := x1.Tail.(type) {
 			case *list[T]:
-				switch y2 := y1._cons.Tail.(type) {
+				switch y2 := y1.Tail.(type) {
 				case *list[T]:
 					x1 = x2
 					y1 = y2
-					ord = cmpHelp(x2._cons.Head, y2._cons.Head)
+					ord = cmpHelp(x2.Head, y2.Head)
 					continue
 				}
 			default:
 				panic("unreachable")
 			}
 		}
-		if IsEmpty(x1._cons.Tail) && IsEmpty(y1._cons.Tail) {
+		if IsEmpty(x1.Tail) && IsEmpty(y1.Tail) {
 			return ord
-		} else if !IsEmpty(x1._cons.Tail) {
+		} else if !IsEmpty(x1.Tail) {
 			return +1
 		} else {
 			return -1
@@ -107,10 +115,6 @@ func cmpHelp(x any, y any) int {
 	}
 }
 
-func (l *list[T]) T() *list[T] {
-	return l
-}
-
 func (x empty[T]) Cmp(y List[T]) int {
 	if reflect.DeepEqual(x, y) {
 		return 0
@@ -118,11 +122,6 @@ func (x empty[T]) Cmp(y List[T]) int {
 		return -1
 	}
 }
-
-// type cons[T any] struct {
-// 	head T
-// 	tail List[T]
-// }
 
 // CREATE
 
@@ -133,7 +132,7 @@ func Empty[T any]() List[T] {
 
 // Create a list with only one element.
 func Singleton[T any](val T) List[T] {
-	return &list[T]{consList{}, &kernel.Cons[T, List[T]]{Head: val, Tail: Empty[T]()}}
+	return &list[T]{&kernel.Cons[T, List[T]]{Head: val, Tail: Empty[T]()}}
 }
 
 // Create a list with *n* copies of a value.
@@ -165,7 +164,7 @@ func rangeHelp(low Int, hi Int, ls List[Int]) List[Int] {
 
 // Add an element to the front of a list.
 func Cons[T any](val T, l List[T]) List[T] {
-	return &list[T]{consList{}, &kernel.Cons[T, List[T]]{Head: val, Tail: l}}
+	return &list[T]{&kernel.Cons[T, List[T]]{Head: val, Tail: l}}
 }
 
 // TRANSFORM
@@ -290,7 +289,7 @@ func ListWith[T any, R any](l1 List[T], e func(List[T]) R, ht func(T, List[T]) R
 	case empty[T]:
 		return e(l1)
 	case *list[T]:
-		return ht(l1._cons.Head, l1._cons.Tail)
+		return ht(l1.Head, l1.Tail)
 	default:
 		var zero [0]T
 		panic(

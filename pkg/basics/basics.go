@@ -39,10 +39,14 @@ type Comparable[T any] interface {
 	T() T
 }
 
+// Math
+
 // Add two numbers. The number type variable means this operation can be specialized to any Number type.
 func Add[T Number](a, b T) T {
 	return a + b
 }
+
+// Int to Float / Float to Int
 
 // ToFloat - Convert an integer into a float. Useful when mixing Int and Float values.
 func ToFloat[T Int](x T) Float {
@@ -89,19 +93,46 @@ func Lt[T any](x Comparable[T], y T) bool {
 	return x.Cmp(y) < 0
 }
 
-// <=
-func Le[T any](x Comparable[T], y T) bool {
-	return x.Cmp(y) <= 0
-}
-
 // >
 func Gt[T any](x Comparable[T], y T) bool {
 	return x.Cmp(y) > 0
 }
 
+// <=
+func Le[T any](x Comparable[T], y T) bool {
+	return x.Cmp(y) <= 0
+}
+
 // >=
 func Ge[T any](x Comparable[T], y T) bool {
 	return x.Cmp(y) >= 0
+}
+
+func Max[T any](x Comparable[T], y T) T {
+	if Gt(x, y) {
+		return x.T()
+	} else {
+		return y
+	}
+}
+
+func Min[T any](x Comparable[T], y T) T {
+	if Lt(x, y) {
+		return x.T()
+	} else {
+		return y
+	}
+}
+
+func Compare[T any](x Comparable[T], y Comparable[T]) Order {
+	n := x.Cmp(y.T())
+	if n < 0 {
+		return LT{}
+	} else if n == 0 {
+		return EQ{}
+	} else {
+		return GT{}
+	}
 }
 
 type Order interface {
@@ -126,33 +157,6 @@ type GT struct {
 	order
 }
 
-func Max[T any](x Comparable[T], y T) T {
-	if Gt(x, y) {
-		return x.T()
-	} else {
-		return y
-	}
-}
-
-func Min[T any](x Comparable[T], y T) T {
-	if Lt(x, y) {
-		return x.T()
-	} else {
-		return y
-	}
-}
-
-func Compare[T any](x Comparable[T], y T) Order {
-	n := x.Cmp(y)
-	if n < 0 {
-		return LT{}
-	} else if n == 0 {
-		return EQ{}
-	} else {
-		return GT{}
-	}
-}
-
 // BOOLEANS
 
 // Negate a boolean value.
@@ -160,10 +164,7 @@ func Not(pred bool) bool {
 	return !pred
 }
 
-// Take the square root of a number.
-func Sqrt(n Float) Float {
-	return Float(math.Sqrt(float64(n)))
-}
+// Fancier Math
 
 func ModBy(modulus Int, x Int) Int {
 	answer := math.Mod(float64(x), float64(modulus))
@@ -176,6 +177,11 @@ func ModBy(modulus Int, x Int) Int {
 	} else {
 		return Int(answer)
 	}
+}
+
+// Take the square root of a number.
+func Sqrt(n Float) Float {
+	return Float(math.Sqrt(float64(n)))
 }
 
 // FUNCTION HELPERS
