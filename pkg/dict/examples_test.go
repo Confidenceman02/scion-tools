@@ -1,33 +1,36 @@
 package dict
 
-import "fmt"
+import (
+	"fmt"
+	. "github.com/Confidenceman02/scion-tools/pkg/basics"
+)
 
 func ExampleEmpty() {
 	Empty[int, int]() // -> nil -- root
 }
 
 func ExampleSingleton() {
-	Singleton(1, 24) // -> 1:24 -- root
+	Singleton(Int(1), 24) // -> 1:24 -- root
 	//                      / \
 	//                    nil  nil
 }
 
 func ExampleInsert() {
 
-	Insert(1, 24, Empty[int, int]()) // -> 1:24 -- root
+	Insert(Int(1), 24, Empty[Int, Int]()) // -> 1:24 -- root
 	//                                      / \
 	//                                    nil  nil
 }
 
 func ExampleRemove() {
-	some_dict := Singleton(1, 24)
+	some_dict := Singleton(Int(1), 24)
 
-	Remove(1, some_dict) // -> nil -- root
+	Remove(Int(1), some_dict) // -> nil -- root
 }
 
 func ExampleIsEmpty() {
 	fmt.Println(IsEmpty(Empty[int, int]()))
-	fmt.Println(IsEmpty(Singleton(1, 24)))
+	fmt.Println(IsEmpty(Singleton(Int(1), 24)))
 
 	// Output:
 	// true
@@ -35,12 +38,12 @@ func ExampleIsEmpty() {
 }
 
 func ExampleMember() {
-	fmt.Println(Member(1, Singleton(1, 24)))
+	fmt.Println(Member(Int(1), Singleton(Int(1), 24)))
 
 	// Output:
 	// true
 }
 
 func ExampleGet() {
-	Get(1, Singleton(1, 24)) // -> Just{Value: 24}
+	Get(Int(1), Singleton(Int(1), 24)) // -> Just{Value: 24}
 }
