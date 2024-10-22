@@ -5,7 +5,7 @@ import (
 	"fmt"
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	kernel "github.com/Confidenceman02/scion-tools/pkg/list/internal"
-	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
+	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"reflect"
 )
 
@@ -169,6 +169,10 @@ func Cons[T any](val T, l List[T]) List[T] {
 
 // TRANSFORM
 
+func Map[A any, B any](f func(A) B, xs List[A]) List[B] {
+	return Foldr(func(a A, b List[B]) List[B] { return Cons(f(a), b) }, Empty[B](), xs)
+}
+
 // Reduce a list from the left.
 func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
 	return ListWith(
@@ -265,20 +269,20 @@ func IsEmpty[T any](l List[T]) bool {
 }
 
 // Extract the first element of a list.
-func Head[T any](l List[T]) Maybe[T] {
+func Head[T any](l List[T]) maybe.Maybe[T] {
 	return ListWith(
 		l,
-		func(List[T]) Maybe[T] { return Nothing{} },
-		func(head T, _ List[T]) Maybe[T] { return Just[T]{Value: head} },
+		func(List[T]) maybe.Maybe[T] { return maybe.Nothing{} },
+		func(head T, _ List[T]) maybe.Maybe[T] { return maybe.Just[T]{Value: head} },
 	)
 }
 
 // Extract the rest of the list.
-func Tail[T any](l List[T]) Maybe[List[T]] {
+func Tail[T any](l List[T]) maybe.Maybe[List[T]] {
 	return ListWith(
 		l,
-		func(List[T]) Maybe[List[T]] { return Nothing{} },
-		func(_ T, tail List[T]) Maybe[List[T]] { return Just[List[T]]{Value: tail} },
+		func(List[T]) maybe.Maybe[List[T]] { return maybe.Nothing{} },
+		func(_ T, tail List[T]) maybe.Maybe[List[T]] { return maybe.Just[List[T]]{Value: tail} },
 	)
 }
 

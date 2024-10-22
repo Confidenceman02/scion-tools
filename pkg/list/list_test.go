@@ -3,7 +3,7 @@ package list
 import (
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	kernel "github.com/Confidenceman02/scion-tools/pkg/list/internal"
-	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
+	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -183,6 +183,49 @@ func TestCreateFunctions(t *testing.T) {
 func TestTransformFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
+	t.Run("Map", func(t *testing.T) {
+		SUT1 := fromArray([]Float{Float(1), Float(4), Float(9)})
+		SUT2 := fromArray([]bool{true, false, true})
+
+		asserts.Equal(&list[Float]{
+			&kernel.Cons[Float, List[Float]]{
+				Head: 1,
+				Tail: &list[Float]{
+					&kernel.Cons[Float, List[Float]]{
+						Head: 2,
+						Tail: &list[Float]{
+							&kernel.Cons[Float, List[Float]]{
+								Head: 3,
+								Tail: empty[Float]{},
+							},
+						},
+					},
+				},
+			},
+		},
+			Map(Sqrt, SUT1),
+		)
+
+		asserts.Equal(&list[bool]{
+			&kernel.Cons[bool, List[bool]]{
+				Head: false,
+				Tail: &list[bool]{
+					&kernel.Cons[bool, List[bool]]{
+						Head: true,
+						Tail: &list[bool]{
+							&kernel.Cons[bool, List[bool]]{
+								Head: false,
+								Tail: empty[bool]{},
+							},
+						},
+					},
+				},
+			},
+		},
+			Map(Not, SUT2),
+		)
+	})
+
 	t.Run("Foldl", func(t *testing.T) {
 		t.Run("Add", func(t *testing.T) {
 			ls := Range(1, 3)
@@ -357,11 +400,11 @@ func TestDeconstructFunctions(t *testing.T) {
 	t.Run("Head", func(t *testing.T) {
 		t.Run("When empty", func(t *testing.T) {
 			SUT := Empty[Int]()
-			asserts.Equal(Nothing{}, Head(SUT))
+			asserts.Equal(maybe.Nothing{}, Head(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
 			SUT := Singleton(23)
-			asserts.Equal(Just[int]{Value: 23}, Head(SUT))
+			asserts.Equal(maybe.Just[int]{Value: 23}, Head(SUT))
 		})
 	})
 
@@ -369,18 +412,18 @@ func TestDeconstructFunctions(t *testing.T) {
 		t.Run("When emtpy", func(t *testing.T) {
 			SUT := Empty[Int]()
 
-			asserts.Equal(Nothing{}, Tail(SUT))
+			asserts.Equal(maybe.Nothing{}, Tail(SUT))
 		})
 		t.Run("When has empty cons", func(t *testing.T) {
 			SUT := Singleton(23)
 
-			asserts.Equal(Just[List[int]]{Value: empty[int]{}}, Tail(SUT))
+			asserts.Equal(maybe.Just[List[int]]{Value: empty[int]{}}, Tail(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
 			SUT := Cons(22, Singleton(23))
 
 			asserts.Equal(
-				Just[List[int]]{
+				maybe.Just[List[int]]{
 					Value: &list[int]{
 						&kernel.Cons[int, List[int]]{
 							Head: 23,
