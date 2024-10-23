@@ -9,14 +9,6 @@ import (
 	"testing"
 )
 
-func fromArray[T any](arr []T) List[T] {
-	var result List[T] = Empty[T]()
-	for i := len(arr) - 1; i >= 0; i-- {
-		result = Cons(arr[i], result)
-	}
-	return result
-}
-
 func TestCmp(t *testing.T) {
 	asserts := assert.New(t)
 

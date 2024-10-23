@@ -220,8 +220,7 @@ func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr Int, ls List[A]) B {
 	)
 }
 
-// UTILITY
-
+// UTILITIES
 // Determine the length of a list.
 func Length[T any](ls List[T]) Int {
 	return Foldl(func(_ T, y Int) Int { return y + 1 }, 0, ls)
@@ -256,6 +255,8 @@ func Any[T any](isOkay func(T) bool, l List[T]) bool {
 		},
 	)
 }
+
+// COMBINE
 
 // DECONSTRUCT
 
@@ -304,4 +305,12 @@ func ListWith[T any, R any](l1 List[T], e func(List[T]) R, ht func(T, List[T]) R
 			),
 		)
 	}
+}
+
+func fromArray[T any](arr []T) List[T] {
+	var result List[T] = Empty[T]()
+	for i := len(arr) - 1; i >= 0; i-- {
+		result = Cons(arr[i], result)
+	}
+	return result
 }
