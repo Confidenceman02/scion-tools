@@ -374,6 +374,33 @@ func TestUtilityFunctions(t *testing.T) {
 	})
 }
 
+func TestCombineFunctions(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Map2", func(t *testing.T) {
+		t.Run("Lists with one member", func(t *testing.T) {
+			a := Cons(1, Empty[Int]())
+			b := Cons(1, Empty[Int]())
+			SUT := Map2(Add, a, b)
+
+			asserts.Equal(
+				&list[Int]{
+					&kernel.Cons[Int, List[Int]]{
+						Head: 2, Tail: Empty[Int]()}},
+				SUT,
+			)
+		})
+		t.Run("When one list empty", func(t *testing.T) {
+			a := Range(1, 3)
+			b := Empty[Int]()
+			SUT := Map2(Add, a, b)
+
+			asserts.Equal(empty[Int]{}, SUT)
+		})
+
+	})
+}
+
 func TestDeconstructFunctions(t *testing.T) {
 	asserts := assert.New(t)
 

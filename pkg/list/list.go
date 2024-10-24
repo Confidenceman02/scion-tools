@@ -221,6 +221,7 @@ func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr Int, ls List[A]) B {
 }
 
 // UTILITIES
+
 // Determine the length of a list.
 func Length[T any](ls List[T]) Int {
 	return Foldl(func(_ T, y Int) Int { return y + 1 }, 0, ls)
@@ -257,6 +258,30 @@ func Any[T any](isOkay func(T) bool, l List[T]) bool {
 }
 
 // COMBINE
+
+func Map2[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B]) List[result] {
+	return fromArray(map2Help(f, xs, ys, []result{}))
+}
+
+func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B], acc []result) []result {
+	return ListWith(
+		xs,
+		func(List[A]) []result {
+			return acc
+		},
+		func(x A, xt List[A]) []result {
+			return ListWith(
+				ys,
+				func(List[B]) []result {
+					return acc
+				},
+				func(y B, yt List[B]) []result {
+					return map2Help(f, xt, yt, append(acc, f(x, y)))
+				},
+			)
+		},
+	)
+}
 
 // DECONSTRUCT
 
