@@ -1,7 +1,7 @@
 package maybe
 
 import (
-	"github.com/Confidenceman02/scion-tools/pkg/basics"
+	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -26,26 +26,26 @@ func TestMap(t *testing.T) {
 	})
 
 	t.Run("Map2 a Nothing", func(t *testing.T) {
-		var m1 Maybe[int]
-		var m2 Maybe[int]
+		var m1 Maybe[Int]
+		var m2 Maybe[Int]
 
-		m1 = Just[int]{Value: 22}
+		m1 = Just[Int]{Value: 22}
 		m2 = Nothing{}
 
 		asserts.Equal(Nothing{},
-			Map2(basics.Add[int], m1, m2),
+			Map2(Add[Int], m1, m2),
 		)
 	})
 
 	t.Run("Map2 a Just", func(t *testing.T) {
-		var m1 Maybe[int]
-		var m2 Maybe[int]
+		var m1 Maybe[Int]
+		var m2 Maybe[Int]
 
-		m1 = Just[int]{Value: 20}
-		m2 = Just[int]{Value: 20}
+		m1 = Just[Int]{Value: 20}
+		m2 = Just[Int]{Value: 20}
 
-		asserts.Equal(Just[int]{Value: 40},
-			Map2(basics.Add[int], m1, m2),
+		asserts.Equal(Just[Int]{Value: 40},
+			Map2(Add[Int], m1, m2),
 		)
 	})
 
@@ -68,12 +68,12 @@ func TestMap(t *testing.T) {
 		var m2 Maybe[int]
 		var m3 Maybe[int]
 
-		m1 = Just[int]{Value: 1}
-		m2 = Just[int]{Value: 2}
-		m3 = Just[int]{Value: 3}
+		m1 = Just[Int]{Value: 1}
+		m2 = Just[Int]{Value: 2}
+		m3 = Just[Int]{Value: 3}
 
-		asserts.Equal(Just[int]{Value: 6},
-			Map3(func(a int, b int, c int) int { return basics.Add(basics.Add(a, b), c) }, m1, m2, m3),
+		asserts.Equal(Just[Int]{Value: 6},
+			Map3(func(a Int, b Int, c Int) Int { return Add(Add(a, b), c) }, m1, m2, m3),
 		)
 	})
 
