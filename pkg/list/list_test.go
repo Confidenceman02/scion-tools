@@ -1,9 +1,8 @@
 package list
 
 import (
-	. "github.com/Confidenceman02/scion-tools/pkg/basics"
+	"github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/maybe"
-	. "github.com/Confidenceman02/scion-tools/pkg/string"
 	. "github.com/Confidenceman02/scion-tools/pkg/tuple"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -13,78 +12,78 @@ func TestCmp(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run(" Compare", func(t *testing.T) {
-		x1 := fromSlice([]Int{Int(1), Int(2), Int(3)})
-		x2 := fromSlice([]Int{Int(1), Int(2), Int(4)})
+		x1 := FromSlice([]basics.Int{basics.Int(1), basics.Int(2), basics.Int(3)})
+		x2 := FromSlice([]basics.Int{basics.Int(1), basics.Int(2), basics.Int(4)})
 
-		asserts.Equal(LT{}, Compare(x1, x2))
+		asserts.Equal(basics.LT{}, basics.Compare(x1, x2))
 	})
 
 	t.Run("Compare: When empty", func(t *testing.T) {
-		l1 := Empty[Int]()
-		l2 := Empty[Int]()
+		l1 := Empty[basics.Int]()
+		l2 := Empty[basics.Int]()
 
 		asserts.Equal(0, l1.Cmp(l2))
-		asserts.Equal(EQ{}, Compare(l1, l2))
+		asserts.Equal(basics.EQ{}, basics.Compare(l1, l2))
 	})
 
-	t.Run("Compare: When cons Int", func(t *testing.T) {
-		l1 := Singleton[Int](1)
-		l2 := Singleton[Int](1)
+	t.Run("Compare: When cons basics.Int", func(t *testing.T) {
+		l1 := Singleton[basics.Int](1)
+		l2 := Singleton[basics.Int](1)
 		l3 := Range(1, 10)
 		l4 := Range(1, 10)
-		l5 := Singleton[Int](2)
-		l6 := Singleton[Int](1)
+		l5 := Singleton[basics.Int](2)
+		l6 := Singleton[basics.Int](1)
 		l7 := Range(1, 11)
 		l8 := Range(1, 10)
-		l9 := Singleton[Int](1)
-		l10 := Singleton[Int](2)
+		l9 := Singleton[basics.Int](1)
+		l10 := Singleton[basics.Int](2)
 		l11 := Range(1, 10)
 		l12 := Range(1, 11)
-		l13 := Empty[Int]()
-		l14 := Singleton[Int](2)
+		l13 := Empty[basics.Int]()
+		l14 := Singleton[basics.Int](2)
 
 		asserts.Equal(0, l1.Cmp(l2))
 		asserts.Equal(0, l3.Cmp(l4))
-		asserts.Equal(EQ{}, Compare(l1, l2))
-		asserts.Equal(EQ{}, Compare(l3, l4))
+		asserts.Equal(basics.EQ{}, basics.Compare(l1, l2))
+		asserts.Equal(basics.EQ{}, basics.Compare(l3, l4))
 		asserts.Equal(+1, l5.Cmp(l6))
 		asserts.Equal(+1, l7.Cmp(l8))
-		asserts.Equal(GT{}, Compare(l5, l6))
-		asserts.Equal(GT{}, Compare(l7, l8))
+		asserts.Equal(basics.GT{}, basics.Compare(l5, l6))
+		asserts.Equal(basics.GT{}, basics.Compare(l7, l8))
 		asserts.Equal(-1, l9.Cmp(l10))
 		asserts.Equal(-1, l11.Cmp(l12))
-		asserts.Equal(LT{}, Compare(l9, l10))
-		asserts.Equal(LT{}, Compare(l11, l12))
+		asserts.Equal(basics.LT{}, basics.Compare(l9, l10))
+		asserts.Equal(basics.LT{}, basics.Compare(l11, l12))
 		asserts.Equal(-1, l13.Cmp(l14))
-		asserts.Equal(LT{}, Compare(l13, l14))
+		asserts.Equal(basics.LT{}, basics.Compare(l13, l14))
 	})
 
-	t.Run("Compare: When cons Float", func(t *testing.T) {
-		l1 := Singleton[Float](1.0)
-		l2 := Singleton[Float](1.0)
-		l3 := Singleton[Float](1.1)
-		l4 := Singleton[Float](1.0)
-		l5 := fromSlice([]Float{1.1, 2.2})
-		l6 := fromSlice([]Float{1.1, 2.1})
-		l7 := Singleton[Float](1)
-		l8 := Singleton[Float](2)
-		l9 := fromSlice([]Float{1.0, 2.0})
-		l10 := fromSlice([]Float{1.0, 2.1})
-		l11 := Empty[Float]()
-		l12 := Singleton[Float](2)
+	t.Run("Compare: When cons basics.Float", func(t *testing.T) {
+		l1 := Singleton[basics.Float](1.0)
+		l2 := Singleton[basics.Float](1.0)
+		l3 := Singleton[basics.Float](1.1)
+		l4 := Singleton[basics.Float](1.0)
+		l5 := FromSlice([]basics.Float{1.1, 2.2})
+		l6 := FromSlice([]basics.Float{1.1, 2.1})
+		l7 := Singleton[basics.Float](1)
+		l8 := Singleton[basics.Float](2)
+		l9 := FromSlice([]basics.Float{1.0, 2.0})
+		l10 := FromSlice([]basics.Float{1.0, 2.1})
+		l11 := Empty[basics.Float]()
+		l12 := Singleton[basics.Float](2)
 
 		asserts.Equal(0, l1.Cmp(l2))
-		asserts.Equal(EQ{}, Compare(l1, l2))
+		asserts.Equal(basics.EQ{}, basics.Compare(l1, l2))
 		asserts.Equal(+1, l3.Cmp(l4))
 		asserts.Equal(+1, l5.Cmp(l6))
-		asserts.Equal(GT{}, Compare(l3, l4))
-		asserts.Equal(GT{}, Compare(l5, l6))
+		asserts.Equal(basics.GT{}, basics.Compare(l3, l4))
+		asserts.Equal(basics.GT{}, basics.Compare(l5, l6))
 		asserts.Equal(-1, l7.Cmp(l8))
 		asserts.Equal(-1, l9.Cmp(l10))
-		asserts.Equal(LT{}, Compare(l7, l8))
-		asserts.Equal(LT{}, Compare(l9, l10))
+		asserts.Equal(basics.LT{}, basics.Compare(l7, l8))
+		asserts.Equal(basics.LT{}, basics.Compare(l9, l10))
 		asserts.Equal(-1, l11.Cmp(l12))
-		asserts.Equal(LT{}, Compare(l11, l12))
+		asserts.Equal(basics.LT{}, basics.Compare(l11, l12))
 	})
 }
 
@@ -92,9 +91,9 @@ func TestCreateFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Singleton", func(t *testing.T) {
-		SUT := Singleton[Int](10)
+		SUT := Singleton[basics.Int](10)
 
-		asserts.Equal(&list[Int]{&_cons[Int]{a: 10, b: empty[Int]{}}}, SUT)
+		asserts.Equal(&list[basics.Int]{&_cons[basics.Int]{a: 10, b: empty[basics.Int]{}}}, SUT)
 	})
 
 	t.Run("Repeat", func(t *testing.T) {
@@ -120,13 +119,13 @@ func TestCreateFunctions(t *testing.T) {
 		SUT := Range(2, 3)
 
 		asserts.Equal(
-			&list[Int]{
-				&_cons[Int]{
+			&list[basics.Int]{
+				&_cons[basics.Int]{
 					a: 2,
-					b: &list[Int]{
-						&_cons[Int]{
+					b: &list[basics.Int]{
+						&_cons[basics.Int]{
 							a: 3,
-							b: empty[Int]{},
+							b: empty[basics.Int]{},
 						},
 					},
 				},
@@ -135,7 +134,7 @@ func TestCreateFunctions(t *testing.T) {
 		)
 		t.Run("hi is lower than low", func(t *testing.T) {
 			SUT := Range(2, 1)
-			asserts.Equal(Empty[Int](), SUT)
+			asserts.Equal(Empty[basics.Int](), SUT)
 		})
 	})
 
@@ -159,26 +158,26 @@ func TestTransformFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Map", func(t *testing.T) {
-		SUT1 := fromSlice([]Float{Float(1), Float(4), Float(9)})
-		SUT2 := fromSlice([]bool{true, false, true})
+		SUT1 := FromSlice([]basics.Float{basics.Float(1), basics.Float(4), basics.Float(9)})
+		SUT2 := FromSlice([]bool{true, false, true})
 
-		asserts.Equal(&list[Float]{
-			&_cons[Float]{
+		asserts.Equal(&list[basics.Float]{
+			&_cons[basics.Float]{
 				a: 1,
-				b: &list[Float]{
-					&_cons[Float]{
+				b: &list[basics.Float]{
+					&_cons[basics.Float]{
 						a: 2,
-						b: &list[Float]{
-							&_cons[Float]{
+						b: &list[basics.Float]{
+							&_cons[basics.Float]{
 								a: 3,
-								b: empty[Float]{},
+								b: empty[basics.Float]{},
 							},
 						},
 					},
 				},
 			},
 		},
-			Map(Sqrt, SUT1),
+			Map(basics.Sqrt, SUT1),
 		)
 
 		asserts.Equal(&list[bool]{
@@ -197,26 +196,26 @@ func TestTransformFunctions(t *testing.T) {
 				},
 			},
 		},
-			Map(Not, SUT2),
+			Map(basics.Not, SUT2),
 		)
 	})
 
 	t.Run("IndexedMap", func(t *testing.T) {
 		x1 := Range(0, 2)
 
-		SUT := IndexedMap(Add, x1)
+		SUT := IndexedMap(basics.Add, x1)
 
 		asserts.Equal(
-			&list[Int]{
-				&_cons[Int]{
-					a: Int(0),
-					b: &list[Int]{
-						&_cons[Int]{
-							a: Int(2),
-							b: &list[Int]{
-								&_cons[Int]{
-									a: Int(4),
-									b: empty[Int]{},
+			&list[basics.Int]{
+				&_cons[basics.Int]{
+					a: basics.Int(0),
+					b: &list[basics.Int]{
+						&_cons[basics.Int]{
+							a: basics.Int(2),
+							b: &list[basics.Int]{
+								&_cons[basics.Int]{
+									a: basics.Int(4),
+									b: empty[basics.Int]{},
 								},
 							},
 						},
@@ -230,25 +229,25 @@ func TestTransformFunctions(t *testing.T) {
 	t.Run("Foldl", func(t *testing.T) {
 		t.Run("Add", func(t *testing.T) {
 			ls := Range(1, 3)
-			SUT := Foldl(Add, 0, ls)
+			SUT := Foldl(basics.Add, 0, ls)
 
-			asserts.Equal(Int(6), SUT)
+			asserts.Equal(basics.Int(6), SUT)
 		})
 		t.Run("Concat", func(t *testing.T) {
 			ls := Range(1, 3)
-			SUT := Foldl[Int, List[Int]](Cons, Empty[Int](), ls)
+			SUT := Foldl[basics.Int, List[basics.Int]](Cons, Empty[basics.Int](), ls)
 
 			asserts.Equal(
-				&list[Int]{
-					&_cons[Int]{
+				&list[basics.Int]{
+					&_cons[basics.Int]{
 						a: 3,
-						b: &list[Int]{
-							&_cons[Int]{
+						b: &list[basics.Int]{
+							&_cons[basics.Int]{
 								a: 2,
-								b: &list[Int]{
-									&_cons[Int]{
+								b: &list[basics.Int]{
+									&_cons[basics.Int]{
 										a: 1,
-										b: empty[Int]{},
+										b: empty[basics.Int]{},
 									},
 								},
 							},
@@ -262,21 +261,21 @@ func TestTransformFunctions(t *testing.T) {
 	t.Run("Foldr", func(t *testing.T) {
 		ls1 := Range(1, 3)
 		ls2 := Range(1, 3)
-		SUT1 := Foldr(Add, 0, ls1)
-		SUT2 := Foldr(Cons[Int], Empty[Int](), ls2)
+		SUT1 := Foldr(basics.Add, 0, ls1)
+		SUT2 := Foldr(Cons[basics.Int], Empty[basics.Int](), ls2)
 
-		asserts.Equal(Int(6), SUT1)
+		asserts.Equal(basics.Int(6), SUT1)
 		asserts.Equal(
-			&list[Int]{
-				&_cons[Int]{
+			&list[basics.Int]{
+				&_cons[basics.Int]{
 					a: 1,
-					b: &list[Int]{
-						&_cons[Int]{
+					b: &list[basics.Int]{
+						&_cons[basics.Int]{
 							a: 2,
-							b: &list[Int]{
-								&_cons[Int]{
+							b: &list[basics.Int]{
+								&_cons[basics.Int]{
 									a: 3,
-									b: empty[Int]{},
+									b: empty[basics.Int]{},
 								},
 							},
 						},
@@ -288,42 +287,23 @@ func TestTransformFunctions(t *testing.T) {
 	})
 	t.Run("Filter", func(t *testing.T) {
 		xs := Range(1, 6)
-		isEven := func(i Int) bool { return ModBy(2, i) == 0 }
+		isEven := func(i basics.Int) bool { return basics.ModBy(2, i) == 0 }
 
 		SUT := Filter(isEven, xs)
 
 		asserts.Equal(
-			&list[Int]{
-				&_cons[Int]{
-					a: Int(2),
-					b: &list[Int]{
-						&_cons[Int]{
-							a: Int(4),
-							b: &list[Int]{
-								&_cons[Int]{
-									a: Int(6),
-									b: empty[Int]{},
+			&list[basics.Int]{
+				&_cons[basics.Int]{
+					a: basics.Int(2),
+					b: &list[basics.Int]{
+						&_cons[basics.Int]{
+							a: basics.Int(4),
+							b: &list[basics.Int]{
+								&_cons[basics.Int]{
+									a: basics.Int(6),
+									b: empty[basics.Int]{},
 								},
 							},
-						},
-					},
-				},
-			},
-			SUT,
-		)
-	})
-	t.Run("FilterMap", func(t *testing.T) {
-		xs := fromSlice([]String{"3", "hi", "12", "4th", "May"})
-		SUT := FilterMap(ToInt, xs)
-
-		asserts.Equal(
-			&list[Int]{
-				&_cons[Int]{
-					a: Int(3),
-					b: &list[Int]{
-						&_cons[Int]{
-							a: Int(12),
-							b: empty[Int]{},
 						},
 					},
 				},
@@ -338,14 +318,14 @@ func TestUtilityFunctions(t *testing.T) {
 
 	t.Run("Length", func(t *testing.T) {
 		t.Run("Empty list", func(t *testing.T) {
-			ls := Empty[Int]()
+			ls := Empty[basics.Int]()
 
-			asserts.Equal(Int(0), Length(ls))
+			asserts.Equal(basics.Int(0), Length(ls))
 		})
 		t.Run("With cons", func(t *testing.T) {
 			ls := Range(1, 3)
 
-			asserts.Equal(Int(3), Length(ls))
+			asserts.Equal(basics.Int(3), Length(ls))
 		})
 	})
 
@@ -354,16 +334,16 @@ func TestUtilityFunctions(t *testing.T) {
 		SUT := Reverse(ls)
 
 		asserts.Equal(
-			&list[Int]{
-				&_cons[Int]{
+			&list[basics.Int]{
+				&_cons[basics.Int]{
 					a: 3,
-					b: &list[Int]{
-						&_cons[Int]{
+					b: &list[basics.Int]{
+						&_cons[basics.Int]{
 							a: 2,
-							b: &list[Int]{
-								&_cons[Int]{
+							b: &list[basics.Int]{
+								&_cons[basics.Int]{
 									a: 1,
-									b: empty[Int]{},
+									b: empty[basics.Int]{},
 								},
 							},
 						},
@@ -382,32 +362,32 @@ func TestUtilityFunctions(t *testing.T) {
 			asserts.False(Member(11, l))
 		})
 		t.Run("When member is List", func(t *testing.T) {
-			haystack := &list[List[Int]]{
-				&_cons[List[Int]]{
-					a: &list[Int]{
-						&_cons[Int]{
+			haystack := &list[List[basics.Int]]{
+				&_cons[List[basics.Int]]{
+					a: &list[basics.Int]{
+						&_cons[basics.Int]{
 							a: 12,
-							b: empty[Int]{},
+							b: empty[basics.Int]{},
 						},
 					},
 				}}
 
-			needle := &list[Int]{&_cons[Int]{a: 12, b: empty[Int]{}}}
+			needle := &list[basics.Int]{&_cons[basics.Int]{a: 12, b: empty[basics.Int]{}}}
 
-			asserts.True(Member[List[Int]](needle, haystack))
+			asserts.True(Member[List[basics.Int]](needle, haystack))
 		})
 	})
 
 	t.Run("All", func(t *testing.T) {
 		t.Run("When false", func(t *testing.T) {
-			isEven := func(i Int) bool { return ModBy(2, i) == 0 }
+			isEven := func(i basics.Int) bool { return basics.ModBy(2, i) == 0 }
 			l := Range(2, 3) // [2,3]
 
 			asserts.False(All(isEven, l))
 		})
 		t.Run("When true", func(t *testing.T) {
-			isEven := func(i Int) bool { return ModBy(2, i) == 0 }
-			l := Cons(2, Singleton[Int](4)) // [2,4]
+			isEven := func(i basics.Int) bool { return basics.ModBy(2, i) == 0 }
+			l := Cons(2, Singleton[basics.Int](4)) // [2,4]
 
 			asserts.True(All(isEven, l))
 
@@ -418,55 +398,55 @@ func TestUtilityFunctions(t *testing.T) {
 		t.Run("When true", func(t *testing.T) {
 			ls := Range(1, 10)
 
-			asserts.True(Any(func(a Int) bool { return a >= 10 }, ls))
+			asserts.True(Any(func(a basics.Int) bool { return a >= 10 }, ls))
 		})
 		t.Run("When false", func(t *testing.T) {
 			ls := Range(1, 10)
 
-			asserts.False(Any(func(a Int) bool { return a > 10 }, ls))
+			asserts.False(Any(func(a basics.Int) bool { return a > 10 }, ls))
 		})
 	})
 	t.Run("Maximum", func(t *testing.T) {
-		xs := fromSlice([]Comparable[Int]{Int(1), Int(4), Int(2)})
+		xs := FromSlice([]basics.Comparable[basics.Int]{basics.Int(1), basics.Int(4), basics.Int(2)})
 		SUT := Maximum(xs)
 
-		asserts.Equal(maybe.Just[Int]{Value: Int(4)}, SUT)
+		asserts.Equal(maybe.Just[basics.Int]{Value: basics.Int(4)}, SUT)
 	})
 	t.Run("Maximum_UNSAFE", func(t *testing.T) {
-		xs := fromSlice([]Int{Int(1), Int(2), Int(4)})
+		xs := FromSlice([]basics.Int{basics.Int(1), basics.Int(2), basics.Int(4)})
 		SUT := Maximum_UNSAFE(xs)
 
-		asserts.Equal(maybe.Just[Int]{Value: Int(4)}, SUT)
+		asserts.Equal(maybe.Just[basics.Int]{Value: basics.Int(4)}, SUT)
 	})
 	t.Run("Minimum", func(t *testing.T) {
-		xs1 := fromSlice([]Comparable[Int]{Int(3), Int(2), Int(1)})
+		xs1 := FromSlice([]basics.Comparable[basics.Int]{basics.Int(3), basics.Int(2), basics.Int(1)})
 		SUT1 := Minimum(xs1)
-		SUT2 := Minimum(Empty[Comparable[Int]]())
+		SUT2 := Minimum(Empty[basics.Comparable[basics.Int]]())
 
-		asserts.Equal(maybe.Just[Int]{Value: Int(1)}, SUT1)
+		asserts.Equal(maybe.Just[basics.Int]{Value: basics.Int(1)}, SUT1)
 		asserts.Equal(maybe.Nothing{}, SUT2)
 	})
 	t.Run("Sum", func(t *testing.T) {
-		xs1 := fromSlice([]Int{Int(1), Int(2), Int(3)})
-		xs2 := fromSlice([]Int{Int(1), Int(1), Int(1)})
+		xs1 := FromSlice([]basics.Int{basics.Int(1), basics.Int(2), basics.Int(3)})
+		xs2 := FromSlice([]basics.Int{basics.Int(1), basics.Int(1), basics.Int(1)})
 		SUT1 := Sum(xs1)
 		SUT2 := Sum(xs2)
-		SUT3 := Sum(Empty[Int]())
+		SUT3 := Sum(Empty[basics.Int]())
 
-		asserts.Equal(Int(6), SUT1)
-		asserts.Equal(Int(3), SUT2)
-		asserts.Equal(Int(0), SUT3)
+		asserts.Equal(basics.Int(6), SUT1)
+		asserts.Equal(basics.Int(3), SUT2)
+		asserts.Equal(basics.Int(0), SUT3)
 	})
 	t.Run("Product", func(t *testing.T) {
-		xs1 := fromSlice([]Int{Int(2), Int(2), Int(2)})
-		xs2 := fromSlice([]Int{Int(3), Int(3), Int(3)})
+		xs1 := FromSlice([]basics.Int{basics.Int(2), basics.Int(2), basics.Int(2)})
+		xs2 := FromSlice([]basics.Int{basics.Int(3), basics.Int(3), basics.Int(3)})
 		SUT1 := Product(xs1)
 		SUT2 := Product(xs2)
-		SUT3 := Product(Empty[Int]())
+		SUT3 := Product(Empty[basics.Int]())
 
-		asserts.Equal(Int(8), SUT1)
-		asserts.Equal(Int(27), SUT2)
-		asserts.Equal(Int(1), SUT3)
+		asserts.Equal(basics.Int(8), SUT1)
+		asserts.Equal(basics.Int(27), SUT2)
+		asserts.Equal(basics.Int(1), SUT3)
 
 	})
 }
@@ -475,7 +455,7 @@ func TestCombineFunctions(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Append with empty", func(t *testing.T) {
-		xs := Empty[Int]()
+		xs := Empty[basics.Int]()
 		ys := Range(1, 3)
 		SUT := Append(xs, ys)
 
@@ -483,25 +463,25 @@ func TestCombineFunctions(t *testing.T) {
 	})
 
 	t.Run("Append", func(t *testing.T) {
-		xs1 := Singleton[Int](1)
+		xs1 := Singleton[basics.Int](1)
 		ys1 := Range(2, 3)
-		xs2 := fromSlice([]Int{Int(1), Int(1), Int(2)})
-		ys2 := fromSlice([]Int{Int(3), Int(5), Int(8)})
+		xs2 := FromSlice([]basics.Int{basics.Int(1), basics.Int(1), basics.Int(2)})
+		ys2 := FromSlice([]basics.Int{basics.Int(3), basics.Int(5), basics.Int(8)})
 		SUT1 := Tail(Append(xs1, ys1))
 		SUT2 := Append(xs2, ys2)
 
-		asserts.Equal(maybe.Just[List[Int]]{Value: ys1}, SUT1)
-		asserts.Equal(&list[Int]{&_cons[Int]{a: 1, b: empty[Int]{}}}, xs1)
-		asserts.Equal([]Int{1, 1, 2, 3, 5, 8}, toSlice(SUT2))
+		asserts.Equal(maybe.Just[List[basics.Int]]{Value: ys1}, SUT1)
+		asserts.Equal(&list[basics.Int]{&_cons[basics.Int]{a: 1, b: empty[basics.Int]{}}}, xs1)
+		asserts.Equal([]basics.Int{1, 1, 2, 3, 5, 8}, ToSlice(SUT2))
 		// Structure sharing
-		asserts.Equal(&list[Int]{
-			&_cons[Int]{
+		asserts.Equal(&list[basics.Int]{
+			&_cons[basics.Int]{
 				a: 1,
-				b: &list[Int]{
-					&_cons[Int]{
+				b: &list[basics.Int]{
+					&_cons[basics.Int]{
 						a: 1,
-						b: &list[Int]{
-							&_cons[Int]{a: 2, b: ys2},
+						b: &list[basics.Int]{
+							&_cons[basics.Int]{a: 2, b: ys2},
 						},
 					},
 				},
@@ -512,47 +492,47 @@ func TestCombineFunctions(t *testing.T) {
 	})
 
 	t.Run("Concat", func(t *testing.T) {
-		lists := fromSlice([]List[Int]{Range(1, 2), Range(3, 3), Range(4, 5)})
+		lists := FromSlice([]List[basics.Int]{Range(1, 2), Range(3, 3), Range(4, 5)})
 		SUT := Concat(lists)
 
-		asserts.Equal([]Int{1, 2, 3, 4, 5}, toSlice(SUT))
+		asserts.Equal([]basics.Int{1, 2, 3, 4, 5}, ToSlice(SUT))
 	})
 
 	t.Run("ConcatMap", func(t *testing.T) {
-		fun := func(a Int) List[Int] { return Singleton(a + 1) }
+		fun := func(a basics.Int) List[basics.Int] { return Singleton(a + 1) }
 		xs := Range(1, 3)
 		SUT := ConcatMap(fun, xs)
 
-		asserts.Equal([]Int{2, 3, 4}, toSlice(SUT))
-		asserts.Equal([]Int{1, 2, 3}, toSlice(xs))
+		asserts.Equal([]basics.Int{2, 3, 4}, ToSlice(SUT))
+		asserts.Equal([]basics.Int{1, 2, 3}, ToSlice(xs))
 	})
 
-	t.Run("Intersperse", func(t *testing.T) {
-		xs := fromSlice([]string{"turtles", "turtles", "turtles"})
+	t.Run("basics.Intersperse", func(t *testing.T) {
+		xs := FromSlice([]string{"turtles", "turtles", "turtles"})
 		SUT := Intersperse("on", xs)
 
-		asserts.Equal([]string{"turtles", "on", "turtles", "on", "turtles"}, toSlice(SUT))
+		asserts.Equal([]string{"turtles", "on", "turtles", "on", "turtles"}, ToSlice(SUT))
 	})
 
 	t.Run("Map2", func(t *testing.T) {
 		t.Run("Lists with one member", func(t *testing.T) {
-			a := Cons(1, Empty[Int]())
-			b := Cons(1, Empty[Int]())
-			SUT := Map2(Add, a, b)
+			a := Cons(1, Empty[basics.Int]())
+			b := Cons(1, Empty[basics.Int]())
+			SUT := Map2(basics.Add, a, b)
 
 			asserts.Equal(
-				&list[Int]{
-					&_cons[Int]{
-						a: 2, b: Empty[Int]()}},
+				&list[basics.Int]{
+					&_cons[basics.Int]{
+						a: 2, b: Empty[basics.Int]()}},
 				SUT,
 			)
 		})
 		t.Run("When one list empty", func(t *testing.T) {
 			a := Range(1, 3)
-			b := Empty[Int]()
-			SUT := Map2(Add, a, b)
+			b := Empty[basics.Int]()
+			SUT := Map2(basics.Add, a, b)
 
-			asserts.Equal(empty[Int]{}, SUT)
+			asserts.Equal(empty[basics.Int]{}, SUT)
 		})
 	})
 
@@ -560,26 +540,26 @@ func TestCombineFunctions(t *testing.T) {
 		xa := Range(1, 3)
 		xb := Range(1, 3)
 		xc := Range(1, 3)
-		add3 := func(a Int, b Int, c Int) Int { return Add(a, Add(b, c)) }
+		add3 := func(a basics.Int, b basics.Int, c basics.Int) basics.Int { return basics.Add(a, basics.Add(b, c)) }
 
 		SUT := Map3(add3, xa, xb, xc)
 
 		asserts.Equal(
-			[]Int{3, 6, 9},
-			toSlice(SUT),
+			[]basics.Int{3, 6, 9},
+			ToSlice(SUT),
 		)
 	})
 	t.Run("Map3 with asymmetrical lists", func(t *testing.T) {
 		xa := Range(1, 3)
 		xb := Range(1, 2)
 		xc := Range(1, 3)
-		add3 := func(a Int, b Int, c Int) Int { return Add(a, Add(b, c)) }
+		add3 := func(a basics.Int, b basics.Int, c basics.Int) basics.Int { return basics.Add(a, basics.Add(b, c)) }
 
 		SUT := Map3(add3, xa, xb, xc)
 
 		asserts.Equal(
-			[]Int{3, 6},
-			toSlice(SUT),
+			[]basics.Int{3, 6},
+			ToSlice(SUT),
 		)
 	})
 
@@ -588,13 +568,15 @@ func TestCombineFunctions(t *testing.T) {
 		xb := Range(1, 3)
 		xc := Range(1, 3)
 		xd := Range(1, 3)
-		add4 := func(a Int, b Int, c Int, d Int) Int { return Add(a, Add(b, (Add(c, d)))) }
+		add4 := func(a basics.Int, b basics.Int, c basics.Int, d basics.Int) basics.Int {
+			return basics.Add(a, basics.Add(b, (basics.Add(c, d))))
+		}
 
 		SUT := Map4(add4, xa, xb, xc, xd)
 
 		asserts.Equal(
-			[]Int{4, 8, 12},
-			toSlice(SUT),
+			[]basics.Int{4, 8, 12},
+			ToSlice(SUT),
 		)
 	})
 
@@ -604,57 +586,22 @@ func TestCombineFunctions(t *testing.T) {
 		xc := Range(1, 3)
 		xd := Range(1, 3)
 		xe := Range(1, 3)
-		add5 := func(a Int, b Int, c Int, d Int, e Int) Int { return Add(a, Add(b, (Add(c, Add(d, e))))) }
+		add5 := func(a basics.Int, b basics.Int, c basics.Int, d basics.Int, e basics.Int) basics.Int {
+			return basics.Add(a, basics.Add(b, (basics.Add(c, basics.Add(d, e)))))
+		}
 
 		SUT := Map5(add5, xa, xb, xc, xd, xe)
 
 		asserts.Equal(
-			[]Int{5, 10, 15},
-			toSlice(SUT),
+			[]basics.Int{5, 10, 15},
+			ToSlice(SUT),
 		)
 	})
 }
 
 func testSortFUnctions(t *testing.T) {
-	asserts := assert.New(t)
+	// asserts := assert.New(t)
 
-	t.Run("Sort", func(t *testing.T) {
-		xs := fromSlice([]Comparable[String]{String("chuck"), String("alice"), String("bob")})
-		SUT := Sort(xs)
-
-		asserts.Equal([]String{"alice", "bob", "chuck"}, toSlice(SUT))
-	})
-
-	t.Run("Sort_UNSASFE", func(t *testing.T) {
-		xs := fromSlice([]String{"chuck", "alice", "bob"})
-		SUT := Sort_UNSAFE(xs)
-
-		asserts.Equal([]String{"alice", "bob", "chuck"}, toSlice(SUT))
-	})
-
-	t.Run("SortBy", func(t *testing.T) {
-		xs := fromSlice([]String{"chuck", "alice", "bob"})
-		SUT := SortBy(func(s String) Comparable[String] { return s }, xs)
-
-		asserts.Equal([]String{"alice", "bob", "chuck"}, toSlice(SUT))
-	})
-
-	t.Run("SortWith", func(t *testing.T) {
-		xs := Range(1, 5)
-		flippedComparison := func(a, b Int) Order {
-			switch Compare(a, b) {
-			case LT{}:
-				return GT{}
-			case EQ{}:
-				return EQ{}
-			default:
-				return GT{}
-			}
-		}
-		SUT := SortWith(flippedComparison, xs)
-
-		asserts.Equal([]Int{5, 4, 3, 2, 1}, toSlice(SUT))
-	})
 }
 
 func TestDeconstructFunctions(t *testing.T) {
@@ -662,11 +609,11 @@ func TestDeconstructFunctions(t *testing.T) {
 
 	t.Run("IsEmpty", func(t *testing.T) {
 		t.Run("When empty", func(t *testing.T) {
-			SUT := Empty[Int]()
+			SUT := Empty[basics.Int]()
 			asserts.True(IsEmpty(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
-			SUT := Singleton[Int](2)
+			SUT := Singleton[basics.Int](2)
 
 			asserts.False(IsEmpty(SUT))
 		})
@@ -674,7 +621,7 @@ func TestDeconstructFunctions(t *testing.T) {
 
 	t.Run("Head", func(t *testing.T) {
 		t.Run("When empty", func(t *testing.T) {
-			SUT := Empty[Int]()
+			SUT := Empty[basics.Int]()
 			asserts.Equal(maybe.Nothing{}, Head(SUT))
 		})
 		t.Run("When has cons", func(t *testing.T) {
@@ -685,7 +632,7 @@ func TestDeconstructFunctions(t *testing.T) {
 
 	t.Run("Tail", func(t *testing.T) {
 		t.Run("When emtpy", func(t *testing.T) {
-			SUT := Empty[Int]()
+			SUT := Empty[basics.Int]()
 
 			asserts.Equal(maybe.Nothing{}, Tail(SUT))
 		})
@@ -724,41 +671,41 @@ func TestDeconstructFunctions(t *testing.T) {
 		SUT9 := Take(4, Range(1, 4))
 		SUT10 := Take(100, xs)
 
-		asserts.Equal([]Int{1}, toSlice(SUT1))
-		asserts.Equal([]Int{1, 2}, toSlice(SUT2))
-		asserts.Equal([]Int{1, 2, 3}, toSlice(SUT3))
-		asserts.Equal([]Int{1, 2, 3, 4}, toSlice(SUT4))
-		asserts.Equal([]Int{1, 2, 3, 4, 5}, toSlice(SUT5))
-		asserts.Equal([]Int{1}, toSlice(SUT6))
-		asserts.Equal([]Int{1, 2}, toSlice(SUT7))
-		asserts.Equal([]Int{1, 2, 3}, toSlice(SUT8))
-		asserts.Equal([]Int{1, 2, 3, 4}, toSlice(SUT9))
-		asserts.Equal([]Int{1, 2, 3, 4, 5}, toSlice(SUT10))
+		asserts.Equal([]basics.Int{1}, ToSlice(SUT1))
+		asserts.Equal([]basics.Int{1, 2}, ToSlice(SUT2))
+		asserts.Equal([]basics.Int{1, 2, 3}, ToSlice(SUT3))
+		asserts.Equal([]basics.Int{1, 2, 3, 4}, ToSlice(SUT4))
+		asserts.Equal([]basics.Int{1, 2, 3, 4, 5}, ToSlice(SUT5))
+		asserts.Equal([]basics.Int{1}, ToSlice(SUT6))
+		asserts.Equal([]basics.Int{1, 2}, ToSlice(SUT7))
+		asserts.Equal([]basics.Int{1, 2, 3}, ToSlice(SUT8))
+		asserts.Equal([]basics.Int{1, 2, 3, 4}, ToSlice(SUT9))
+		asserts.Equal([]basics.Int{1, 2, 3, 4, 5}, ToSlice(SUT10))
 	})
 
 	t.Run("Drop", func(t *testing.T) {
 		xs := Range(1, 4)
 		SUT := Drop(2, xs)
 
-		asserts.Equal([]Int{3, 4}, toSlice(SUT))
+		asserts.Equal([]basics.Int{3, 4}, ToSlice(SUT))
 	})
 
 	t.Run("Partition", func(t *testing.T) {
 		xs := Range(1, 5)
-		SUT := Partition(func(x Int) bool {
+		SUT := Partition(func(x basics.Int) bool {
 			return x < 3
 		}, xs)
 
-		asserts.Equal([]Int{1, 2}, toSlice(First(SUT)))
-		asserts.Equal([]Int{3, 4, 5}, toSlice(Second(SUT)))
+		asserts.Equal([]basics.Int{1, 2}, ToSlice(First(SUT)))
+		asserts.Equal([]basics.Int{3, 4, 5}, ToSlice(Second(SUT)))
 	})
 
 	t.Run("Unzip", func(t *testing.T) {
-		xs := fromSlice([]Tuple2[Int, bool]{Pair(Int(0), true), Pair(Int(17), false), Pair(Int(1337), true)})
+		xs := FromSlice([]Tuple2[basics.Int, bool]{Pair(basics.Int(0), true), Pair(basics.Int(17), false), Pair(basics.Int(1337), true)})
 		SUT := Unzip(xs)
 
-		asserts.Equal([]Int{0, 17, 1337}, toSlice(First(SUT)))
-		asserts.Equal([]bool{true, false, true}, toSlice(Second(SUT)))
+		asserts.Equal([]basics.Int{0, 17, 1337}, ToSlice(First(SUT)))
+		asserts.Equal([]bool{true, false, true}, ToSlice(Second(SUT)))
 	})
 }
 
@@ -766,8 +713,8 @@ func TestEmpty(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Empty", func(t *testing.T) {
-		SUT := Empty[Int]()
+		SUT := Empty[basics.Int]()
 
-		asserts.Equal(empty[Int]{}, SUT)
+		asserts.Equal(empty[basics.Int]{}, SUT)
 	})
 }

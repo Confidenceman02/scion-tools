@@ -14,6 +14,25 @@ func TestMath(t *testing.T) {
 
 		asserts.Equal(Int(2), Add(SUT, SUT))
 	})
+
+	t.Run("Fdiv", func(t *testing.T) {
+		SUT1 := Fdiv(10, 4)
+		SUT2 := Fdiv(11, 4)
+		SUT3 := Fdiv(12, 4)
+		SUT4 := Fdiv(13, 4)
+		SUT5 := Fdiv(14, 4)
+		SUT6 := Fdiv(-1, 4)
+		SUT7 := Fdiv(-5, 4)
+
+		asserts.Equal(Float(2.5), SUT1)
+		asserts.Equal(Float(2.75), SUT2)
+		asserts.Equal(Float(3), SUT3)
+		asserts.Equal(Float(3.25), SUT4)
+		asserts.Equal(Float(3.5), SUT5)
+		asserts.Equal(Float(-0.25), SUT6)
+		asserts.Equal(Float(-1.25), SUT7)
+
+	})
 }
 
 func TestIntToFloatFloatToInt(t *testing.T) {
