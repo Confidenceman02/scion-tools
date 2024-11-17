@@ -2,7 +2,7 @@ package list
 
 import (
 	"fmt"
-	. "github.com/Confidenceman02/scion-tools/pkg/basics"
+	"github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/internal"
 	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 	. "github.com/Confidenceman02/scion-tools/pkg/tuple"
@@ -17,7 +17,7 @@ type _cons[A any] struct {
 
 type List[T any] interface {
 	cons() *_cons[T]
-	Cmp(Comparable[List[T]]) int
+	Cmp(basics.Comparable[List[T]]) int
 	T() List[T]
 }
 
@@ -45,7 +45,7 @@ type list[T any] struct {
 
 // Comparable
 
-func (x *list[T]) Cmp(y Comparable[List[T]]) int {
+func (x *list[T]) Cmp(y basics.Comparable[List[T]]) int {
 	switch y := y.T().(type) {
 	case empty[T]:
 		return +1
@@ -100,7 +100,7 @@ func cmpHelp[T any](x T, y T) int {
 	}
 }
 
-func (x empty[T]) Cmp(y Comparable[List[T]]) int {
+func (x empty[T]) Cmp(y basics.Comparable[List[T]]) int {
 	if reflect.DeepEqual(x, y) {
 		return 0
 	} else {
@@ -121,12 +121,12 @@ func Singleton[T any](val T) List[T] {
 }
 
 // Create a list with *n* copies of a value.
-func Repeat[T any](n Int, val T) List[T] {
+func Repeat[T any](n basics.Int, val T) List[T] {
 	return repeatHelp(Empty[T](), n, val)
 
 }
 
-func repeatHelp[T any](result List[T], n Int, val T) List[T] {
+func repeatHelp[T any](result List[T], n basics.Int, val T) List[T] {
 	if n <= 0 {
 		return result
 	} else {
@@ -135,11 +135,11 @@ func repeatHelp[T any](result List[T], n Int, val T) List[T] {
 }
 
 // Create a list of numbers, every element increasing by one. You give the lowest and highest number that should be in the list.
-func Range(low Int, hi Int) List[Int] {
-	return rangeHelp(low, hi, Empty[Int]())
+func Range(low basics.Int, hi basics.Int) List[basics.Int] {
+	return rangeHelp(low, hi, Empty[basics.Int]())
 }
 
-func rangeHelp(low Int, hi Int, ls List[Int]) List[Int] {
+func rangeHelp(low basics.Int, hi basics.Int, ls List[basics.Int]) List[basics.Int] {
 	if low <= hi {
 		return rangeHelp(low, hi-1, Cons(hi, ls))
 	} else {
@@ -158,8 +158,8 @@ func Map[A any, B any](f func(A) B, xs List[A]) List[B] {
 	return Foldr(func(a A, b List[B]) List[B] { return Cons(f(a), b) }, Empty[B](), xs)
 }
 
-func IndexedMap[A any, B any](f func(Int, A) B, xs List[A]) List[B] {
-	return Map2(f, Range(0, Sub(Length(xs), 1)), xs)
+func IndexedMap[A any, B any](f func(basics.Int, A) B, xs List[A]) List[B] {
+	return Map2(f, Range(0, basics.Sub(Length(xs), 1)), xs)
 }
 
 // Reduce a list from the left.
@@ -176,7 +176,7 @@ func Foldr[A any, B any](fn func(A, B) B, acc B, ls List[A]) B {
 	return foldrHelper(fn, acc, 0, ls)
 }
 
-func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr Int, ls List[A]) B {
+func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr basics.Int, ls List[A]) B {
 	return ListWith(ls,
 		func(List[A]) B { return acc },
 		func(a A, r1 List[A]) B {
@@ -193,10 +193,10 @@ func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr Int, ls List[A]) B {
 								func(List[A]) B { return fn(a, fn(b, fn(c, acc))) },
 								func(d A, r4 List[A]) B {
 									var res B
-									if Gt(ctr, Int(500)) {
+									if basics.Gt(ctr, basics.Int(500)) {
 										res = Foldl(fn, acc, Reverse(r4))
 									} else {
-										res = foldrHelper(fn, acc, Add(ctr, 1), r4)
+										res = foldrHelper(fn, acc, basics.Add(ctr, 1), r4)
 									}
 									return fn(a, fn(b, fn(c, fn(d, res))))
 								},
@@ -235,8 +235,8 @@ func maybeCons[A any, B any](f func(A) maybe.Maybe[B], mx A, xs List[B]) List[B]
 // Utilities
 
 // Determine the length of a list.
-func Length[T any](ls List[T]) Int {
-	return Foldl(func(_ T, y Int) Int { return y + 1 }, 0, ls)
+func Length[T any](ls List[T]) basics.Int {
+	return Foldl(func(_ T, y basics.Int) basics.Int { return y + 1 }, 0, ls)
 }
 
 // Reverse a list.
@@ -246,12 +246,12 @@ func Reverse[T any](ls List[T]) List[T] {
 
 // Figure out whether a list contains a value.
 func Member[T any](val T, l List[T]) bool {
-	return Any(func(x T) bool { return Eq(x, val) }, l)
+	return Any(func(x T) bool { return basics.Eq(x, val) }, l)
 }
 
 // Determine if all elements satisfy some test.
 func All[T any](isOkay func(T) bool, l List[T]) bool {
-	return Not(Any(ComposeL(Not, isOkay), l))
+	return basics.Not(Any(basics.ComposeL(basics.Not, isOkay), l))
 }
 
 // Determine if any elements satisfy some test.
@@ -270,12 +270,12 @@ func Any[T any](isOkay func(T) bool, l List[T]) bool {
 }
 
 // Find the maximum element in a non-empty list.
-func Maximum[T any](xs List[Comparable[T]]) maybe.Maybe[T] {
+func Maximum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T] {
 	return ListWith(
 		xs,
-		func(List[Comparable[T]]) maybe.Maybe[T] { return maybe.Nothing{} },
-		func(x Comparable[T], xs List[Comparable[T]]) maybe.Maybe[T] {
-			return maybe.Just[T]{Value: Foldl[Comparable[T], Comparable[T]](Max, x, xs).T()}
+		func(List[basics.Comparable[T]]) maybe.Maybe[T] { return maybe.Nothing{} },
+		func(x basics.Comparable[T], xs List[basics.Comparable[T]]) maybe.Maybe[T] {
+			return maybe.Just[T]{Value: Foldl[basics.Comparable[T], basics.Comparable[T]](basics.Max, x, xs).T()}
 		},
 	)
 }
@@ -287,13 +287,13 @@ func Maximum_UNSAFE[T any](xs List[T]) maybe.Maybe[T] {
 		xs,
 		func(List[T]) maybe.Maybe[T] { return maybe.Nothing{} },
 		func(x T, xt List[T]) maybe.Maybe[T] {
-			restSlice := toSlice(xt)
+			restSlice := ToSlice(xt)
 
-			if comp1, ok := any(x).(Comparable[T]); ok {
-				var ret Comparable[T] = comp1
+			if comp1, ok := any(x).(basics.Comparable[T]); ok {
+				var ret basics.Comparable[T] = comp1
 				for idx := 0; idx < len(restSlice); idx++ {
-					if comp2, ok := any(restSlice[idx]).(Comparable[T]); ok {
-						ret = Max(ret, comp2)
+					if comp2, ok := any(restSlice[idx]).(basics.Comparable[T]); ok {
+						ret = basics.Max(ret, comp2)
 					} else {
 						panic("Cannot find Maximum_UNSAFE on non-comparable types")
 					}
@@ -307,24 +307,24 @@ func Maximum_UNSAFE[T any](xs List[T]) maybe.Maybe[T] {
 }
 
 // Find the minimum element in a non-empty list.
-func Minimum[T any](xs List[Comparable[T]]) maybe.Maybe[T] {
+func Minimum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T] {
 	return ListWith(
 		xs,
-		func(List[Comparable[T]]) maybe.Maybe[T] { return maybe.Nothing{} },
-		func(x Comparable[T], xs List[Comparable[T]]) maybe.Maybe[T] {
-			return maybe.Just[T]{Value: Foldl[Comparable[T], Comparable[T]](Min, x, xs).T()}
+		func(List[basics.Comparable[T]]) maybe.Maybe[T] { return maybe.Nothing{} },
+		func(x basics.Comparable[T], xs List[basics.Comparable[T]]) maybe.Maybe[T] {
+			return maybe.Just[T]{Value: Foldl[basics.Comparable[T], basics.Comparable[T]](basics.Min, x, xs).T()}
 		},
 	)
 }
 
 // Get the sum of the list elements.
-func Sum[T Number](xs List[T]) T {
-	return Foldl(Add, 0, xs)
+func Sum[T basics.Number](xs List[T]) T {
+	return Foldl(basics.Add, 0, xs)
 }
 
 // Get the product of the list elements.
-func Product[T Number](xs List[T]) T {
-	return Foldl(Mul, 1, xs)
+func Product[T basics.Number](xs List[T]) T {
+	return Foldl(basics.Mul, 1, xs)
 }
 
 // Combine
@@ -368,7 +368,7 @@ func Intersperse[T any](sep T, xs List[T]) List[T] {
 // Combine two lists, combining them with the given function.
 // If one list is longer, the extra elements are dropped.
 func Map2[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B]) List[result] {
-	return fromSlice(map2Help(f, xs, ys, []result{}))
+	return FromSlice(map2Help(f, xs, ys, []result{}))
 }
 
 func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B], acc []result) []result {
@@ -392,7 +392,7 @@ func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List
 }
 
 func Map3[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) List[result] {
-	return fromSlice(map3Help(f, xs, ys, zs, []result{}))
+	return FromSlice(map3Help(f, xs, ys, zs, []result{}))
 }
 
 func map3Help[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C], acc []result) []result {
@@ -418,7 +418,7 @@ func map3Help[A any, B any, C any, result any](f func(A, B, C) result, xs List[A
 }
 
 func Map4[A any, B any, C any, D any, result any](f func(A, B, C, D) result, xs List[A], ys List[B], zs List[C], ws List[D]) List[result] {
-	return fromSlice(map4Help(f, xs, ys, zs, ws, []result{}))
+	return FromSlice(map4Help(f, xs, ys, zs, ws, []result{}))
 }
 
 func map4Help[A any, B any, C any, D any, result any](f func(A, B, C, D) result, ws List[A], xs List[B], ys List[C], zs List[D], acc []result) []result {
@@ -450,7 +450,7 @@ func map4Help[A any, B any, C any, D any, result any](f func(A, B, C, D) result,
 }
 
 func Map5[A any, B any, C any, D any, E any, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) List[result] {
-	return fromSlice(map5Help(f, vs, ws, xs, ys, zs, []result{}))
+	return FromSlice(map5Help(f, vs, ws, xs, ys, zs, []result{}))
 }
 
 func map5Help[A any, B any, C any, D any, E any, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E], acc []result) []result {
@@ -490,63 +490,71 @@ func map5Help[A any, B any, C any, D any, E any, result any](f func(A, B, C, D, 
 // Sort
 
 // Sort values from lowest to highest.
-func Sort[T any](xs List[Comparable[T]]) List[Comparable[T]] {
-	return SortBy_UNSAFE(Identity, xs)
+func Sort[T any](xs List[basics.Comparable[T]]) List[basics.Comparable[T]] {
+	slc := ToSlice(xs)
+	slices.SortFunc(
+		slc,
+		func(a, b basics.Comparable[T]) int {
+			return a.Cmp(b)
+		},
+	)
+	return FromSlice(slc)
 }
 
 // Sort generic values from lowest to highest.
 // This function will panic if T is not a Comparable[T]
 func Sort_UNSAFE[T any](xs List[T]) List[T] {
-	return SortBy_UNSAFE(Identity, xs)
+	return SortBy_UNSAFE(basics.Identity, xs)
 }
 
 // Sort values by a derived property.
-func SortBy[A any](f func(A) Comparable[A], xs List[A]) List[A] {
-	slc := toSlice(xs)
+func SortBy[A any](f func(A) basics.Comparable[A], xs List[A]) List[A] {
+	slc := ToSlice(xs)
 	slices.SortFunc(
 		slc,
 		func(a, b A) int {
 			return f(a).Cmp(f(b))
 		},
 	)
-	return fromSlice(slc)
+	return FromSlice(slc)
 }
 
 // Sort values by a derived property.
 // This function will panic if the passed in func doesn't return a Comparable.
 func SortBy_UNSAFE[A any](f func(A) A, xs List[A]) List[A] {
-	slc := toSlice(xs)
+	slc := ToSlice(xs)
 	slices.SortFunc(
 		slc,
 		func(a, b A) int {
-			if comp1, ok := any(f(a)).(Comparable[A]); ok {
-				if comp2, ok := any(f(b)).(Comparable[A]); ok {
+			if comp1, ok := any(f(a)).(basics.Comparable[A]); ok {
+				if comp2, ok := any(f(b)).(basics.Comparable[A]); ok {
 					return comp1.Cmp(comp2)
 				} else {
 					panic("I was expecting a Comparable type")
+
 				}
 			} else {
 				panic("I was expecting a Comparable type")
 			}
 		},
 	)
-	return fromSlice(slc)
+	return FromSlice(slc)
 }
 
-func SortWith[A any](f func(a A, b A) Order, xs List[A]) List[A] {
-	slc := toSlice(xs)
+func SortWith[A any](f func(a A, b A) basics.Order, xs List[A]) List[A] {
+	slc := ToSlice(xs)
 	slices.SortFunc(slc, func(a, b A) int {
 		ord := f(a, b)
 		switch ord.(type) {
-		case EQ:
+		case basics.EQ:
 			return 0
-		case LT:
+		case basics.LT:
 			return -1
 		default:
 			return 1
 		}
 	})
-	return fromSlice(slc)
+	return FromSlice(slc)
 }
 
 // Deconstruct
@@ -575,11 +583,11 @@ func Tail[T any](l List[T]) maybe.Maybe[List[T]] {
 }
 
 // Take the first n members of a list.
-func Take[T any](n Int, list List[T]) List[T] {
+func Take[T any](n basics.Int, list List[T]) List[T] {
 	return takeFast(0, n, list)
 }
 
-func takeFast[A any](ctr Int, n Int, list List[A]) List[A] {
+func takeFast[A any](ctr basics.Int, n basics.Int, list List[A]) List[A] {
 	// This looks gross because it's an analogue to the compiled Elm kernel code.
 	// There is almost definitely a cleaner way to do this but it is
 	// here mostly for examining how kernel code translates to Go.
@@ -601,7 +609,7 @@ func takeFast[A any](ctr Int, n Int, list List[A]) List[A] {
 						x := cns.a
 						val2 := cns.b.cons()
 						y := val2.a
-						return fromSlice([]A{x, y})
+						return FromSlice([]A{x, y})
 					case 3:
 						if cns.b.cons() != nil && cns.b.cons().b.cons() != nil {
 							x := cns.a
@@ -609,7 +617,7 @@ func takeFast[A any](ctr Int, n Int, list List[A]) List[A] {
 							y := val2.a
 							val3 := val2.b.cons()
 							z := val3.a
-							return fromSlice([]A{x, y, z})
+							return FromSlice([]A{x, y, z})
 						} else {
 							break loop2
 						}
@@ -637,15 +645,15 @@ func takeFast[A any](ctr Int, n Int, list List[A]) List[A] {
 			}
 			return list
 		}
-		return fromSlice([]A{cns.a})
+		return FromSlice([]A{cns.a})
 	}
 }
 
-func takeTailRec[A any](n Int, list List[A]) List[A] {
+func takeTailRec[A any](n basics.Int, list List[A]) List[A] {
 	return Reverse(takeReverse(n, list, Empty[A]()))
 }
 
-func takeReverse[A any](n Int, list List[A], kept List[A]) List[A] {
+func takeReverse[A any](n basics.Int, list List[A], kept List[A]) List[A] {
 	if n <= 0 {
 		return kept
 	} else {
@@ -659,7 +667,7 @@ func takeReverse[A any](n Int, list List[A], kept List[A]) List[A] {
 	}
 }
 
-func Drop[T any](n Int, list List[T]) List[T] {
+func Drop[T any](n basics.Int, list List[T]) List[T] {
 	if n <= 0 {
 		return list
 	} else {
@@ -706,15 +714,22 @@ func ListWith[T any, R any](l1 List[T], e func(List[T]) R, ab func(T, List[T]) R
 
 // Utils
 
-func fromSlice[T any](arr []T) List[T] {
+func FromSlice[T any](arr []T) List[T] {
 	var result List[T] = Empty[T]()
 	for i := len(arr) - 1; i >= 0; i-- {
 		result = Cons(arr[i], result)
 	}
 	return result
 }
+func FromSliceMap[A any, B any](f func(A) B, arr []A) List[B] {
+	var result List[B] = Empty[B]()
+	for i := len(arr) - 1; i >= 0; i-- {
+		result = Cons(f(arr[i]), result)
+	}
+	return result
+}
 
-func toSlice[T any](xs List[T]) []T {
+func ToSlice[T any](xs List[T]) []T {
 	return toSliceHelp(xs, []T{})
 }
 
@@ -724,5 +739,18 @@ func toSliceHelp[T any](xs List[T], arr []T) []T {
 		func(List[T]) []T { return arr },
 		func(x T, xr List[T]) []T {
 			return toSliceHelp(xr, append(arr, x))
+		})
+}
+
+func ToSliceMap[A any, B any](f func(A) B, xs List[A]) []B {
+	return toSliceHelpMap(f, xs, []B{})
+}
+
+func toSliceHelpMap[A any, B any](f func(A) B, xs List[A], arr []B) []B {
+	return ListWith(
+		xs,
+		func(List[A]) []B { return arr },
+		func(x A, xr List[A]) []B {
+			return toSliceHelpMap(f, xr, append(arr, f(x)))
 		})
 }

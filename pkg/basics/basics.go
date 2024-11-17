@@ -12,7 +12,7 @@ type Number interface {
 }
 
 type Int int
-type Float float64
+type Float float32
 
 func (i Int) Cmp(y Comparable[Int]) int {
 	return cmp.Compare(i, y.T())
@@ -32,6 +32,11 @@ type Comparable[T any] interface {
 	T() T
 }
 
+type Appendable[T any] interface {
+	App(Appendable[T]) Appendable[T]
+	T() T
+}
+
 // Math
 
 // Add two numbers. The number type variable means this operation can be specialized to any Number type.
@@ -47,6 +52,11 @@ func Sub[T Number](a, b T) T {
 // Multiply numbers like `2 * 3 == 6`.
 func Mul[T Number](a, b T) T {
 	return a * b
+}
+
+// Floating-point division:
+func Fdiv(a Float, b Float) Float {
+	return Float(float32(a) / float32(b))
 }
 
 // Int to Float / Float to Int
@@ -165,6 +175,12 @@ type GT struct {
 // Negate a boolean value.
 func Not(pred bool) bool {
 	return !pred
+}
+
+// Append Strings and Lists
+
+func Append[T any](a Appendable[T], b Appendable[T]) Appendable[T] {
+	return a.App(b)
 }
 
 // Fancier Math
