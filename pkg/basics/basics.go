@@ -88,7 +88,7 @@ func Truncate(x Float) Int {
 
 // EQUALITY
 
-// Check if values are structurally &ldquo;the same&rdquo;.
+// Check if values are structurally the same.
 func Eq[T any](x, y T) bool {
 	switch reflect.TypeOf(x).Kind() {
 	case reflect.Func:
@@ -121,6 +121,7 @@ func Ge[T any](x Comparable[T], y Comparable[T]) bool {
 	return x.Cmp(y) >= 0
 }
 
+// Find the larger of two comparables.
 func Max[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
 	if Gt(x, y) {
 		return x
@@ -129,6 +130,7 @@ func Max[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
 	}
 }
 
+// Find the smaller of two comparables.
 func Min[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
 	if Lt(x, y) {
 		return x
@@ -137,6 +139,9 @@ func Min[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
 	}
 }
 
+// Compare any two comparable values. Comparable values include String, Char,
+// Int, Float, or a list or tuple containing comparable values. These are also the
+// only values that work as Dict keys or Set members.
 func Compare[T any](x Comparable[T], y Comparable[T]) Order {
 	n := x.Cmp(y)
 	if n < 0 {
@@ -148,6 +153,8 @@ func Compare[T any](x Comparable[T], y Comparable[T]) Order {
 	}
 }
 
+// Represents the relative ordering of two things. The relations are less than, equal to,
+// and greater than.
 type Order interface {
 	_order() order
 }
@@ -179,6 +186,7 @@ func Not(pred bool) bool {
 
 // Append Strings and Lists
 
+// Put two appendable things together. This includes strings and lists.
 func Append[T any](a Appendable[T], b Appendable[T]) Appendable[T] {
 	return a.App(b)
 }
@@ -212,6 +220,7 @@ func Sqrt(n Float) Float {
 
 // Function helpers
 
+// Given a value, returns exactly the same value. This is called the identity function.
 func Identity[A any](x A) A {
 	return x
 }
