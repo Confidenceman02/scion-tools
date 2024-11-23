@@ -185,6 +185,8 @@ func Append[T any](a Appendable[T], b Appendable[T]) Appendable[T] {
 
 // Fancier Math
 
+// Perform arithmetic.
+// A common trick is to use (n mod 2) to detect even and odd numbers:
 func ModBy(modulus Int, x Int) Int {
 	answer := math.Mod(float64(x), float64(modulus))
 	if modulus == 0 {
@@ -196,6 +198,11 @@ func ModBy(modulus Int, x Int) Int {
 	} else {
 		return Int(answer)
 	}
+}
+
+// Negate a number.
+func Negate[A Number](n A) A {
+	return -n
 }
 
 // Take the square root of a number.

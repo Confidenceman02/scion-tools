@@ -268,6 +268,16 @@ func TestFancierMath(t *testing.T) {
 		asserts.Equal(Int(1), ModBy(4, 5))
 	})
 
+	t.Run("Negate", func(t *testing.T) {
+		SUT1 := Negate(Int(42))
+		SUT2 := Negate(Int(-42))
+		SUT3 := Negate(Int(0))
+
+		asserts.Equal(Int(-42), SUT1)
+		asserts.Equal(Int(42), SUT2)
+		asserts.Equal(Int(0), SUT3)
+	})
+
 	t.Run("Sqrt", func(t *testing.T) {
 		asserts.Equal(Float(6), Sqrt(36))
 	})
