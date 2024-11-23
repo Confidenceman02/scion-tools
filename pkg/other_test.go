@@ -4,6 +4,7 @@ import (
 	"github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/list"
 	"github.com/Confidenceman02/scion-tools/pkg/string"
+	"github.com/Confidenceman02/scion-tools/pkg/tuple"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -56,5 +57,53 @@ func TestList(t *testing.T) {
 		SUT := list.SortWith(flippedComparison, xs)
 
 		asserts.Equal([]basics.Int{5, 4, 3, 2, 1}, list.ToSlice(SUT))
+	})
+}
+
+func TestTuple(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("MapFirst", func(t *testing.T) {
+		SUT1 := tuple.MapFirst(string.Reverse, tuple.Pair(string.String("stressed"), 16))
+		SUT2 := tuple.MapFirst(string.Length, tuple.Pair(string.String("stressed"), 16))
+
+		asserts.Equal(
+			string.String("desserts"),
+			tuple.First(SUT1),
+		)
+		asserts.Equal(
+			basics.Int(8),
+			tuple.First(SUT2),
+		)
+	})
+
+	t.Run("MapSecond", func(t *testing.T) {
+		SUT1 := tuple.MapSecond(basics.Sqrt, tuple.Pair("stressed", basics.Float(16)))
+		SUT2 := tuple.MapSecond(basics.Negate, tuple.Pair("stressed", basics.Float(16)))
+
+		asserts.Equal(
+			basics.Float(4),
+			tuple.Second(SUT1),
+		)
+		asserts.Equal(
+			basics.Float(-16),
+			tuple.Second(SUT2),
+		)
+	})
+
+	t.Run("MapBoth", func(t *testing.T) {
+		SUT1 := tuple.MapBoth(string.Reverse, basics.Sqrt, tuple.Pair(string.String("stressed"), basics.Float(16)))
+		SUT2 := tuple.MapBoth(string.Length, basics.Negate, tuple.Pair(string.String("stressed"), basics.Float(16)))
+
+		asserts.Equal(
+			string.String("desserts"),
+			tuple.First(SUT1),
+		)
+		asserts.Equal(
+			basics.Float(4),
+			tuple.Second(SUT1),
+		)
+		asserts.Equal(basics.Int(8), tuple.First(SUT2))
+		asserts.Equal(basics.Float(-16), tuple.Second(SUT2))
 	})
 }

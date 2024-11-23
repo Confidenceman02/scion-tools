@@ -35,3 +35,20 @@ func First[A, B any](t Tuple2[A, B]) A {
 func Second[A, B any](t Tuple2[A, B]) B {
 	return t.tuple2().b
 }
+
+// Map
+
+// Transform the first value in a tuple.
+func MapFirst[A, B, C any](f func(A) B, t Tuple2[A, C]) Tuple2[B, C] {
+	return Pair(f(First(t)), Second(t))
+}
+
+// Transform the second value in a tuple.
+func MapSecond[A, B, C any](f func(B) A, t Tuple2[C, B]) Tuple2[C, A] {
+	return Pair(First(t), f(Second(t)))
+}
+
+// Transform both parts of a tuple.
+func MapBoth[A, B, C, D any](f func(A) C, g func(B) D, t Tuple2[A, B]) Tuple2[C, D] {
+	return Pair(f(First(t)), g(Second(t)))
+}
