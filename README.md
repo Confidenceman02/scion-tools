@@ -570,6 +570,15 @@ Given a value, returns exactly the same value. This is called the identity funct
 
 Function composition, passing results along to the left direction.
 
+```go
+isEven := func(i Float) bool { return ModBy(2, Int(i)) == 0 }
+composed := ComposeL(isEven, Sqrt)
+
+
+composed(4) // true
+composed(3) // false
+```
+
 [Back to top](#table-of-content)
 
 # Bitwise
