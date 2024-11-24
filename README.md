@@ -99,6 +99,9 @@
         <li>
             <a href="#identity">Identity</a>
         </li>
+        <li>
+            <a href="#composel">ComposeL</a>
+        </li>
     </ul>
   </details>
 - <details>
@@ -558,6 +561,14 @@ Sqrt(25) // 5
 `func Identity[A any](x A) A`
 
 Given a value, returns exactly the same value. This is called the identity function.
+
+[Back to top](#table-of-content)
+
+## ComposeL
+
+`func ComposeL[A any, B any, C any](g func(B) C, f func(A) B) func(A) C`
+
+Function composition, passing results along to the left direction.
 
 [Back to top](#table-of-content)
 
