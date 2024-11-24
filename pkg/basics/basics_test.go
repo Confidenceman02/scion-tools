@@ -12,7 +12,7 @@ func TestMath(t *testing.T) {
 		var SUT Int
 		SUT = 1
 
-		asserts.Equal(Int(2), Add(SUT, SUT))
+		asserts.Equal(Int(2), Add(1, SUT))
 	})
 
 	t.Run("Fdiv", func(t *testing.T) {
@@ -39,10 +39,11 @@ func TestIntToFloatFloatToInt(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("ToFloat", func(t *testing.T) {
-		var SUT Int
-		SUT = 23
+		var SUT1 Int = 23
+		var SUT2 Int = 20
 
-		asserts.Equal(Float(23), ToFloat(SUT))
+		asserts.Equal(Float(23), ToFloat(SUT1))
+		asserts.Equal(Float(10), ToFloat(SUT2/2))
 	})
 
 	t.Run("Round 1.0", func(t *testing.T) {

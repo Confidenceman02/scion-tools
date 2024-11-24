@@ -107,3 +107,11 @@ func TestTuple(t *testing.T) {
 		asserts.Equal(basics.Float(-16), tuple.Second(SUT2))
 	})
 }
+
+func TestString(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Append", func(t *testing.T) {
+		asserts.Equal(string.String("helloworld"), basics.Append(string.String("hello"), string.String("world")))
+	})
+}
