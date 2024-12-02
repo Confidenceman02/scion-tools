@@ -193,7 +193,7 @@ func Append[T any](a Appendable[T], b Appendable[T]) Appendable[T] {
 
 // Fancier Math
 
-// Perform arithmetic.
+// Perform modular arithmetic.
 // A common trick is to use (n mod 2) to detect even and odd numbers:
 func ModBy(modulus Int, x Int) Int {
 	answer := math.Mod(float64(x), float64(modulus))
@@ -226,6 +226,6 @@ func Identity[A any](x A) A {
 }
 
 // Function composition, passing results along to the left direction.
-func ComposeL[A any, B any, C any](g func(B) C, f func(A) B) func(A) C {
+func ComposeL[A, B, C any](g func(B) C, f func(A) B) func(A) C {
 	return func(x A) C { return g(f(x)) }
 }

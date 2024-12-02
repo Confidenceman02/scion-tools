@@ -6,19 +6,18 @@ package dict
 import (
 	"cmp"
 	"errors"
-
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 )
 
 const (
-	LEFT = iota
-	RIGHT
+	left = iota
+	right
 )
 
 const (
-	RED int = iota
-	BLACK
+	red int = iota
+	black
 )
 
 /*
@@ -36,7 +35,7 @@ The rules are as follows for Red-Black trees:
 
 // Dict represents a dictionary of keys and values.
 // So a Dict[string, User] is a dictionary that lets you look up a string (such as user names) and find the associated User.
-type Dict[K any, V any] interface {
+type Dict[K, V any] interface {
 	rbt() *dict[K, V]
 }
 
@@ -47,11 +46,11 @@ func (d *dict[K, V]) rbt() *dict[K, V] {
 	return d
 }
 
-type dict[K any, V any] struct {
+type dict[K, V any] struct {
 	root *node[K, V]
 }
 
-type node[K any, V any] struct {
+type node[K, V any] struct {
 	key   K
 	value V
 	color int
@@ -59,12 +58,12 @@ type node[K any, V any] struct {
 	right *node[K, V]
 }
 
-type stack[K any, V any] struct {
+type stack[K, V any] struct {
 	pp *stack[K, V]
 	p  *node[K, V]
 }
 
-type nodeStack[K any, V any] struct {
+type nodeStack[K, V any] struct {
 	stack *stack[K, V]
 	node  *node[K, V]
 }
@@ -72,18 +71,18 @@ type nodeStack[K any, V any] struct {
 // BUILD
 
 // Create an empty dictionary.
-func Empty[K any, V any]() Dict[Comparable[K], V] {
+func Empty[K, V any]() Dict[Comparable[K], V] {
 	return &dict[Comparable[K], V]{root: nil}
 }
 
 // Create a dictionary with one key-value pair.
-func Singleton[K any, V any](key Comparable[K], value V) Dict[Comparable[K], V] {
+func Singleton[K, V any](key Comparable[K], value V) Dict[Comparable[K], V] {
 	// Root nodes are always black
 	return &dict[Comparable[K], V]{
 		root: &node[Comparable[K], V]{
 			key:   key,
 			value: value,
-			color: BLACK,
+			color: black,
 			left:  nil,
 			right: nil},
 	}
@@ -120,11 +119,11 @@ Case 4 - Parent is red and uncle is Black
 */
 
 // Insert a key-value pair into a dictionary. Replaces the value when there is a collision.
-func Insert[K any, V any](key Comparable[K], v V, d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+func Insert[K, V any](key Comparable[K], v V, d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
 	root := d.rbt().root
 
 	if root == nil {
-		return &dict[Comparable[K], V]{root: &node[Comparable[K], V]{key: key, value: v, color: BLACK, left: nil, right: nil}}
+		return &dict[Comparable[K], V]{root: &node[Comparable[K], V]{key: key, value: v, color: black, left: nil, right: nil}}
 	}
 
 	valRoot := *root
@@ -172,7 +171,7 @@ Case 6 - DB sibling is black and far nephew is red
 */
 
 // Remove a key-value pair from a dictionary. If the key is not found, no changes are made.
-func Remove[K any, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+func Remove[K, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
 	root := d.rbt().root
 	if root == nil {
 		// Empty tree
@@ -194,7 +193,7 @@ func Remove[K any, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comp
 }
 
 // Get a Just nodeStack or Nothing if node doesn't exist
-func getNodeStack[K any, V any](d *dict[Comparable[K], V], targetKey Comparable[K]) Maybe[*nodeStack[Comparable[K], V]] {
+func getNodeStack[K, V any](d *dict[Comparable[K], V], targetKey Comparable[K]) Maybe[*nodeStack[Comparable[K], V]] {
 	if d.root == nil {
 		return Nothing{}
 	} else {
@@ -206,7 +205,7 @@ func getNodeStack[K any, V any](d *dict[Comparable[K], V], targetKey Comparable[
 /*
 Gets a 'Just' nodeStack or 'Nothing' if it doesn't exist
 */
-func getNodeStackHelp[K any, V any](targetKey Comparable[K], ns *nodeStack[Comparable[K], V]) Maybe[*node[Comparable[K], V]] {
+func getNodeStackHelp[K, V any](targetKey Comparable[K], ns *nodeStack[Comparable[K], V]) Maybe[*node[Comparable[K], V]] {
 	switch targetKey.Cmp(ns.node.key) {
 	case -1:
 		if ns.node.left == nil {
@@ -234,12 +233,12 @@ func getNodeStackHelp[K any, V any](targetKey Comparable[K], ns *nodeStack[Compa
 	panic("getNodeHelp unreachable")
 }
 
-func insertHelp[K any, V any](key Comparable[K], value V, ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func insertHelp[K, V any](key Comparable[K], value V, ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	nKey := ns.node.key
 	switch key.Cmp(nKey) {
 	case -1:
 		if ns.node.left == nil {
-			ns.node.left = &node[Comparable[K], V]{key: key, value: value, color: RED, left: nil, right: nil}
+			ns.node.left = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
 			newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
 			newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
 			return newNs
@@ -255,7 +254,7 @@ func insertHelp[K any, V any](key Comparable[K], value V, ns *nodeStack[Comparab
 		return ns
 	case +1:
 		if ns.node.right == nil {
-			ns.node.right = &node[Comparable[K], V]{key: key, value: value, color: RED, left: nil, right: nil}
+			ns.node.right = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
 			newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
 			newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
 			return newNs
@@ -270,7 +269,7 @@ func insertHelp[K any, V any](key Comparable[K], value V, ns *nodeStack[Comparab
 	panic("unreachable")
 }
 
-func removeHelp[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func removeHelp[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	// 2 non-nil children
 	if ns.node.left != nil && ns.node.right != nil {
 		// Copy right node
@@ -301,18 +300,18 @@ func removeHelp[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Compar
 
 		switch ns.node.color {
 		// case 1 - red leaf
-		case RED:
+		case red:
 			switch pSide {
-			case LEFT:
+			case left:
 				// 1.1 - remove node then exit
 				ns.stack.p.left = nil
 				return ns
-			case RIGHT:
+			case right:
 				// 1.1 - remove node then exit
 				ns.stack.p.right = nil
 				return ns
 			}
-		case BLACK:
+		case black:
 			return fixDB(ns)
 		}
 	}
@@ -348,7 +347,7 @@ func removeHelp[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Compar
 	}
 }
 
-func fixDB[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func fixDB[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	// Case 2 - DB is root
 	if ns.stack.p == nil {
 		return ns
@@ -358,40 +357,40 @@ func fixDB[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[
 	sNs := findSibling(ns)
 
 	// DB sibling is Black
-	if sNs.node.color == BLACK {
+	if sNs.node.color == black {
 
 		// Case 3
 		if sNs.node.hasBlackChildren() {
 			// 3.1 Remove node if leaf
 			if ns.node.hasNilChildren() {
 				switch pSide {
-				case RIGHT:
+				case right:
 					ns.stack.p.right = nil
-				case LEFT:
+				case left:
 					ns.stack.p.left = nil
 				}
 			}
 			// 3.2 Make sibling red
-			sNs.node.color = RED
+			sNs.node.color = red
 			// 3.3 Push blackness to parent
-			sNs.stack.p.color = BLACK
+			sNs.stack.p.color = black
 			// Check if parent is DB
-			if pColor != BLACK {
+			if pColor != black {
 				return ns
 			} else {
 				return fixDB(&nodeStack[Comparable[K], V]{stack: ns.stack.pp, node: ns.stack.p})
 			}
 		}
 		switch pSide {
-		case LEFT:
+		case left:
 			if sNs.node.left.isRed() && sNs.node.right.isBlack() {
-				// Case 5 - far nephew is BLACK - near nephew is RED
+				// Case 5 - far nephew is black - near nephew is red
 				// Copy near nephew
 				valSL := *sNs.node.left
 				// 5.1 - Swap colors of sibling and near nephew
-				valSL.color = BLACK
+				valSL.color = black
 				sNs.node.left = &valSL
-				sNs.node.color = RED
+				sNs.node.color = red
 
 				// 5.2 Rotate sibling of DB node in opposite direction of DB node
 				srRotationV2(sNs.node, sNs.stack)
@@ -408,7 +407,7 @@ func fixDB[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[
 				newRoot := slRotationV2(ns.stack.p, grandparentStk)
 				newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
 				// 6.3 Turn far nephew's color to black
-				valSR.color = BLACK
+				valSR.color = black
 				newNs.node.right = &valSR
 				// 6.4 Remove DB node to single black
 				if ns.node.hasNilChildren() {
@@ -416,15 +415,15 @@ func fixDB[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[
 				}
 				return newNs
 			}
-		case RIGHT:
+		case right:
 			if sNs.node.left.isBlack() && sNs.node.right.isRed() {
-				// Case 5 - far nephew is BLACK - near nephew is RED
+				// Case 5 - far nephew is black - near nephew is red
 				// Copy near nephew
 				valSR := *sNs.node.right
 				// 5.1 - Swap colors of sibling and near nephew
-				valSR.color = BLACK
+				valSR.color = black
 				sNs.node.right = &valSR
-				sNs.node.color = RED
+				sNs.node.color = red
 
 				// 5.2 Rotate sibling of DB node in opposite direction of DB node
 				slRotationV2(sNs.node, sNs.stack)
@@ -441,7 +440,7 @@ func fixDB[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[
 				newRoot := srRotationV2(ns.stack.p, grandparentStk)
 				newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
 				// 6.3 Turn far nephew's color to black
-				valSL.color = BLACK
+				valSL.color = black
 				newNs.node.left = &valSL
 				// 6.4 Remove DB node to single black
 				if ns.node.hasNilChildren() {
@@ -460,10 +459,10 @@ func fixDB[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[
 	grandparentStk := ns.stack.pp
 	var newRoot = &node[Comparable[K], V]{}
 	switch pSide {
-	case LEFT:
+	case left:
 		newRoot = slRotationV2(ns.stack.p, grandparentStk)
 
-	case RIGHT:
+	case right:
 		newRoot = srRotationV2(ns.stack.p, grandparentStk)
 	}
 	// Add new root to stack as parent
@@ -478,17 +477,17 @@ func (n *node[K, V]) hasNilChildren() bool {
 }
 
 func (n *node[K, V]) hasBlackChildren() bool {
-	return (n.left == nil || n.left.color == BLACK) && (n.right == nil || n.right.color == BLACK)
+	return (n.left == nil || n.left.color == black) && (n.right == nil || n.right.color == black)
 }
 
 func (n *node[K, V]) isBlack() bool {
-	return n == nil || n.color == BLACK
+	return n == nil || n.color == black
 }
 func (n *node[K, V]) isRed() bool {
-	return n != nil && n.color == RED
+	return n != nil && n.color == red
 }
 
-func findSuccessor[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func findSuccessor[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	if ns.node.left == nil {
 		return ns
 	} else {
@@ -500,9 +499,9 @@ func findSuccessor[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Com
 }
 
 // Find sibling nodeStack
-func findSibling[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func findSibling[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	pDir := parentSide(ns)
-	if pDir == LEFT {
+	if pDir == left {
 		valR := *ns.stack.p.right
 		ns.stack.p.right = &valR
 		return &nodeStack[Comparable[K], V]{stack: ns.stack, node: ns.stack.p.right}
@@ -513,14 +512,14 @@ func findSibling[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Compa
 	}
 }
 
-func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func balance[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	// Root case
 	if ns.stack.p == nil {
-		ns.node.color = BLACK
+		ns.node.color = black
 		return ns
 	}
 	pColor := ns.stack.p.color
-	if pColor == BLACK {
+	if pColor == black {
 		// Nothing more to do
 		return ns
 	}
@@ -530,7 +529,7 @@ func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 	uncle := getUncle(ns)
 	grandparent := ns.stack.pp.p
 
-	if uncle != nil && uncle.color == RED {
+	if uncle != nil && uncle.color == red {
 		// Red uncle - push down blackness from grandparent - balance root
 
 		// Copy uncle for mutation
@@ -539,16 +538,16 @@ func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 
 		cpU.color = grandparent.color
 		ns.stack.p.color = grandparent.color
-		grandparent.color = RED
+		grandparent.color = red
 		setUncle(ns, cpU)
 		newNs := &nodeStack[Comparable[K], V]{node: grandparent, stack: ns.stack.pp.pp}
 		return balance(newNs)
 	}
 	// Black uncle
 	switch pDir {
-	case LEFT:
+	case left:
 		switch nDir {
-		case LEFT:
+		case left:
 			// LL - right rotate on grandparent - balance
 			newRoot := srRotationV2(ns.stack.pp.p, ns.stack.pp.pp)
 
@@ -560,7 +559,7 @@ func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 			// balance newRoot
 			newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
 			return balance(newNs)
-		case RIGHT:
+		case right:
 			// LR - rotate parent left - balance left of root
 			newRoot := slRotationV2(ns.stack.p, ns.stack.pp)
 
@@ -569,9 +568,9 @@ func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 			newNs := &nodeStack[Comparable[K], V]{node: newRoot.left, stack: newStk}
 			return balance(newNs)
 		}
-	case RIGHT:
+	case right:
 		switch nDir {
-		case RIGHT:
+		case right:
 			// RR - left rotate on grandparent - balance
 			newRoot := slRotationV2(ns.stack.pp.p, ns.stack.pp.pp)
 
@@ -583,7 +582,7 @@ func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 			// balance newRoot
 			newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
 			return balance(newNs)
-		case LEFT:
+		case left:
 			//RL - rotate parent right - balance right of root
 			newRoot := srRotationV2(ns.stack.p, ns.stack.pp)
 
@@ -596,66 +595,66 @@ func balance[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 	return ns
 }
 
-func srRotationV2[K any, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
-	left := x.left
+func srRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
+	leftNode := x.left
 
 	// Handle x's parent
 	if stk.p != nil {
 		pSide := parentSide(&nodeStack[Comparable[K], V]{node: x, stack: stk})
 
 		switch pSide {
-		case LEFT:
-			stk.p.left = left
-		case RIGHT:
-			stk.p.right = left
+		case left:
+			stk.p.left = leftNode
+		case right:
+			stk.p.right = leftNode
 		}
 	}
 	// 2. x's left is now lefts right
-	x.left = left.right
+	x.left = leftNode.right
 
 	// 3. left's right is x
-	left.right = x
+	leftNode.right = x
 
-	return left
+	return leftNode
 }
 
-func slRotationV2[K any, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
-	right := x.right
+func slRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
+	rightNode := x.right
 
 	// Handle x's parent
 	if stk.p != nil {
 		pSide := parentSide(&nodeStack[Comparable[K], V]{node: x, stack: stk})
 
 		switch pSide {
-		case LEFT:
-			stk.p.left = right
-		case RIGHT:
-			stk.p.right = right
+		case left:
+			stk.p.left = rightNode
+		case right:
+			stk.p.right = rightNode
 		}
 	}
 	// 2. x's right is right's left
-	x.right = right.left
+	x.right = rightNode.left
 
 	// 3. right's left is x
-	right.left = x
+	rightNode.left = x
 
-	return right
+	return rightNode
 }
 
-func parentSide[K any, V any](ns *nodeStack[Comparable[K], V]) int {
+func parentSide[K, V any](ns *nodeStack[Comparable[K], V]) int {
 	p := ns.stack.p
 	if p.left != nil && ns.node.key == p.left.key {
-		return LEFT
+		return left
 	} else {
-		return RIGHT
+		return right
 	}
 }
 
-func setUncle[K any, V any](ns *nodeStack[Comparable[K], V], unc *node[Comparable[K], V]) {
+func setUncle[K, V any](ns *nodeStack[Comparable[K], V], unc *node[Comparable[K], V]) {
 	parent := ns.stack.p
 	gp := ns.stack.pp.p
 
-	if parentSide(&nodeStack[Comparable[K], V]{node: parent, stack: ns.stack.pp}) == LEFT {
+	if parentSide(&nodeStack[Comparable[K], V]{node: parent, stack: ns.stack.pp}) == left {
 		// Uncle is right side
 		gp.right = unc
 	} else {
@@ -663,10 +662,10 @@ func setUncle[K any, V any](ns *nodeStack[Comparable[K], V], unc *node[Comparabl
 	}
 }
 
-func getUncle[K any, V any](ns *nodeStack[Comparable[K], V]) *node[Comparable[K], V] {
+func getUncle[K, V any](ns *nodeStack[Comparable[K], V]) *node[Comparable[K], V] {
 	parent := ns.stack.p
 	gp := ns.stack.pp.p
-	if parentSide(&nodeStack[Comparable[K], V]{node: parent, stack: ns.stack.pp}) == LEFT {
+	if parentSide(&nodeStack[Comparable[K], V]{node: parent, stack: ns.stack.pp}) == left {
 		// Uncle is right side
 		return gp.right
 	} else {
@@ -674,7 +673,7 @@ func getUncle[K any, V any](ns *nodeStack[Comparable[K], V]) *node[Comparable[K]
 	}
 }
 
-func getNodeStackRoot[K any, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func getNodeStackRoot[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
 	if ns.stack.p == nil {
 		return ns
 	} else {
@@ -708,12 +707,12 @@ func getStackHelp[K cmp.Ordered, V any](k K, n *node[K, V], st *stack[K, V]) (*s
 // QUERY
 
 // Determine if a dictionary is empty.
-func IsEmpty[K any, V any](d Dict[Comparable[K], V]) bool {
+func IsEmpty[K, V any](d Dict[Comparable[K], V]) bool {
 	return d.rbt().root == nil
 }
 
 // Member - Determine if a key is in a dictionary.
-func Member[K any, V any](k Comparable[K], d Dict[Comparable[K], V]) bool {
+func Member[K, V any](k Comparable[K], d Dict[Comparable[K], V]) bool {
 	root := d.rbt().root
 
 	if root == nil {
@@ -723,7 +722,7 @@ func Member[K any, V any](k Comparable[K], d Dict[Comparable[K], V]) bool {
 	}
 }
 
-func memberHelp[K any, V any](k Comparable[K], n *node[Comparable[K], V]) bool {
+func memberHelp[K, V any](k Comparable[K], n *node[Comparable[K], V]) bool {
 	if n != nil {
 		switch k.Cmp(n.key) {
 		case -1:
@@ -740,7 +739,7 @@ func memberHelp[K any, V any](k Comparable[K], n *node[Comparable[K], V]) bool {
 // Get the value associated with a key.
 // If the key is not found, return [Nothing].
 // This is useful when you are not sure if a key will be in the dictionary.
-func Get[K any, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V] {
+func Get[K, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V] {
 	root := d.rbt().root
 	if root == nil {
 		return Nothing{}
@@ -749,7 +748,7 @@ func Get[K any, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[
 	}
 }
 
-func getHelp[K any, V any](targetKey Comparable[K], n *node[Comparable[K], V]) Maybe[V] {
+func getHelp[K, V any](targetKey Comparable[K], n *node[Comparable[K], V]) Maybe[V] {
 	if n != nil {
 		switch targetKey.Cmp(n.key) {
 		case -1:

@@ -1,3 +1,4 @@
+// You can create a `List` from any Go slice with the `FromSlice` function. This module has a bunch of functions to help you work with them!
 package list
 
 import (
@@ -155,17 +156,17 @@ func Cons[T any](val T, l List[T]) List[T] {
 // Transform
 
 // Apply a function to every element of a list.
-func Map[A any, B any](f func(A) B, xs List[A]) List[B] {
+func Map[A, B any](f func(A) B, xs List[A]) List[B] {
 	return Foldr(func(a A, b List[B]) List[B] { return Cons(f(a), b) }, Empty[B](), xs)
 }
 
 // Same as map but the function is also applied to the index of each element (starting at zero).
-func IndexedMap[A any, B any](f func(basics.Int, A) B, xs List[A]) List[B] {
+func IndexedMap[A, B any](f func(basics.Int, A) B, xs List[A]) List[B] {
 	return Map2(f, Range(0, basics.Sub(Length(xs), 1)), xs)
 }
 
 // Reduce a list from the left.
-func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
+func Foldl[A, B any](f func(A, B) B, acc B, ls List[A]) B {
 	return ListWith(
 		ls,
 		func(List[A]) B { return acc },
@@ -174,11 +175,11 @@ func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B {
 }
 
 // Reduce a list from the right.
-func Foldr[A any, B any](fn func(A, B) B, acc B, ls List[A]) B {
+func Foldr[A, B any](fn func(A, B) B, acc B, ls List[A]) B {
 	return foldrHelper(fn, acc, 0, ls)
 }
 
-func foldrHelper[A any, B any](fn func(A, B) B, acc B, ctr basics.Int, ls List[A]) B {
+func foldrHelper[A, B any](fn func(A, B) B, acc B, ctr basics.Int, ls List[A]) B {
 	return ListWith(ls,
 		func(List[A]) B { return acc },
 		func(a A, r1 List[A]) B {
@@ -224,11 +225,11 @@ func Filter[T any](isGood func(T) bool, list List[T]) List[T] {
 
 // Filter out certain values. For example, maybe you have a bunch of strings from an
 // untrusted source and you want to turn them into numbers:
-func FilterMap[A any, B any](f func(A) maybe.Maybe[B], xs List[A]) List[B] {
+func FilterMap[A, B any](f func(A) maybe.Maybe[B], xs List[A]) List[B] {
 	return Foldr(func(a A, b List[B]) List[B] { return maybeCons(f, a, b) }, Empty[B](), xs)
 }
 
-func maybeCons[A any, B any](f func(A) maybe.Maybe[B], mx A, xs List[B]) List[B] {
+func maybeCons[A, B any](f func(A) maybe.Maybe[B], mx A, xs List[B]) List[B] {
 	return maybe.MaybeWith(
 		f(mx),
 		func(j maybe.Just[B]) List[B] { return Cons(j.Value, xs) },
@@ -349,7 +350,7 @@ func Concat[T any](lists List[List[T]]) List[T] {
 }
 
 // Map a given function onto a list and flatten the resulting lists.
-func ConcatMap[A any, B any](f func(A) List[B], list List[A]) List[B] {
+func ConcatMap[A, B any](f func(A) List[B], list List[A]) List[B] {
 	return Concat(Map(f, list))
 }
 
@@ -395,7 +396,7 @@ func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List
 	)
 }
 
-func Map3[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) List[result] {
+func Map3[A, B, C, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) List[result] {
 	return FromSlice(map3Help(f, xs, ys, zs, []result{}))
 }
 
@@ -421,11 +422,11 @@ func map3Help[A any, B any, C any, result any](f func(A, B, C) result, xs List[A
 	)
 }
 
-func Map4[A any, B any, C any, D any, result any](f func(A, B, C, D) result, xs List[A], ys List[B], zs List[C], ws List[D]) List[result] {
+func Map4[A, B, C, D, result any](f func(A, B, C, D) result, xs List[A], ys List[B], zs List[C], ws List[D]) List[result] {
 	return FromSlice(map4Help(f, xs, ys, zs, ws, []result{}))
 }
 
-func map4Help[A any, B any, C any, D any, result any](f func(A, B, C, D) result, ws List[A], xs List[B], ys List[C], zs List[D], acc []result) []result {
+func map4Help[A, B, C, D, result any](f func(A, B, C, D) result, ws List[A], xs List[B], ys List[C], zs List[D], acc []result) []result {
 	return ListWith(
 		ws,
 		func(List[A]) []result { return acc },
@@ -453,11 +454,11 @@ func map4Help[A any, B any, C any, D any, result any](f func(A, B, C, D) result,
 	)
 }
 
-func Map5[A any, B any, C any, D any, E any, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) List[result] {
+func Map5[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) List[result] {
 	return FromSlice(map5Help(f, vs, ws, xs, ys, zs, []result{}))
 }
 
-func map5Help[A any, B any, C any, D any, E any, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E], acc []result) []result {
+func map5Help[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E], acc []result) []result {
 	return ListWith(
 		vs,
 		func(List[A]) []result { return acc },
