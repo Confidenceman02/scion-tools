@@ -106,6 +106,14 @@
   </details>
 - <details>
     <summary><a href="#bitwise">Bitwise</a></summary>
+    <ul>
+        <li>
+            <a href="#and">And</a>
+        </li>
+        <li>
+            <a href="#shiftrightby">ShiftRightBy</a>
+        </li>
+    </ul>
 - <details>
     <summary><a href="#char">Char</a></summary>
 - <details>
@@ -582,6 +590,35 @@ composed(3) // false
 [Back to top](#table-of-content)
 
 # Bitwise
+
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/bitwise"
+```
+
+Package for bitwise operations.
+
+## And
+
+`func And(a, b Int) Int`
+
+Bitwise AND
+
+[Back to top](#table-of-content)
+
+## ShiftRightBy
+
+`func ShiftRightBy(offset Int, a Int) Int`
+
+Shift bits to the right by a given offset, filling new bits with whatever is the topmost bit.
+This can be used to divide numbers by powers of two.
+
+```go
+ShiftRightBy(1,32) // 16
+ShiftRightBy(2,32) // 8
+ShiftRightBy(1,-32) // -16
+```
+
+[Back to top](#table-of-content)
 
 # Char
 
