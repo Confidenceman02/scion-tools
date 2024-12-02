@@ -154,10 +154,12 @@ func Cons[T any](val T, l List[T]) List[T] {
 
 // Transform
 
+// Apply a function to every element of a list.
 func Map[A any, B any](f func(A) B, xs List[A]) List[B] {
 	return Foldr(func(a A, b List[B]) List[B] { return Cons(f(a), b) }, Empty[B](), xs)
 }
 
+// Same as map but the function is also applied to the index of each element (starting at zero).
 func IndexedMap[A any, B any](f func(basics.Int, A) B, xs List[A]) List[B] {
 	return Map2(f, Range(0, basics.Sub(Length(xs), 1)), xs)
 }
@@ -220,6 +222,8 @@ func Filter[T any](isGood func(T) bool, list List[T]) List[T] {
 	}, Empty[T](), list)
 }
 
+// Filter out certain values. For example, maybe you have a bunch of strings from an
+// untrusted source and you want to turn them into numbers:
 func FilterMap[A any, B any](f func(A) maybe.Maybe[B], xs List[A]) List[B] {
 	return Foldr(func(a A, b List[B]) List[B] { return maybeCons(f, a, b) }, Empty[B](), xs)
 }
@@ -541,6 +545,7 @@ func SortBy_UNSAFE[A any](f func(A) A, xs List[A]) List[A] {
 	return FromSlice(slc)
 }
 
+// Sort values with a custom comparison function.
 func SortWith[A any](f func(a A, b A) basics.Order, xs List[A]) List[A] {
 	slc := ToSlice(xs)
 	slices.SortFunc(slc, func(a, b A) int {
@@ -667,6 +672,7 @@ func takeReverse[A any](n basics.Int, list List[A], kept List[A]) List[A] {
 	}
 }
 
+// Drop the first n members of a list.
 func Drop[T any](n basics.Int, list List[T]) List[T] {
 	if n <= 0 {
 		return list

@@ -50,6 +50,7 @@ func Reverse(x String) String {
 	return String(r)
 }
 
+// Repeat a string n times.
 func Repeat(n basics.Int, chunk String) String {
 	return repeatHelp(n, chunk, "")
 }
