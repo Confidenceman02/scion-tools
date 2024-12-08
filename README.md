@@ -116,6 +116,11 @@
     </ul>
 - <details>
     <summary><a href="#char">Char</a></summary>
+    <ul>
+        <li>
+            <a href="#isdigit">IsDigit</a>
+        </li>
+    </ul>
 - <details>
     <summary><a href="#dict">Dict</a></summary>
 - <details>
@@ -621,6 +626,25 @@ ShiftRightBy(1,-32) // -16
 [Back to top](#table-of-content)
 
 # Char
+
+Functions for working with runes. Rune literals are enclosed in 'a' pair of single quotes.
+
+## IsDigit
+
+`func IsDigit(c Char) bool`
+
+Detect digits 0123456789
+
+```go
+isDigit('0') // True
+isDigit('1') // True
+isDigit('9') // True
+isDigit('a') // False
+isDigit('b') // False
+isDigit('A') // False
+```
+
+[Back to top](#table-of-content)
 
 # Dict
 
