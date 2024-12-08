@@ -116,8 +116,48 @@
     </ul>
 - <details>
     <summary><a href="#char">Char</a></summary>
+    <ul>
+        <li>
+            <a href="#isdigit">IsDigit</a>
+        </li>
+    </ul>
 - <details>
     <summary><a href="#dict">Dict</a></summary>
+    <ul>
+        <li>
+            <a href="#empty">Empty</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#singletom">Singleton</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#remove">Remove</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#Insert">Insert</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#Remove">Remove</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#IsEmpty">IsEmpty</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#member">Member</a>
+        </li>
+    </ul>
 - <details>
     <summary><a href="#list">List</a></summary>
 - <details>
@@ -622,7 +662,114 @@ ShiftRightBy(1,-32) // -16
 
 # Char
 
+Functions for working with runes. Rune literals are enclosed in 'a' pair of single quotes.
+
+## IsDigit
+
+`func IsDigit(c Char) bool`
+
+Detect digits 0123456789
+
+```go
+isDigit('0') // True
+isDigit('1') // True
+isDigit('9') // True
+isDigit('a') // False
+isDigit('b') // False
+isDigit('A') // False
+```
+
+[Back to top](#table-of-content)
+
 # Dict
+
+A dictionary mapping unique keys to values. The keys can be any [comparable](#comparable) type.
+This includes Int, Float, Char, String, and tuples or lists of comparable types.
+Insert, remove, and query operations all take O(log n) time.
+
+## Empty
+
+`func Empty[K any, V any]() Dict[Comparable[K], V]`
+
+Create an empty dictionary.
+
+```go
+Empty()
+```
+
+[Back to top](#table-of-content)
+
+## Singleton
+
+`func Singleton[K any, V any](key Comparable[K], value V) Dict[Comparable[K], V]`
+
+Create a dictionary with one key-value pair.
+
+```go
+Singleton("hello", "world")
+```
+
+[Back to top](#table-of-content)
+
+## Insert
+
+`func Insert[K any, V any](key Comparable[K], v V, d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Insert a key-value pair into a dictionary. Replaces value when there is a collision.
+
+```go
+Insert(2, "two", Singleton(1,"one"))
+```
+
+[Back to top](#table-of-content)
+
+## Remove
+
+`func Remove[K any, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Remove a key-value pair from a dictionary. If the key is not found, no changes are made.
+
+```go
+Remove(1, Singleton(1,"one"))
+```
+
+[Back to top](#table-of-content)
+
+## IsEmpty
+
+`func IsEmpty[K any, V any](d Dict[Comparable[K], V]) bool`
+
+Determine if a dictionary is empty.
+
+```go
+IsEmpty(Empty()) // true
+```
+
+[Back to top](#table-of-content)
+
+## Member
+
+`func Member[K any, V any](k Comparable[K], d Dict[Comparable[K], V]) bool`
+
+Determine if a key is in a dictionary.
+
+```go
+Member(1, Singleton(1, "one")) // true
+```
+
+[Back to top](#table-of-content)
+
+## Member
+
+`func Get[K any, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V]`
+
+Determine if a key is in a dictionary.
+
+```go
+Member(1, Singleton(1, "one")) // true
+```
+
+[Back to top](#table-of-content)
 
 # List
 
