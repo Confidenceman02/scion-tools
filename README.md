@@ -130,7 +130,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#singletom">Singleton</a>
+            <a href="#singleton">Singleton</a>
         </li>
     </ul>
     <ul>
@@ -662,6 +662,10 @@ ShiftRightBy(1,-32) // -16
 
 # Char
 
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/char"
+```
+
 Functions for working with runes. Rune literals are enclosed in 'a' pair of single quotes.
 
 ## IsDigit
@@ -682,6 +686,10 @@ isDigit('A') // False
 [Back to top](#table-of-content)
 
 # Dict
+
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/dict"
+```
 
 A dictionary mapping unique keys to values. The keys can be any [comparable](#comparable) type.
 This includes Int, Float, Char, String, and tuples or lists of comparable types.
@@ -759,22 +767,167 @@ Member(1, Singleton(1, "one")) // true
 
 [Back to top](#table-of-content)
 
-## Member
-
-`func Get[K any, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V]`
-
-Determine if a key is in a dictionary.
+# List
 
 ```go
-Member(1, Singleton(1, "one")) // true
+import "github.com/Confidenceman02/scion-tools/pkg/list"
+```
+
+You can create a List from Go slices with the `FromSlice` function. This module has a bunch of functions to help you work with them!
+
+## Empty
+
+`func Empty[T any]() List[T]`
+
+Create a list with no elements.
+
+```go
+Empty() // []
+```
+
+## Singleton
+
+`func Singleton[T any](val T) List[T]`
+
+Create a list with only one element.
+
+```go
+Singleton(1234) // [1234]
 ```
 
 [Back to top](#table-of-content)
 
-# List
+## Repeat
+
+`func Repeat[T any](n basics.Int, val T) List[T]`
+
+Create a list with _n_ copies of a value.
+
+```go
+Repeat(3,1) // [1,1,1]
+```
+
+[Back to top](#table-of-content)
+
+## Range
+
+`func Range(low basics.Int, hi basics.Int) List[basics.Int]`
+
+Create a list of numbers, every element increasing by one. You give the lowest and highest number that should be in the list.
+
+```go
+Range(3,6) // [3, 4, 5, 6]
+Range(3,3) // [3]
+Range(6,3) // []
+```
+
+[Back to top](#table-of-content)
+
+## Cons
+
+`func Cons[T any](val T, l List[T]) List[T]`
+
+Add an element to the front of a list.
+
+```go
+Cons(1,Singleton(2)) // [1,2]
+Cons(1,Empty())      // [1]
+```
+
+[Back to top](#table-of-content)
+
+## Map
+
+`func Map[A any, B any](f func(A) B, xs List[A]) List[B]`
+
+Apply a function to every element of a list.
+
+```go
+Map(Sqrt, FromSlice([]int{1,4,9}))           // [1,2,3]
+Map(Not, FromSlice([]bool{True,False,True})) // [False,True,False]
+```
+
+[Back to top](#table-of-content)
+
+## IndexedMap
+
+`func IndexedMap[A any, B any](f func(basics.Int, A) B, xs List[A]) List[B]`
+
+Same as map but the function is also applied to the index of each element (starting at zero).
+
+```go
+IndexedMap(Tuple.pair, FromSlice([]string{"Tom","Sue","Bob"})) // [ (0,"Tom"), (1,"Sue"), (2,"Bob") ]
+```
+
+[Back to top](#table-of-content)
+
+## Foldl
+
+`func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B`
+
+Reduce a list from the left.
+
+```go
+Foldl(Cons,Empty(), FromSlice([]int{1,2,3}) ) // [3,2,1]
+```
+
+[Back to top](#table-of-content)
+
+## Foldr
+
+`func Foldr[A any, B any](fn func(A, B) B, acc B, ls List[A]) B`
+
+Reduce a list from the right.
+
+```go
+Foldr(Cons,Empty(),FromSlice([]int{1,2,3})) == [1,2,3]
+```
+
+[Back to top](#table-of-content)
+
+## Filter
+
+`func Filter[T any](isGood func(T) bool, list List[T]) List[T]`
+
+Keep elements that satisfy the test.
+
+```go
+Filter(isEven, FromSlice([]int{1,2,3,4,5,6})) // [2,4,6]
+```
+
+[Back to top](#table-of-content)
+
+## FilterMap
+
+`func FilterMap[A any, B any](f func(A) maybe.Maybe[B], xs List[A]) List[B]`
+
+Filter out certain values. For example, maybe you have a bunch of strings from an
+untrusted source and you want to turn them into numbers:
+
+```go
+func numbers() List[Int] {
+  return FilterMap(ToInt, FromSlice([]String{"3", "hi", "12", "4th", "May"}))
+}
+
+// numbers == [3, 12]
+```
+
+[Back to top](#table-of-content)
 
 # Maybe
 
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/maybe"
+```
+
 # String
 
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/string"
+```
+
 # Tuple
+
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/tuple"
+```
