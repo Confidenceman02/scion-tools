@@ -748,6 +748,25 @@ func Get[K, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V] {
 	}
 }
 
+// Determine the number of key-value pairs in the dictionary.
+func Size[K, V any](d Dict[Comparable[K], V]) Int {
+	root := d.rbt().root
+
+	if root == nil {
+		return 0
+	}
+
+	return sizeHelp(root)
+}
+
+func sizeHelp[K, V any](n *node[Comparable[K], V]) Int {
+	if n == nil {
+		return 0
+	}
+
+	return sizeHelp(n.left) + sizeHelp(n.right) + 1
+}
+
 func getHelp[K, V any](targetKey Comparable[K], n *node[Comparable[K], V]) Maybe[V] {
 	if n != nil {
 		switch targetKey.Cmp(n.key) {

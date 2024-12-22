@@ -2,6 +2,7 @@ package dict
 
 import (
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
+	"github.com/Confidenceman02/scion-tools/pkg/list"
 	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -79,6 +80,21 @@ func TestGet(t *testing.T) {
 		SUT := Get(Int(10), d)
 
 		asserts.Equal(Nothing{}, SUT)
+	})
+}
+
+func TestLength(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Size", func(t *testing.T) {
+		xs := list.FromSlice([]Int{1, 2, 3, 4, 5})
+		SUT := list.Foldl(
+			func(i Int, d Dict[Comparable[Int], Int]) Dict[Comparable[Int], Int] { return Insert(i, i, d) },
+			Empty[Int, Int](),
+			xs,
+		)
+
+		asserts.Equal(Int(5), Size(SUT))
 	})
 }
 
