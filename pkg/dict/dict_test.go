@@ -21,7 +21,7 @@ func TestBuild(t *testing.T) {
 			root: &node[Comparable[Int], struct{}]{
 				key:   Int(1),
 				value: struct{}{},
-				color: BLACK,
+				color: black,
 				left:  nil,
 				right: nil},
 		},
@@ -139,7 +139,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(&dict[Comparable[Int], Int]{root: &node[Comparable[Int], Int]{
 			key:   Int(1),
 			value: 233,
-			color: BLACK,
+			color: black,
 			left:  nil,
 			right: nil}},
 			SUT,
@@ -152,8 +152,8 @@ func TestInsert(t *testing.T) {
 
 		SUT := d1.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
-		asserts.Equal(RED, SUT.root.right.color)
+		asserts.Equal(black, SUT.root.color)
+		asserts.Equal(red, SUT.root.right.color)
 	})
 
 	t.Run("Insert into existing entry", func(t *testing.T) {
@@ -165,7 +165,7 @@ func TestInsert(t *testing.T) {
 		asserts.Equal(&dict[Comparable[Int], int]{root: &node[Comparable[Int], int]{
 			key:   Int(10),
 			value: 100,
-			color: BLACK,
+			color: black,
 			left:  nil,
 			right: nil},
 		}, SUT)
@@ -237,14 +237,14 @@ func TestInsert(t *testing.T) {
 
 		// d2
 		asserts.Equal(Int(50), d2.rbt().root.right.key)
-		asserts.Equal(RED, d2.rbt().root.right.color)
+		asserts.Equal(red, d2.rbt().root.right.color)
 		asserts.Nil(d2.rbt().root.left.left)
 
 		// d3
 		asserts.Equal(Int(50), d3.rbt().root.right.key)
-		asserts.Equal(BLACK, d3.rbt().root.right.color)
-		asserts.Equal(BLACK, d3.rbt().root.left.color)
-		asserts.Equal(RED, d3.rbt().root.left.left.color)
+		asserts.Equal(black, d3.rbt().root.right.color)
+		asserts.Equal(black, d3.rbt().root.left.color)
+		asserts.Equal(red, d3.rbt().root.left.left.color)
 	})
 
 	t.Run("LL Single right rotation", func(t *testing.T) {
@@ -255,11 +255,11 @@ func TestInsert(t *testing.T) {
 		SUT := d2.rbt()
 
 		asserts.Equal(Int(40), SUT.root.key)
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(50), SUT.root.right.key)
-		asserts.Equal(RED, SUT.root.right.color)
+		asserts.Equal(red, SUT.root.right.color)
 		asserts.Equal(Int(30), SUT.root.left.key)
-		asserts.Equal(RED, SUT.root.left.color)
+		asserts.Equal(red, SUT.root.left.color)
 	})
 
 	t.Run("RR Single right rotation", func(t *testing.T) {
@@ -270,11 +270,11 @@ func TestInsert(t *testing.T) {
 		SUT := d2.rbt()
 
 		asserts.Equal(Int(60), SUT.root.key)
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(50), SUT.root.left.key)
-		asserts.Equal(RED, SUT.root.left.color)
+		asserts.Equal(red, SUT.root.left.color)
 		asserts.Equal(Int(70), SUT.root.right.key)
-		asserts.Equal(RED, SUT.root.right.color)
+		asserts.Equal(red, SUT.root.right.color)
 	})
 
 	t.Run("LR double red, red uncle", func(t *testing.T) {
@@ -286,10 +286,10 @@ func TestInsert(t *testing.T) {
 
 		SUT := d3.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
-		asserts.Equal(BLACK, SUT.root.left.color)
-		asserts.Equal(BLACK, SUT.root.right.color)
-		asserts.Equal(RED, SUT.root.left.right.color)
+		asserts.Equal(black, SUT.root.color)
+		asserts.Equal(black, SUT.root.left.color)
+		asserts.Equal(black, SUT.root.right.color)
+		asserts.Equal(red, SUT.root.left.right.color)
 	})
 
 	t.Run("LR double red, black uncle", func(t *testing.T) {
@@ -300,11 +300,11 @@ func TestInsert(t *testing.T) {
 
 		SUT := d2.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(45), SUT.root.key)
-		asserts.Equal(RED, SUT.root.left.color)
+		asserts.Equal(red, SUT.root.left.color)
 		asserts.Equal(Int(40), SUT.root.left.key)
-		asserts.Equal(RED, SUT.root.right.color)
+		asserts.Equal(red, SUT.root.right.color)
 		asserts.Equal(Int(50), SUT.root.right.key)
 	})
 
@@ -316,10 +316,10 @@ func TestInsert(t *testing.T) {
 
 		SUT := d3.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
-		asserts.Equal(BLACK, SUT.root.left.color)
-		asserts.Equal(BLACK, SUT.root.right.color)
-		asserts.Equal(RED, SUT.root.right.left.color)
+		asserts.Equal(black, SUT.root.color)
+		asserts.Equal(black, SUT.root.left.color)
+		asserts.Equal(black, SUT.root.right.color)
+		asserts.Equal(red, SUT.root.right.left.color)
 	})
 
 	t.Run("RL double red, black uncle", func(t *testing.T) {
@@ -329,11 +329,11 @@ func TestInsert(t *testing.T) {
 
 		SUT := d2.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(55), SUT.root.key)
-		asserts.Equal(RED, SUT.root.left.color)
+		asserts.Equal(red, SUT.root.left.color)
 		asserts.Equal(Int(50), SUT.root.left.key)
-		asserts.Equal(RED, SUT.root.right.color)
+		asserts.Equal(red, SUT.root.right.color)
 		asserts.Equal(Int(60), SUT.root.right.key)
 	})
 
@@ -346,13 +346,13 @@ func TestInsert(t *testing.T) {
 
 		SUT := d4.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(7), SUT.root.key)
-		asserts.Equal(BLACK, SUT.root.right.color)
+		asserts.Equal(black, SUT.root.right.color)
 		asserts.Equal(Int(15), SUT.root.right.key)
-		asserts.Equal(RED, SUT.root.right.right.color)
+		asserts.Equal(red, SUT.root.right.right.color)
 		asserts.Equal(Int(20), SUT.root.right.right.key)
-		asserts.Equal(RED, SUT.root.right.left.color)
+		asserts.Equal(red, SUT.root.right.left.color)
 		asserts.Equal(Int(10), SUT.root.right.left.key)
 	})
 
@@ -365,13 +365,13 @@ func TestInsert(t *testing.T) {
 
 		SUT := d4.rbt()
 
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(10), SUT.root.key)
-		asserts.Equal(BLACK, SUT.root.left.color)
+		asserts.Equal(black, SUT.root.left.color)
 		asserts.Equal(Int(2), SUT.root.left.key)
-		asserts.Equal(RED, SUT.root.left.left.color)
+		asserts.Equal(red, SUT.root.left.left.color)
 		asserts.Equal(Int(0), SUT.root.left.left.key)
-		asserts.Equal(RED, SUT.root.left.right.color)
+		asserts.Equal(red, SUT.root.left.right.color)
 		asserts.Equal(Int(5), SUT.root.left.right.key)
 	})
 
@@ -413,7 +413,7 @@ func TestRemove(t *testing.T) {
 		asserts.Nil(d1.rbt().root)
 	})
 
-	t.Run("remove childless RED leaf", func(t *testing.T) {
+	t.Run("remove childless red leaf", func(t *testing.T) {
 		d := Singleton(Int(50), 1)
 		d1 := Insert(Int(40), 2, d)
 		d2 := Insert(Int(60), 3, d1)
@@ -432,19 +432,19 @@ func TestRemove(t *testing.T) {
 		asserts.NotEqual(d2.rbt().root, d3.rbt().root)
 	})
 
-	t.Run("BLACK leaf, LEFT | BLACK sibling, RED near nephew, BLACK distant nephew", func(t *testing.T) {
+	t.Run("black leaf, LEFT | BLACK sibling, red near nephew, BLACK distant nephew", func(t *testing.T) {
 		var tree Dict[Comparable[Int], Comparable[Int]]
 		tree = &dict[Comparable[Int], Comparable[Int]]{
 			root: &node[Comparable[Int], Comparable[Int]]{
 				key:   Int(40),
 				value: Int(1),
-				color: BLACK,
-				left:  &node[Comparable[Int], Comparable[Int]]{key: Int(30), value: Int(2), color: BLACK, left: nil, right: nil},
+				color: black,
+				left:  &node[Comparable[Int], Comparable[Int]]{key: Int(30), value: Int(2), color: black, left: nil, right: nil},
 				right: &node[Comparable[Int], Comparable[Int]]{
 					key:   Int(50),
 					value: Int(3),
-					color: BLACK,
-					left:  &node[Comparable[Int], Comparable[Int]]{key: Int(45), value: Int(4), color: RED, left: nil, right: nil},
+					color: black,
+					left:  &node[Comparable[Int], Comparable[Int]]{key: Int(45), value: Int(4), color: red, left: nil, right: nil},
 					right: nil,
 				},
 			},
@@ -459,24 +459,24 @@ func TestRemove(t *testing.T) {
 		asserts.NotEqual(tree.rbt().root.right, SUT.root.right)
 	})
 
-	t.Run("BLACK leaf, RIGHT | BLACK sibling, RED near nephew, BLACK distant nephew", func(t *testing.T) {
+	t.Run("black leaf, RIGHT | BLACK sibling, red near nephew, BLACK distant nephew", func(t *testing.T) {
 		var tree Dict[Comparable[Int], Comparable[Int]]
 		tree = &dict[Comparable[Int], Comparable[Int]]{
 			root: &node[Comparable[Int], Comparable[Int]]{
 				key:   Int(40),
 				value: Int(1),
-				color: BLACK,
+				color: black,
 				left: &node[Comparable[Int], Comparable[Int]]{
 					key:   Int(30),
 					value: Int(2),
-					color: BLACK,
+					color: black,
 					left:  nil,
-					right: &node[Comparable[Int], Comparable[Int]]{key: Int(35), value: Int(4), color: RED, left: nil, right: nil},
+					right: &node[Comparable[Int], Comparable[Int]]{key: Int(35), value: Int(4), color: red, left: nil, right: nil},
 				},
 				right: &node[Comparable[Int], Comparable[Int]]{
 					key:   Int(50),
 					value: Int(3),
-					color: BLACK,
+					color: black,
 					left:  nil,
 					right: nil,
 				},
@@ -492,22 +492,22 @@ func TestRemove(t *testing.T) {
 		asserts.NotEqual(tree.rbt().root.left, SUT.root.left)
 	})
 
-	t.Run("BLACK leaf, RIGHT | RED sibling | BLACK near nephew | BLACK distant nephew", func(t *testing.T) {
+	t.Run("black leaf, RIGHT | red sibling | BLACK near nephew | BLACK distant nephew", func(t *testing.T) {
 		var tree Dict[Comparable[Int], Int]
 		tree = &dict[Comparable[Int], Int]{
 			root: &node[Comparable[Int], Int]{
 				key:   Int(50),
 				value: 1,
-				color: BLACK,
+				color: black,
 				left: &node[Comparable[Int], Int]{
 					key:   Int(40),
 					value: 2,
-					color: RED,
-					left:  &node[Comparable[Int], Int]{key: Int(35), value: 5, color: BLACK, left: nil, right: nil},
+					color: red,
+					left:  &node[Comparable[Int], Int]{key: Int(35), value: 5, color: black, left: nil, right: nil},
 					right: &node[Comparable[Int], Int]{
 						key:   Int(45),
 						value: 6,
-						color: BLACK,
+						color: black,
 						left:  nil,
 						right: nil,
 					},
@@ -515,7 +515,7 @@ func TestRemove(t *testing.T) {
 				right: &node[Comparable[Int], Int]{
 					key:   Int(60),
 					value: 3,
-					color: BLACK,
+					color: black,
 					left:  nil,
 					right: nil,
 				},
@@ -529,29 +529,29 @@ func TestRemove(t *testing.T) {
 
 		asserts.Equal(Int(50), tree.rbt().root.key)
 		asserts.Equal(Int(40), SUT.root.key)
-		asserts.Equal(BLACK, SUT.root.color)
+		asserts.Equal(black, SUT.root.color)
 		asserts.Equal(Int(50), SUT.root.right.key)
 		asserts.Equal(Int(45), SUT.root.right.left.key)
-		asserts.Equal(RED, SUT.root.right.left.color)
+		asserts.Equal(red, SUT.root.right.left.color)
 
 		// Structure sharing
 		asserts.True(tree.rbt().root.left.left == SUT.root.left)
 	})
 
-	t.Run("BLACK node, LEFT | RED child, LEFT | NIL child, RIGHT", func(t *testing.T) {
+	t.Run("black node, LEFT | red child, LEFT | NIL child, RIGHT", func(t *testing.T) {
 		var tree Dict[Comparable[Int], Int]
 		tree = &dict[Comparable[Int], Int]{
 			root: &node[Comparable[Int], Int]{
 				key:   Int(50),
 				value: 1,
-				color: BLACK,
+				color: black,
 				left: &node[Comparable[Int], Int]{
 					key:   Int(40),
-					color: BLACK,
+					color: black,
 					value: 3,
 					left:  nil,
-					right: &node[Comparable[Int], Int]{key: Int(45), color: RED, value: 6, left: nil, right: nil}},
-				right: &node[Comparable[Int], Int]{key: Int(60), color: BLACK, value: 2, left: nil, right: nil},
+					right: &node[Comparable[Int], Int]{key: Int(45), color: red, value: 6, left: nil, right: nil}},
+				right: &node[Comparable[Int], Int]{key: Int(60), color: black, value: 2, left: nil, right: nil},
 			},
 		}
 
@@ -564,21 +564,21 @@ func TestRemove(t *testing.T) {
 		asserts.True(tree.rbt().root.right == SUT.root.right)
 	})
 
-	t.Run("BLACK node, RIGHT | RED child, LEFT | NIL child, RIGHT", func(t *testing.T) {
+	t.Run("black node, RIGHT | red child, LEFT | NIL child, RIGHT", func(t *testing.T) {
 		var tree Dict[Comparable[Int], Int]
 		tree = &dict[Comparable[Int], Int]{
 			root: &node[Comparable[Int], Int]{
 				key:   Int(50),
 				value: 1,
-				color: BLACK,
+				color: black,
 				right: &node[Comparable[Int], Int]{
 					key:   Int(60),
-					color: BLACK,
+					color: black,
 					value: 3,
-					left:  &node[Comparable[Int], Int]{key: Int(55), color: RED, value: 6, left: nil, right: nil},
+					left:  &node[Comparable[Int], Int]{key: Int(55), color: red, value: 6, left: nil, right: nil},
 					right: nil,
 				},
-				left: &node[Comparable[Int], Int]{key: Int(40), color: BLACK, value: 2, left: nil, right: nil},
+				left: &node[Comparable[Int], Int]{key: Int(40), color: black, value: 2, left: nil, right: nil},
 			},
 		}
 
@@ -596,10 +596,10 @@ func TestRemove(t *testing.T) {
 		tree = &dict[Comparable[Int], Int]{
 			root: &node[Comparable[Int], Int]{
 				key:   Int(50),
-				color: BLACK,
+				color: black,
 				value: 1,
-				left:  &node[Comparable[Int], Int]{key: Int(40), color: RED, value: 2, left: nil, right: nil},
-				right: &node[Comparable[Int], Int]{key: Int(60), color: RED, value: 3, left: nil, right: nil},
+				left:  &node[Comparable[Int], Int]{key: Int(40), color: red, value: 2, left: nil, right: nil},
+				right: &node[Comparable[Int], Int]{key: Int(60), color: red, value: 3, left: nil, right: nil},
 			},
 		}
 
@@ -647,30 +647,30 @@ func TestRemove(t *testing.T) {
 			root: &node[Comparable[Int], Int]{
 				key:   Int(40),
 				value: 1,
-				color: BLACK,
+				color: black,
 				left: &node[Comparable[Int], Int]{
 					key:   Int(20),
 					value: 2,
-					color: BLACK,
-					left:  &node[Comparable[Int], Int]{key: Int(10), value: 3, color: BLACK, left: nil, right: nil},
-					right: &node[Comparable[Int], Int]{key: Int(30), value: 4, color: BLACK, left: nil, right: nil},
+					color: black,
+					left:  &node[Comparable[Int], Int]{key: Int(10), value: 3, color: black, left: nil, right: nil},
+					right: &node[Comparable[Int], Int]{key: Int(30), value: 4, color: black, left: nil, right: nil},
 				},
 				right: &node[Comparable[Int], Int]{
 					key:   Int(60),
 					value: 5,
-					color: BLACK,
-					left:  &node[Comparable[Int], Int]{key: Int(50), value: 6, color: BLACK, left: nil, right: nil},
+					color: black,
+					left:  &node[Comparable[Int], Int]{key: Int(50), value: 6, color: black, left: nil, right: nil},
 					right: &node[Comparable[Int], Int]{
 						key:   Int(80),
 						value: 7,
-						color: RED,
-						left:  &node[Comparable[Int], Int]{key: Int(70), value: 8, color: BLACK, left: nil, right: nil},
+						color: red,
+						left:  &node[Comparable[Int], Int]{key: Int(70), value: 8, color: black, left: nil, right: nil},
 						right: &node[Comparable[Int], Int]{
 							key:   Int(90),
 							value: 9,
-							color: BLACK,
+							color: black,
 							left:  nil,
-							right: &node[Comparable[Int], Int]{key: Int(100), value: 10, color: RED, left: nil, right: nil},
+							right: &node[Comparable[Int], Int]{key: Int(100), value: 10, color: red, left: nil, right: nil},
 						},
 					},
 				},
@@ -682,7 +682,7 @@ func TestRemove(t *testing.T) {
 		SUT1 := tree1.rbt()
 
 		asserts.Equal(Int(40), SUT1.rbt().root.key)
-		asserts.Equal(BLACK, SUT1.rbt().root.color)
+		asserts.Equal(black, SUT1.rbt().root.color)
 
 		// Structure sharing
 		// 90
@@ -701,7 +701,7 @@ func TestRemove(t *testing.T) {
 		SUT2 := tree2.rbt()
 
 		asserts.Equal(Int(40), SUT2.root.key)
-		asserts.Equal(BLACK, SUT2.root.color)
+		asserts.Equal(black, SUT2.root.color)
 
 		// Structure sharing
 		// 60
@@ -732,11 +732,11 @@ func TestRemove(t *testing.T) {
 
 		asserts.Equal(Int(40), SUT4.root.key)
 		asserts.Equal(Int(70), SUT4.root.right.key)
-		asserts.Equal(RED, SUT4.root.right.color)
+		asserts.Equal(red, SUT4.root.right.color)
 		asserts.Equal(Int(80), SUT4.root.right.right.key)
-		asserts.Equal(BLACK, SUT4.root.right.right.color)
+		asserts.Equal(black, SUT4.root.right.right.color)
 		asserts.Equal(Int(60), SUT4.root.right.left.key)
-		asserts.Equal(BLACK, SUT4.root.right.left.color)
+		asserts.Equal(black, SUT4.root.right.left.color)
 		asserts.Nil(SUT4.root.right.left.left)
 		asserts.Nil(SUT4.root.right.left.right)
 
@@ -745,11 +745,11 @@ func TestRemove(t *testing.T) {
 		SUT5 := tree5.rbt()
 
 		asserts.Equal(Int(60), SUT5.root.key)
-		asserts.Equal(BLACK, SUT5.root.color)
+		asserts.Equal(black, SUT5.root.color)
 		asserts.Equal(Int(70), SUT5.root.right.key)
-		asserts.Equal(BLACK, SUT5.root.right.color)
+		asserts.Equal(black, SUT5.root.right.color)
 		asserts.Equal(Int(80), SUT5.root.right.right.key)
-		asserts.Equal(RED, SUT5.root.right.right.color)
+		asserts.Equal(red, SUT5.root.right.right.color)
 
 		// Structure sharing
 		asserts.True(tree5.rbt().root.left == SUT5.root.left)
@@ -760,18 +760,18 @@ func TestRemove(t *testing.T) {
 		SUT6 := tree6.rbt()
 
 		asserts.Equal(Int(70), SUT6.root.key)
-		asserts.Equal(BLACK, SUT6.root.color)
+		asserts.Equal(black, SUT6.root.color)
 		asserts.Equal(Int(80), SUT6.root.right.key)
-		asserts.Equal(BLACK, SUT6.root.right.color)
+		asserts.Equal(black, SUT6.root.right.color)
 
 		// REMOVE 70
 		tree7 := Remove(Int(70), tree6)
 		SUT7 := tree7.rbt()
 
 		asserts.Equal(Int(30), SUT7.root.key)
-		asserts.Equal(BLACK, SUT7.root.color)
+		asserts.Equal(black, SUT7.root.color)
 		asserts.Equal(Int(80), SUT7.root.right.key)
-		asserts.Equal(BLACK, SUT7.root.right.color)
+		asserts.Equal(black, SUT7.root.right.color)
 
 		// Structure sharing
 		asserts.True(tree7.rbt().root.left == SUT7.root.left)
@@ -781,9 +781,9 @@ func TestRemove(t *testing.T) {
 		SUT8 := tree8.rbt()
 
 		asserts.Equal(Int(30), SUT8.root.key)
-		asserts.Equal(BLACK, SUT8.root.color)
+		asserts.Equal(black, SUT8.root.color)
 		asserts.Equal(Int(80), SUT8.root.right.key)
-		asserts.Equal(RED, SUT8.root.right.color)
+		asserts.Equal(red, SUT8.root.right.color)
 		asserts.Nil(SUT8.root.left)
 
 		// REMOVE 30
@@ -791,7 +791,7 @@ func TestRemove(t *testing.T) {
 		SUT9 := tree9.rbt()
 
 		asserts.Equal(Int(80), SUT9.root.key)
-		asserts.Equal(BLACK, SUT9.root.color)
+		asserts.Equal(black, SUT9.root.color)
 		asserts.Nil(SUT9.root.right)
 
 		// REMOVE 80

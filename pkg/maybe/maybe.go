@@ -58,7 +58,7 @@ func Map[A any, B any](f func(A) B, m Maybe[A]) Maybe[B] {
 }
 
 // Apply a function if all the arguments are Just a value.
-func Map2[A any, B any, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe[B]) Maybe[value] {
+func Map2[A, B, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe[B]) Maybe[value] {
 	return MaybeWith(
 		m1,
 		func(j Just[A]) Maybe[value] {
@@ -75,7 +75,7 @@ func Map2[A any, B any, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe
 }
 
 // Map3
-func Map3[A any, B any, C any, value any](f func(a A, b B, c C) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C]) Maybe[value] {
+func Map3[A, B, C, value any](f func(a A, b B, c C) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C]) Maybe[value] {
 	return MaybeWith(
 		m1,
 		func(j Just[A]) Maybe[value] {
@@ -96,7 +96,7 @@ func Map3[A any, B any, C any, value any](f func(a A, b B, c C) value, m1 Maybe[
 }
 
 // Map4
-func Map4[A any, B any, C any, D any, value any](f func(a A, b B, c C, d D) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D]) Maybe[value] {
+func Map4[A, B, C, D, value any](f func(a A, b B, c C, d D) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D]) Maybe[value] {
 	return MaybeWith(
 		m1,
 		func(j Just[A]) Maybe[value] {
@@ -123,7 +123,7 @@ func Map4[A any, B any, C any, D any, value any](f func(a A, b B, c C, d D) valu
 }
 
 // Map5
-func Map5[A any, B any, C any, D any, E any, value any](f func(a A, b B, c C, d D, e E) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D], m5 Maybe[E]) Maybe[value] {
+func Map5[A, B, C, D, E, value any](f func(a A, b B, c C, d D, e E) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D], m5 Maybe[E]) Maybe[value] {
 	return MaybeWith(
 		m1,
 		func(j Just[A]) Maybe[value] {
@@ -158,7 +158,7 @@ func Map5[A any, B any, C any, D any, E any, value any](f func(a A, b B, c C, d 
 }
 
 // Chain together many computations that may fail.
-func AndThen[A any, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B] {
+func AndThen[A, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B] {
 	return MaybeWith(
 		m,
 		func(j Just[A]) Maybe[B] { return f(j.Value) },
@@ -167,7 +167,7 @@ func AndThen[A any, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B] {
 }
 
 // Provide functions for a Maybe's Just and Nothing variants
-func MaybeWith[V any, R any](
+func MaybeWith[V, R any](
 	m Maybe[V],
 	j func(Just[V]) R,
 	n func(Nothing) R,

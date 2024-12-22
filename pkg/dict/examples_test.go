@@ -6,31 +6,30 @@ import (
 )
 
 func ExampleEmpty() {
-	Empty[int, int]() // -> nil -- root
+	Empty[int, int]()
 }
 
 func ExampleSingleton() {
-	Singleton(Int(1), 24) // -> 1:24 -- root
-	//                      / \
-	//                    nil  nil
+	var key Int = 1
+	Singleton(key, 24)
 }
 
 func ExampleInsert() {
-
-	Insert(Int(1), 24, Empty[Int, Int]()) // -> 1:24 -- root
-	//                                      / \
-	//                                    nil  nil
+	var key Int = 1
+	Insert(key, 24, Empty[Int, Int]())
 }
 
 func ExampleRemove() {
 	some_dict := Singleton(Int(1), 24)
 
-	Remove(Int(1), some_dict) // -> nil -- root
+	var key Int = 1
+	Remove(key, some_dict)
 }
 
 func ExampleIsEmpty() {
+	var key Int = 1
 	fmt.Println(IsEmpty(Empty[int, int]()))
-	fmt.Println(IsEmpty(Singleton(Int(1), 24)))
+	fmt.Println(IsEmpty(Singleton(key, 24)))
 
 	// Output:
 	// true
@@ -38,12 +37,14 @@ func ExampleIsEmpty() {
 }
 
 func ExampleMember() {
-	fmt.Println(Member(Int(1), Singleton(Int(1), 24)))
+	var key Int = 1
+	fmt.Println(Member(key, Singleton(key, 24)))
 
 	// Output:
 	// true
 }
 
 func ExampleGet() {
-	Get(Int(1), Singleton(Int(1), 24)) // -> Just{Value: 24}
+	var key Int = 1
+	Get(key, Singleton(key, 24)) // -> Just 24
 }

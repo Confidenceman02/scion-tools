@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Confidenceman02/scion-tools/blob/main/LICENSE)
 
 > [!NOTE]
-> There are some missing packages and functions from the Elm core library, You can see a list of these
+> There are some packages and functions from the Elm core library that are yet to be implemented. You can see a list of these
 > in the [issues](https://github.com/Confidenceman02/scion-tools/issues).
 
 # Elm inspired functional programing in Go
@@ -20,8 +20,9 @@
 
 ```
 // example
-[1,2,3] => FromSlice([]int{1,2,3})
-(true,1) => Pair(true,1)
+
+[1,2,3] => list.FromSlice([]int{1,2,3})
+(true,1) => tuple.Pair(true,1)
 ```
 
 - [The why](#the-why)
@@ -143,7 +144,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#singleton">Singleton</a>
+            <a href="#singletondict">Singleton</a>
         </li>
     </ul>
     <ul>
@@ -201,7 +202,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#map">Map</a>
+            <a href="#maplist">Map</a>
         </li>
     </ul>
     <ul>
@@ -231,7 +232,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#reverse">Reverse</a>
+            <a href="#reverselist">Reverse</a>
         </li>
     </ul>
     <ul>
@@ -256,7 +257,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#maximumunsafe">Maximum_UNSAFE</a>
+            <a href="#maximum_unsafe">Maximum_UNSAFE</a>
         </li>
     </ul>
     <ul>
@@ -321,7 +322,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#sortunsafe">Sort_UNSAFE</a>
+            <a href="#sort_unsafe">Sort_UNSAFE</a>
         </li>
     </ul>
     <ul>
@@ -384,7 +385,7 @@
     </ul>
     <ul>
         <li>
-            <a href="#map">Map</a>
+            <a href="#mapmaybe">Map</a>
         </li>
     </ul>
     <ul>
@@ -682,7 +683,7 @@ extensive standard library and emphasis on simplicity. Sometimes however, it can
 functional patterns in an immutable and reusable fashion that is both concise and elegant.
 
 Elm is a statically and strongly typed language with an approachable syntax that provides exceptional programming ergonomics.
-Elm programs, much like Go, are delightful to write and maintain due to the expressiveness one can harness from its functional
+Elm programs are delightful to write and maintain, largely due to the expressiveness one can harness from its functional
 programming style.
 
 The scion-tools goal is to give Gophers an expressive functional approach by providing pure Go analogues of Elm's
@@ -695,17 +696,16 @@ It's just Go that looks a little bit like Elm.
 ## The when
 
 With scion-tools, Gophers have the ability to leverage functional programming techniques that harmonize with Go's idiomatic
-patterns that we all know and love.
+patterns that we all know and love. It's encouraged you dip in and out of this functional approach when it makes sense to.
 
 The following scenarios provide some good uses cases where you may benefit from using scion-tools
-or other functional programming packages:
+or other functional programming packages that are similar:
 
 - Function composition
-- Immutability
-- Data processing pipelines
+- Correctness
+- Immutability and persistence
+- Sorted maps
 - Error handling
-- Concurrency
-- Complex algorithms
 - Code reusability
 
 [Back to top](#table-of-content)
@@ -1201,7 +1201,7 @@ isDigit('A') // False
 import "github.com/Confidenceman02/scion-tools/pkg/dict"
 ```
 
-A dictionary mapping unique keys to values. The keys can be any [comparable](#comparable) type.
+A dictionary mapping unique keys to values. The keys can be any [Comparable](#comparable) type.
 This includes Int, Float, Char, String, and tuples or lists of comparable types.
 Insert, remove, and query operations all take O(log n) time.
 
@@ -1217,14 +1217,14 @@ Empty()
 
 [Back to top](#table-of-content)
 
-## Singleton
+## Singleton(Dict)
 
 `func Singleton[K any, V any](key Comparable[K], value V) Dict[Comparable[K], V]`
 
 Create a dictionary with one key-value pair.
 
 ```go
-Singleton("hello", "world")
+Singleton("hello", "world") // Dict[String,string]
 ```
 
 [Back to top](#table-of-content)
@@ -1283,7 +1283,7 @@ Member(1, Singleton(1, "one")) // true
 import "github.com/Confidenceman02/scion-tools/pkg/list"
 ```
 
-You can create a List from Go slices with the `FromSlice` function. This module has a bunch of functions to help you work with them!
+You can create a `List` from any Go slice with the `FromSlice` function. This module has a bunch of functions to help you work with them!
 
 ## Empty
 
@@ -1292,10 +1292,10 @@ You can create a List from Go slices with the `FromSlice` function. This module 
 Create a list with no elements.
 
 ```go
-Empty() // []
+Empty[int]() // []
 ```
 
-## Singleton
+## Singleton(List)
 
 `func Singleton[T any](val T) List[T]`
 
@@ -1346,9 +1346,9 @@ Cons(1,Empty())      // [1]
 
 [Back to top](#table-of-content)
 
-## Map
+## Map(List)
 
-`func Map[A any, B any](f func(A) B, xs List[A]) List[B]`
+`func Map[A, B any](f func(A) B, xs List[A]) List[B]`
 
 Apply a function to every element of a list.
 
@@ -1361,31 +1361,31 @@ Map(Not, [true,false,true]) // [false,true,false]
 
 ## IndexedMap
 
-`func IndexedMap[A any, B any](f func(basics.Int, A) B, xs List[A]) List[B]`
+`func IndexedMap[A, B any](f func(basics.Int, A) B, xs List[A]) List[B]`
 
 Same as map but the function is also applied to the index of each element (starting at zero).
 
 ```go
-IndexedMap(Tuple.pair, ["Tom","Sue","Bob"]) // [(0,"Tom"),(1,"Sue"),(2,"Bob")]
+IndexedMap(tuple.Pair, ["Tom","Sue","Bob"]) // [(0,"Tom"),(1,"Sue"),(2,"Bob")]
 ```
 
 [Back to top](#table-of-content)
 
 ## Foldl
 
-`func Foldl[A any, B any](f func(A, B) B, acc B, ls List[A]) B`
+`func Foldl[A, B any](f func(A, B) B, acc B, ls List[A]) B`
 
 Reduce a list from the left.
 
 ```go
-Foldl(Cons,Empty(), [1,2,3]) // [3,2,1]
+Foldl(Cons,Empty[int](), [1,2,3]) // [3,2,1]
 ```
 
 [Back to top](#table-of-content)
 
 ## Foldr
 
-`func Foldr[A any, B any](fn func(A, B) B, acc B, ls List[A]) B`
+`func Foldr[A, B any](fn func(A, B) B, acc B, ls List[A]) B`
 
 Reduce a list from the right.
 
@@ -1409,7 +1409,7 @@ Filter(isEven, [1,2,3,4,5,6]) // [2,4,6]
 
 ## FilterMap
 
-`func FilterMap[A any, B any](f func(A) maybe.Maybe[B], xs List[A]) List[B]`
+`func FilterMap[A, B any](f func(A) maybe.Maybe[B], xs List[A]) List[B]`
 
 Filter out certain values. For example, maybe you have a bunch of strings from an
 untrusted source and you want to turn them into numbers:
@@ -1436,7 +1436,7 @@ Length([1,2,3]) // 3
 
 [Back to top](#table-of-content)
 
-## Reverse
+## Reverse(List)
 
 `func Reverse[T any](ls List[T]) List[T]`
 
@@ -1504,7 +1504,7 @@ Find the maximum element in a non-empty list of generic elements.
 If elements do not implement the [Comparable[T]](#comparable) interface the function will panic.
 
 ```go
-Maximum([1,4,2]) == Just 4
+Maximum_UNSAFE([1,4,2]) == Just 4
 ```
 
 [Back to top](#table-of-content)
@@ -1576,35 +1576,35 @@ Concat([[1,2], [3], [4,5]]) // [1,2,3,4,5]
 Places the given value between all members of the given list.
 
 ```go
-Intersperse("on",["turtles","turtles","turtles"]) == ["turtles","on","turtles","on","turtles"]
+Intersperse("on",["turtles","turtles","turtles"]) // ["turtles","on","turtles","on","turtles"]
 ```
 
 [Back to top](#table-of-content)
 
 ## Map2
 
-`func Map2[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B]) List[result]`
+`func Map2[A, B, result any](f func(A, B) result, xs List[A], ys List[B]) List[result]`
 
-// Combine two lists, combining them with the given function.
-// If one list is longer, the extra elements are dropped.
+Combine two lists, combining them with the given function.
+If one list is longer, the extra elements are dropped.
 
 [Back to top](#table-of-content)
 
 ## Map3
 
-`func Map3[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) List[result]`
+`func Map3[A, B, C, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) List[result]`
 
 [Back to top](#table-of-content)
 
 ## Map4
 
-`func Map4[A any, B any, C any, D any, result any](f func(A, B, C, D) result, xs List[A], ys List[B], zs List[C], ws List[D]) List[result]`
+`func Map4[A, B, C, D, result any](f func(A, B, C, D) result, xs List[A], ys List[B], zs List[C], ws List[D]) List[result]`
 
 [Back to top](#table-of-content)
 
 ## Map5
 
-`func Map5[A any, B any, C any, D any, E any, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) List[result]`
+`func Map5[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) List[result]`
 
 [Back to top](#table-of-content)
 
@@ -1779,9 +1779,9 @@ WithDefault(100,Just[int]{42}) // 42
 
 [Back to top](#table-of-content)
 
-## Map
+## Map(Maybe)
 
-`func Map[A any, B any](f func(A) B, m Maybe[A]) Maybe[B]`
+`func Map[A, B any](f func(A) B, m Maybe[A]) Maybe[B]`
 
 Transform a Maybe value with a given function:
 
@@ -1793,7 +1793,7 @@ Map(Sqrt,(Just[Int]{9})) // Just 3
 
 ## Map2
 
-`func Map2[A any, B any, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe[B]) Maybe[value]`
+`func Map2[A, B, value any](f func(a A, b B) value, m1 Maybe[A], m2 Maybe[B]) Maybe[value]`
 
 Apply a function if all the arguments are Just a value.
 
@@ -1805,25 +1805,25 @@ Map2(Add,Just[Int]{3}, Just[Int]{4}) // Just 7
 
 ## Map3
 
-`func Map3[A any, B any, C any, value any](f func(a A, b B, c C) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C]) Maybe[value]`
+`func Map3[A, B, C, value any](f func(a A, b B, c C) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C]) Maybe[value]`
 
 [Back to top](#table-of-content)
 
 ## Map4
 
-`func Map4[A any, B any, C any, D any, value any](f func(a A, b B, c C, d D) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D]) Maybe[value]`
+`func Map4[A, B, C, D, value any](f func(a A, b B, c C, d D) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D]) Maybe[value]`
 
 [Back to top](#table-of-content)
 
 ## Map5
 
-`func Map5[A any, B any, C any, D any, E any, value any](f func(a A, b B, c C, d D, e E) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D], m5 Maybe[E]) Maybe[value]`
+`func Map5[A, B, C, D, E, value any](f func(a A, b B, c C, d D, e E) value, m1 Maybe[A], m2 Maybe[B], m3 Maybe[C], m4 Maybe[D], m5 Maybe[E]) Maybe[value]`
 
 [Back to top](#table-of-content)
 
 ## AndThen
 
-`func AndThen[A any, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B]`
+`func AndThen[A, B any](f func(A) Maybe[B], m Maybe[A]) Maybe[B]`
 
 Chain together many computations that may fail.
 
@@ -1831,7 +1831,7 @@ Chain together many computations that may fail.
 
 ## MaybeWith
 
-`func MaybeWith[V any, R any](m Maybe[V],j func(Just[V]) R,n func(Nothing) R) R`
+`func MaybeWith[V, R any](m Maybe[V],j func(Just[V]) R,n func(Nothing) R) R`
 
 Provide functions for a Maybe's Just and Nothing variants
 
@@ -1931,6 +1931,14 @@ Concatenate many strings into one.
 ```go
 Concat(["never","the","less"] ) // "nevertheless"
 ```
+
+[Back to top](#table-of-content)
+
+## ConcatMap
+
+`func ConcatMap[A, B any](f func(A) List[B], list List[A]) List[B]`
+
+Map a given function onto a list and flatten the resulting lists.
 
 [Back to top](#table-of-content)
 
