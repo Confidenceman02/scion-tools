@@ -2,6 +2,7 @@
 package list
 
 import (
+	"cmp"
 	"fmt"
 	"github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/internal"
@@ -128,10 +129,17 @@ func Repeat[T any](n basics.Int, val T) List[T] {
 }
 
 func repeatHelp[T any](result List[T], n basics.Int, val T) List[T] {
-	if n <= 0 {
-		return result
-	} else {
-		return repeatHelp(Cons(val, result), n-1, val)
+repeatHelpL:
+	for {
+		if n <= 0 {
+			return result
+		} else {
+			tempResult, tempN, tempValue := Cons(val, result), n-1, val
+			result = tempResult
+			n = tempN
+			val = tempValue
+			continue repeatHelpL
+		}
 	}
 }
 
@@ -141,10 +149,17 @@ func Range(low basics.Int, hi basics.Int) List[basics.Int] {
 }
 
 func rangeHelp(low basics.Int, hi basics.Int, ls List[basics.Int]) List[basics.Int] {
-	if low <= hi {
-		return rangeHelp(low, hi-1, Cons(hi, ls))
-	} else {
-		return ls
+rangeHelpL:
+	for {
+		if cmp.Compare(low, hi) < 1 {
+			tempLo, tempHi, tempLs := low, hi-1, Cons(hi, ls)
+			low = tempLo
+			hi = tempHi
+			ls = tempLs
+			continue rangeHelpL
+		} else {
+			return ls
+		}
 	}
 }
 
@@ -167,11 +182,20 @@ func IndexedMap[A, B any](f func(basics.Int, A) B, xs List[A]) List[B] {
 
 // Reduce a list from the left.
 func Foldl[A, B any](f func(A, B) B, acc B, ls List[A]) B {
-	return ListWith(
-		ls,
-		func(List[A]) B { return acc },
-		func(head A, tail List[A]) B { return Foldl(f, f(head, acc), tail) },
-	)
+foldlL:
+	for {
+		if ls.cons() == nil {
+			return acc
+		} else {
+			var x = ls.cons().a
+			var xs = ls.cons().b
+			tempFunc, tempAcc, tempList := f, f(x, acc), xs
+			f = tempFunc
+			acc = tempAcc
+			ls = tempList
+			continue foldlL
+		}
+	}
 }
 
 // Reduce a list from the right.
@@ -260,18 +284,24 @@ func All[T any](isOkay func(T) bool, l List[T]) bool {
 }
 
 // Determine if any elements satisfy some test.
-func Any[T any](isOkay func(T) bool, l List[T]) bool {
-	return ListWith(
-		l,
-		func(List[T]) bool { return false },
-		func(head T, tail List[T]) bool {
-			if isOkay(head) {
+func Any[T any](isOkay func(T) bool, ls List[T]) bool {
+anyL:
+	for {
+		if ls.cons() == nil {
+			return false
+		} else {
+			var x = ls.cons().a
+			var xs = ls.cons().b
+			if isOkay(x) {
 				return true
 			} else {
-				return Any(isOkay, tail)
+				tempIsOk, tempList := isOkay, xs
+				isOkay = tempIsOk
+				ls = tempList
+				continue anyL
 			}
-		},
-	)
+		}
+	}
 }
 
 // Find the maximum element in a non-empty list.
@@ -373,123 +403,51 @@ func Intersperse[T any](sep T, xs List[T]) List[T] {
 // Combine two lists, combining them with the given function.
 // If one list is longer, the extra elements are dropped.
 func Map2[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B]) List[result] {
-	return FromSlice(map2Help(f, xs, ys, []result{}))
+	return FromSlice(map2Help(f, xs, ys))
 }
 
-func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B], acc []result) []result {
-	return ListWith(
-		xs,
-		func(List[A]) []result {
-			return acc
-		},
-		func(x A, xt List[A]) []result {
-			return ListWith(
-				ys,
-				func(List[B]) []result {
-					return acc
-				},
-				func(y B, yt List[B]) []result {
-					return map2Help(f, xt, yt, append(acc, f(x, y)))
-				},
-			)
-		},
-	)
+func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B]) []result {
+	var arr []result = []result{}
+	for ; xs.cons() != nil && ys.cons() != nil; xs, ys = xs.cons().b, ys.cons().b {
+		arr = append(arr, f(xs.cons().a, ys.cons().a))
+	}
+	return arr
 }
 
 func Map3[A, B, C, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) List[result] {
-	return FromSlice(map3Help(f, xs, ys, zs, []result{}))
+	return FromSlice(map3Help(f, xs, ys, zs))
 }
 
-func map3Help[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C], acc []result) []result {
-	return ListWith(
-		xs,
-		func(List[A]) []result { return acc },
-		func(x A, xs List[A]) []result {
-			return ListWith(
-				ys,
-				func(List[B]) []result { return acc },
-				func(y B, ys List[B]) []result {
-					return ListWith(
-						zs,
-						func(List[C]) []result { return acc },
-						func(z C, zs List[C]) []result {
-							return map3Help(f, xs, ys, zs, append(acc, f(x, y, z)))
-						},
-					)
-				},
-			)
-		},
-	)
+func map3Help[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) []result {
+	var arr []result = []result{}
+	for ; xs.cons() != nil && ys.cons() != nil && zs.cons() != nil; xs, ys, zs = xs.cons().b, ys.cons().b, zs.cons().b {
+		arr = append(arr, f(xs.cons().a, ys.cons().a, zs.cons().a))
+	}
+	return arr
 }
 
 func Map4[A, B, C, D, result any](f func(A, B, C, D) result, xs List[A], ys List[B], zs List[C], ws List[D]) List[result] {
-	return FromSlice(map4Help(f, xs, ys, zs, ws, []result{}))
+	return FromSlice(map4Help(f, xs, ys, zs, ws))
 }
 
-func map4Help[A, B, C, D, result any](f func(A, B, C, D) result, ws List[A], xs List[B], ys List[C], zs List[D], acc []result) []result {
-	return ListWith(
-		ws,
-		func(List[A]) []result { return acc },
-		func(a A, as List[A]) []result {
-			return ListWith(
-				xs,
-				func(List[B]) []result { return acc },
-				func(b B, bs List[B]) []result {
-					return ListWith(
-						ys,
-						func(List[C]) []result { return acc },
-						func(c C, cs List[C]) []result {
-							return ListWith(
-								zs,
-								func(List[D]) []result { return acc },
-								func(d D, ds List[D]) []result {
-									return map4Help(f, as, bs, cs, ds, append(acc, f(a, b, c, d)))
-								},
-							)
-						},
-					)
-				},
-			)
-		},
-	)
+func map4Help[A, B, C, D, result any](f func(A, B, C, D) result, ws List[A], xs List[B], ys List[C], zs List[D]) []result {
+	var arr []result = []result{}
+	for ; ws.cons() != nil && xs.cons() != nil && ys.cons() != nil && zs.cons() != nil; ws, xs, ys, zs = ws.cons().b, xs.cons().b, ys.cons().b, zs.cons().b {
+		arr = append(arr, f(ws.cons().a, xs.cons().a, ys.cons().a, zs.cons().a))
+	}
+	return arr
 }
 
 func Map5[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) List[result] {
-	return FromSlice(map5Help(f, vs, ws, xs, ys, zs, []result{}))
+	return FromSlice(map5Help(f, vs, ws, xs, ys, zs))
 }
 
-func map5Help[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E], acc []result) []result {
-	return ListWith(
-		vs,
-		func(List[A]) []result { return acc },
-		func(a A, as List[A]) []result {
-			return ListWith(
-				ws,
-				func(List[B]) []result { return acc },
-				func(b B, bs List[B]) []result {
-					return ListWith(
-						xs,
-						func(List[C]) []result { return acc },
-						func(c C, cs List[C]) []result {
-							return ListWith(
-								ys,
-								func(List[D]) []result { return acc },
-								func(d D, ds List[D]) []result {
-									return ListWith(
-										zs,
-										func(List[E]) []result { return acc },
-										func(e E, es List[E]) []result {
-											return map5Help(f, as, bs, cs, ds, es, append(acc, f(a, b, c, d, e)))
-										},
-									)
-								},
-							)
-						},
-					)
-				},
-			)
-		},
-	)
+func map5Help[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) []result {
+	var arr []result = []result{}
+	for ; vs.cons() != nil && ws.cons() != nil && xs.cons() != nil && ys.cons() != nil && zs.cons() != nil; vs, ws, xs, ys, zs = vs.cons().b, ws.cons().b, xs.cons().b, ys.cons().b, zs.cons().b {
+		arr = append(arr, f(vs.cons().a, ws.cons().a, xs.cons().a, ys.cons().a, zs.cons().a))
+	}
+	return arr
 }
 
 // Sort
@@ -660,16 +618,23 @@ func takeTailRec[A any](n basics.Int, list List[A]) List[A] {
 }
 
 func takeReverse[A any](n basics.Int, list List[A], kept List[A]) List[A] {
-	if n <= 0 {
-		return kept
-	} else {
-		return ListWith(
-			list,
-			func(List[A]) List[A] { return kept },
-			func(x A, xs List[A]) List[A] {
-				return takeReverse(n-1, xs, Cons(x, kept))
-			},
-		)
+takeReverseL:
+	for {
+		if n <= 0 {
+			return kept
+		} else {
+			if list.cons() == nil {
+				return kept
+			} else {
+				var x = list.cons().a
+				var xs = list.cons().b
+				tempN, tempList, tempKept := n-1, xs, Cons(x, kept)
+				n = tempN
+				list = tempList
+				kept = tempKept
+				continue takeReverseL
+			}
+		}
 	}
 }
 
@@ -737,27 +702,17 @@ func FromSliceMap[A any, B any](f func(A) B, arr []A) List[B] {
 }
 
 func ToSlice[T any](xs List[T]) []T {
-	return toSliceHelp(xs, []T{})
-}
-
-func toSliceHelp[T any](xs List[T], arr []T) []T {
-	return ListWith(
-		xs,
-		func(List[T]) []T { return arr },
-		func(x T, xr List[T]) []T {
-			return toSliceHelp(xr, append(arr, x))
-		})
+	var arr []T = []T{}
+	for ; xs.cons() != nil; xs = xs.cons().b {
+		arr = append(arr, xs.cons().a)
+	}
+	return arr
 }
 
 func ToSliceMap[A any, B any](f func(A) B, xs List[A]) []B {
-	return toSliceHelpMap(f, xs, []B{})
-}
-
-func toSliceHelpMap[A any, B any](f func(A) B, xs List[A], arr []B) []B {
-	return ListWith(
-		xs,
-		func(List[A]) []B { return arr },
-		func(x A, xr List[A]) []B {
-			return toSliceHelpMap(f, xr, append(arr, f(x)))
-		})
+	var arr []B = []B{}
+	for ; xs.cons() != nil; xs = xs.cons().b {
+		arr = append(arr, f(xs.cons().a))
+	}
+	return arr
 }
