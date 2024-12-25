@@ -206,270 +206,286 @@ func getNodeStack[K, V any](d *dict[Comparable[K], V], targetKey Comparable[K]) 
 Gets a 'Just' nodeStack or 'Nothing' if it doesn't exist
 */
 func getNodeStackHelp[K, V any](targetKey Comparable[K], ns *nodeStack[Comparable[K], V]) Maybe[*node[Comparable[K], V]] {
-	switch targetKey.Cmp(ns.node.key) {
-	case -1:
-		if ns.node.left == nil {
-			return Nothing{}
-		} else {
-			newStack := &stack[Comparable[K], V]{pp: ns.stack, p: ns.node}
-			valL := *ns.node.left
-			ns.node.left = &valL
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStack}
-			return getNodeStackHelp(targetKey, newNs)
-		}
-	case 0:
-		return Just[*nodeStack[Comparable[K], V]]{Value: ns}
-	case +1:
-		if ns.node.right == nil {
-			return Nothing{}
-		} else {
-			newStack := &stack[Comparable[K], V]{pp: ns.stack, p: ns.node}
-			valR := *ns.node.right
-			ns.node.right = &valR
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStack}
-			return getNodeStackHelp(targetKey, newNs)
+getNodeStackHelpL:
+	for {
+		switch targetKey.Cmp(ns.node.key) {
+		case -1:
+			if ns.node.left == nil {
+				return Nothing{}
+			} else {
+				newStack := &stack[Comparable[K], V]{pp: ns.stack, p: ns.node}
+				valL := *ns.node.left
+				ns.node.left = &valL
+				newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStack}
+				ns = newNs
+				continue getNodeStackHelpL
+			}
+		case 0:
+			return Just[*nodeStack[Comparable[K], V]]{Value: ns}
+		case +1:
+			if ns.node.right == nil {
+				return Nothing{}
+			} else {
+				newStack := &stack[Comparable[K], V]{pp: ns.stack, p: ns.node}
+				valR := *ns.node.right
+				ns.node.right = &valR
+				newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStack}
+				ns = newNs
+				continue getNodeStackHelpL
+			}
 		}
 	}
-	panic("getNodeHelp unreachable")
 }
 
 func insertHelp[K, V any](key Comparable[K], value V, ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
-	nKey := ns.node.key
-	switch key.Cmp(nKey) {
-	case -1:
-		if ns.node.left == nil {
-			ns.node.left = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
-			newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
-			return newNs
-		} else {
-			valL := *ns.node.left
-			ns.node.left = &valL
-			newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
-			return insertHelp(key, value, newNs)
-		}
-	case 0:
-		ns.node.value = value
-		return ns
-	case +1:
-		if ns.node.right == nil {
-			ns.node.right = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
-			newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
-			return newNs
-		} else {
-			valR := *ns.node.right
-			ns.node.right = &valR
-			newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
-			return insertHelp(key, value, newNs)
+insertHelpL:
+	for {
+		nKey := ns.node.key
+		switch key.Cmp(nKey) {
+		case -1:
+			if ns.node.left == nil {
+				ns.node.left = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
+				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
+				newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
+				return newNs
+			} else {
+				valL := *ns.node.left
+				ns.node.left = &valL
+				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
+				tempNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
+				ns = tempNs
+				continue insertHelpL
+			}
+		case 0:
+			ns.node.value = value
+			return ns
+		case +1:
+			if ns.node.right == nil {
+				ns.node.right = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
+				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
+				newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
+				return newNs
+			} else {
+				valR := *ns.node.right
+				ns.node.right = &valR
+				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
+				newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
+				ns = newNs
+				continue insertHelpL
+			}
 		}
 	}
-	panic("unreachable")
 }
 
 func removeHelp[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
-	// 2 non-nil children
-	if ns.node.left != nil && ns.node.right != nil {
-		// Copy right node
-		valR := *ns.node.right
-		ns.node.right = &valR
+removeHelpL:
+	for {
+		// 2 non-nil children
+		if ns.node.left != nil && ns.node.right != nil {
+			// Copy right node
+			valR := *ns.node.right
+			ns.node.right = &valR
 
-		// Create new stack for right child
-		rightStack := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}}
+			// Create new stack for right child
+			rightStack := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}}
 
-		// Find in order successor
-		succStk := findSuccessor(rightStack)
+			// Find in order successor
+			succStk := findSuccessor(rightStack)
 
-		// Swap key and values
-		ns.node.key = succStk.node.key
-		ns.node.value = succStk.node.value
+			// Swap key and values
+			ns.node.key = succStk.node.key
+			ns.node.value = succStk.node.value
 
-		// Find new case
-		return removeHelp(succStk)
-	}
-	// 2 nil children
-	if ns.node.left == nil && ns.node.right == nil {
-		// root node
-		if ns.stack.p == nil {
-			ns.node = nil
-			return ns
+			ns = succStk
+			// Find new case
+			continue removeHelpL
 		}
-		pSide := parentSide(ns)
-
-		switch ns.node.color {
-		// case 1 - red leaf
-		case red:
-			switch pSide {
-			case left:
-				// 1.1 - remove node then exit
-				ns.stack.p.left = nil
-				return ns
-			case right:
-				// 1.1 - remove node then exit
-				ns.stack.p.right = nil
+		// 2 nil children
+		if ns.node.left == nil && ns.node.right == nil {
+			// root node
+			if ns.stack.p == nil {
+				ns.node = nil
 				return ns
 			}
-		case black:
-			return fixDB(ns)
+			pSide := parentSide(ns)
+
+			switch ns.node.color {
+			// case 1 - red leaf
+			case red:
+				switch pSide {
+				case left:
+					// 1.1 - remove node then exit
+					ns.stack.p.left = nil
+					return ns
+				case right:
+					// 1.1 - remove node then exit
+					ns.stack.p.right = nil
+					return ns
+				}
+			case black:
+				return fixDB(ns)
+			}
 		}
-	}
-	// Black node with red child
-	if ns.node.left == nil {
-		// Copy right node
-		valR := *ns.node.right
-		ns.node.right = &valR
+		// Black node with red child
+		if ns.node.left == nil {
+			// Copy right node
+			valR := *ns.node.right
+			ns.node.right = &valR
 
-		// Replace node with right node
-		ns.node.key = ns.node.right.key
-		ns.node.value = ns.node.right.value
+			// Replace node with right node
+			ns.node.key = ns.node.right.key
+			ns.node.value = ns.node.right.value
 
-		// New nodeStack
-		newStack := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-		newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStack}
+			// New nodeStack
+			newStack := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
+			newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStack}
+			ns = newNs
+			continue removeHelpL
+		} else {
+			// Copy left node
+			valL := *ns.node.left
+			ns.node.left = &valL
 
-		return removeHelp(newNs)
-	} else {
-		// Copy left node
-		valL := *ns.node.left
-		ns.node.left = &valL
+			// Replace node with right node
+			ns.node.key = ns.node.left.key
+			ns.node.value = ns.node.left.value
 
-		// Replace node with right node
-		ns.node.key = ns.node.left.key
-		ns.node.value = ns.node.left.value
-
-		// New nodeStack
-		newStack := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-		newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStack}
-
-		return removeHelp(newNs)
+			// New nodeStack
+			newStack := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
+			newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStack}
+			ns = newNs
+			continue removeHelpL
+		}
 	}
 }
 
 func fixDB[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
-	// Case 2 - DB is root
-	if ns.stack.p == nil {
-		return ns
-	}
-	pColor := ns.stack.p.color
-	pSide := parentSide(ns)
-	sNs := findSibling(ns)
+fixDBL:
+	for {
+		// Case 2 - DB is root
+		if ns.stack.p == nil {
+			return ns
+		}
+		pColor := ns.stack.p.color
+		pSide := parentSide(ns)
+		sNs := findSibling(ns)
 
-	// DB sibling is Black
-	if sNs.node.color == black {
+		// DB sibling is Black
+		if sNs.node.color == black {
 
-		// Case 3
-		if sNs.node.hasBlackChildren() {
-			// 3.1 Remove node if leaf
-			if ns.node.hasNilChildren() {
-				switch pSide {
-				case right:
-					ns.stack.p.right = nil
-				case left:
-					ns.stack.p.left = nil
+			// Case 3
+			if sNs.node.hasBlackChildren() {
+				// 3.1 Remove node if leaf
+				if ns.node.hasNilChildren() {
+					switch pSide {
+					case right:
+						ns.stack.p.right = nil
+					case left:
+						ns.stack.p.left = nil
+					}
+				}
+				// 3.2 Make sibling red
+				sNs.node.color = red
+				// 3.3 Push blackness to parent
+				sNs.stack.p.color = black
+				// Check if parent is DB
+				if pColor != black {
+					return ns
+				} else {
+					ns = &nodeStack[Comparable[K], V]{stack: ns.stack.pp, node: ns.stack.p}
+					continue fixDBL
 				}
 			}
-			// 3.2 Make sibling red
-			sNs.node.color = red
-			// 3.3 Push blackness to parent
-			sNs.stack.p.color = black
-			// Check if parent is DB
-			if pColor != black {
-				return ns
-			} else {
-				return fixDB(&nodeStack[Comparable[K], V]{stack: ns.stack.pp, node: ns.stack.p})
+			switch pSide {
+			case left:
+				if sNs.node.left.isRed() && sNs.node.right.isBlack() {
+					// Case 5 - far nephew is black - near nephew is red
+					// Copy near nephew
+					valSL := *sNs.node.left
+					// 5.1 - Swap colors of sibling and near nephew
+					valSL.color = black
+					sNs.node.left = &valSL
+					sNs.node.color = red
+
+					// 5.2 Rotate sibling of DB node in opposite direction of DB node
+					srRotationV2(sNs.node, sNs.stack)
+					// 5.3 Apply Case 6
+					continue fixDBL
+				} else {
+					// Case 6 - Far nephew is Red
+					valSR := *sNs.node.right
+					// 6.1 Swap the colors of the DB parent and sibling
+					ns.stack.p.color = sNs.node.color
+					sNs.node.color = pColor
+					// 6.2 Rotate DB parent in DB direction
+					grandparentStk := ns.stack.pp
+					newRoot := slRotationV2(ns.stack.p, grandparentStk)
+					newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
+					// 6.3 Turn far nephew's color to black
+					valSR.color = black
+					newNs.node.right = &valSR
+					// 6.4 Remove DB node to single black
+					if ns.node.hasNilChildren() {
+						ns.stack.p.left = nil
+					}
+					return newNs
+				}
+			case right:
+				if sNs.node.left.isBlack() && sNs.node.right.isRed() {
+					// Case 5 - far nephew is black - near nephew is red
+					// Copy near nephew
+					valSR := *sNs.node.right
+					// 5.1 - Swap colors of sibling and near nephew
+					valSR.color = black
+					sNs.node.right = &valSR
+					sNs.node.color = red
+
+					// 5.2 Rotate sibling of DB node in opposite direction of DB node
+					slRotationV2(sNs.node, sNs.stack)
+					// 5.3 Apply Case 6
+					continue fixDBL
+				} else {
+					// Case 6 - Far nephew is Red
+					valSL := *sNs.node.left
+					// 6.1 Swap the colors of the DB parent and sibling
+					ns.stack.p.color = sNs.node.color
+					sNs.node.color = pColor
+					// 6.2 Rotate DB parent in DB direction
+					grandparentStk := ns.stack.pp
+					newRoot := srRotationV2(ns.stack.p, grandparentStk)
+					newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
+					// 6.3 Turn far nephew's color to black
+					valSL.color = black
+					newNs.node.left = &valSL
+					// 6.4 Remove DB node to single black
+					if ns.node.hasNilChildren() {
+						ns.stack.p.right = nil
+					}
+					return newNs
+				}
 			}
 		}
+		// Case 4 - Red sibling
+		// 4.1 Swap colors of sibling and parent
+		ns.stack.p.color = sNs.node.color
+		sNs.node.color = pColor
+
+		// 4.2 Rotate parent towards n's direction
+		grandparentStk := ns.stack.pp
+		var newRoot = &node[Comparable[K], V]{}
 		switch pSide {
 		case left:
-			if sNs.node.left.isRed() && sNs.node.right.isBlack() {
-				// Case 5 - far nephew is black - near nephew is red
-				// Copy near nephew
-				valSL := *sNs.node.left
-				// 5.1 - Swap colors of sibling and near nephew
-				valSL.color = black
-				sNs.node.left = &valSL
-				sNs.node.color = red
+			newRoot = slRotationV2(ns.stack.p, grandparentStk)
 
-				// 5.2 Rotate sibling of DB node in opposite direction of DB node
-				srRotationV2(sNs.node, sNs.stack)
-				// 5.3 Apply Case 6
-				return fixDB(ns)
-			} else {
-				// Case 6 - Far nephew is Red
-				valSR := *sNs.node.right
-				// 6.1 Swap the colors of the DB parent and sibling
-				ns.stack.p.color = sNs.node.color
-				sNs.node.color = pColor
-				// 6.2 Rotate DB parent in DB direction
-				grandparentStk := ns.stack.pp
-				newRoot := slRotationV2(ns.stack.p, grandparentStk)
-				newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
-				// 6.3 Turn far nephew's color to black
-				valSR.color = black
-				newNs.node.right = &valSR
-				// 6.4 Remove DB node to single black
-				if ns.node.hasNilChildren() {
-					ns.stack.p.left = nil
-				}
-				return newNs
-			}
 		case right:
-			if sNs.node.left.isBlack() && sNs.node.right.isRed() {
-				// Case 5 - far nephew is black - near nephew is red
-				// Copy near nephew
-				valSR := *sNs.node.right
-				// 5.1 - Swap colors of sibling and near nephew
-				valSR.color = black
-				sNs.node.right = &valSR
-				sNs.node.color = red
-
-				// 5.2 Rotate sibling of DB node in opposite direction of DB node
-				slRotationV2(sNs.node, sNs.stack)
-				// 5.3 Apply Case 6
-				return fixDB(ns)
-			} else {
-				// Case 6 - Far nephew is Red
-				valSL := *sNs.node.left
-				// 6.1 Swap the colors of the DB parent and sibling
-				ns.stack.p.color = sNs.node.color
-				sNs.node.color = pColor
-				// 6.2 Rotate DB parent in DB direction
-				grandparentStk := ns.stack.pp
-				newRoot := srRotationV2(ns.stack.p, grandparentStk)
-				newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
-				// 6.3 Turn far nephew's color to black
-				valSL.color = black
-				newNs.node.left = &valSL
-				// 6.4 Remove DB node to single black
-				if ns.node.hasNilChildren() {
-					ns.stack.p.right = nil
-				}
-				return newNs
-			}
+			newRoot = srRotationV2(ns.stack.p, grandparentStk)
 		}
+		// Add new root to stack as parent
+		newRootStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
+		newPStk := &stack[Comparable[K], V]{p: ns.stack.p, pp: newRootStk}
+		ns.stack = newPStk
+		continue fixDBL
 	}
-	// Case 4 - Red sibling
-	// 4.1 Swap colors of sibling and parent
-	ns.stack.p.color = sNs.node.color
-	sNs.node.color = pColor
-
-	// 4.2 Rotate parent towards n's direction
-	grandparentStk := ns.stack.pp
-	var newRoot = &node[Comparable[K], V]{}
-	switch pSide {
-	case left:
-		newRoot = slRotationV2(ns.stack.p, grandparentStk)
-
-	case right:
-		newRoot = srRotationV2(ns.stack.p, grandparentStk)
-	}
-	// Add new root to stack as parent
-	newRootStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
-	newPStk := &stack[Comparable[K], V]{p: ns.stack.p, pp: newRootStk}
-	ns.stack = newPStk
-	return fixDB(ns)
 }
 
 func (n *node[K, V]) hasNilChildren() bool {
@@ -513,86 +529,94 @@ func findSibling[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparabl
 }
 
 func balance[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
-	// Root case
-	if ns.stack.p == nil {
-		ns.node.color = black
+balanceL:
+	for {
+		// Root case
+		if ns.stack.p == nil {
+			ns.node.color = black
+			return ns
+		}
+		pColor := ns.stack.p.color
+		if pColor == black {
+			// Nothing more to do
+			return ns
+		}
+		// Parent and node are red
+		nDir := parentSide(ns)
+		pDir := parentSide(&nodeStack[Comparable[K], V]{node: ns.stack.p, stack: ns.stack.pp})
+		uncle := getUncle(ns)
+		grandparent := ns.stack.pp.p
+
+		if uncle != nil && uncle.color == red {
+			// Red uncle - push down blackness from grandparent - balance root
+
+			// Copy uncle for mutation
+			valU := *uncle
+			cpU := &valU
+
+			cpU.color = grandparent.color
+			ns.stack.p.color = grandparent.color
+			grandparent.color = red
+			setUncle(ns, cpU)
+			newNs := &nodeStack[Comparable[K], V]{node: grandparent, stack: ns.stack.pp.pp}
+			ns = newNs
+			continue balanceL
+		}
+		// Black uncle
+		switch pDir {
+		case left:
+			switch nDir {
+			case left:
+				// LL - right rotate on grandparent - balance
+				newRoot := srRotationV2(ns.stack.pp.p, ns.stack.pp.pp)
+
+				// Swap colors
+				rCol := newRoot.right.color
+				newRoot.right.color = newRoot.color
+				newRoot.color = rCol
+
+				// balance newRoot
+				newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
+				ns = newNs
+				continue balanceL
+			case right:
+				// LR - rotate parent left - balance left of root
+				newRoot := slRotationV2(ns.stack.p, ns.stack.pp)
+
+				// Add new root to stack as parent
+				newStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
+				newNs := &nodeStack[Comparable[K], V]{node: newRoot.left, stack: newStk}
+				ns = newNs
+				continue balanceL
+			}
+		case right:
+			switch nDir {
+			case right:
+				// RR - left rotate on grandparent - balance
+				newRoot := slRotationV2(ns.stack.pp.p, ns.stack.pp.pp)
+
+				// Swap color
+				lCol := newRoot.left.color
+				newRoot.left.color = newRoot.color
+				newRoot.color = lCol
+
+				// balance newRoot
+				newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
+				ns = newNs
+				continue balanceL
+			case left:
+				//RL - rotate parent right - balance right of root
+				newRoot := srRotationV2(ns.stack.p, ns.stack.pp)
+
+				// Add newRoot to stack as parent
+				newStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
+				newNs := &nodeStack[Comparable[K], V]{node: newRoot.right, stack: newStk}
+				ns = newNs
+				continue balanceL
+			}
+		}
 		return ns
 	}
-	pColor := ns.stack.p.color
-	if pColor == black {
-		// Nothing more to do
-		return ns
-	}
-	// Parent and node are red
-	nDir := parentSide(ns)
-	pDir := parentSide(&nodeStack[Comparable[K], V]{node: ns.stack.p, stack: ns.stack.pp})
-	uncle := getUncle(ns)
-	grandparent := ns.stack.pp.p
-
-	if uncle != nil && uncle.color == red {
-		// Red uncle - push down blackness from grandparent - balance root
-
-		// Copy uncle for mutation
-		valU := *uncle
-		cpU := &valU
-
-		cpU.color = grandparent.color
-		ns.stack.p.color = grandparent.color
-		grandparent.color = red
-		setUncle(ns, cpU)
-		newNs := &nodeStack[Comparable[K], V]{node: grandparent, stack: ns.stack.pp.pp}
-		return balance(newNs)
-	}
-	// Black uncle
-	switch pDir {
-	case left:
-		switch nDir {
-		case left:
-			// LL - right rotate on grandparent - balance
-			newRoot := srRotationV2(ns.stack.pp.p, ns.stack.pp.pp)
-
-			// Swap colors
-			rCol := newRoot.right.color
-			newRoot.right.color = newRoot.color
-			newRoot.color = rCol
-
-			// balance newRoot
-			newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
-			return balance(newNs)
-		case right:
-			// LR - rotate parent left - balance left of root
-			newRoot := slRotationV2(ns.stack.p, ns.stack.pp)
-
-			// Add new root to stack as parent
-			newStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
-			newNs := &nodeStack[Comparable[K], V]{node: newRoot.left, stack: newStk}
-			return balance(newNs)
-		}
-	case right:
-		switch nDir {
-		case right:
-			// RR - left rotate on grandparent - balance
-			newRoot := slRotationV2(ns.stack.pp.p, ns.stack.pp.pp)
-
-			// Swap color
-			lCol := newRoot.left.color
-			newRoot.left.color = newRoot.color
-			newRoot.color = lCol
-
-			// balance newRoot
-			newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
-			return balance(newNs)
-		case left:
-			//RL - rotate parent right - balance right of root
-			newRoot := srRotationV2(ns.stack.p, ns.stack.pp)
-
-			// Add newRoot to stack as parent
-			newStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
-			newNs := &nodeStack[Comparable[K], V]{node: newRoot.right, stack: newStk}
-			return balance(newNs)
-		}
-	}
-	return ns
 }
 
 func srRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
@@ -683,25 +707,29 @@ func getNodeStackRoot[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comp
 }
 
 func getStackHelp[K cmp.Ordered, V any](k K, n *node[K, V], st *stack[K, V]) (*stack[K, V], error) {
-	switch cmp.Compare(k, n.key) {
-	case -1:
-		if n.left == nil {
-			return st, errors.New("Node does not exist in tree")
+getNodeStackHelpL:
+	for {
+		switch cmp.Compare(k, n.key) {
+		case -1:
+			if n.left == nil {
+				return st, errors.New("Node does not exist in tree")
+			}
+			newStk, newN := &stack[K, V]{pp: st, p: n}, n.left
+			n = newN
+			st = newStk
+			continue getNodeStackHelpL
+		case 0:
+			return st, nil
+		case +1:
+			if n.right == nil {
+				return st, errors.New("Node does not exist in tree")
+			}
+			newStk, newN := &stack[K, V]{pp: st, p: n}, n.right
+			n = newN
+			st = newStk
+			continue getNodeStackHelpL
 		}
-		newStk := &stack[K, V]{pp: st, p: n}
-		newStk.p = n
-		return getStackHelp(k, n.left, newStk)
-	case 0:
-		return st, nil
-	case +1:
-		if n.right == nil {
-			return st, errors.New("Node does not exist in tree")
-		}
-		newStk := &stack[K, V]{pp: st, p: n}
-		newStk.p = n
-		return getStackHelp(k, n.right, newStk)
 	}
-	panic("unreachable")
 }
 
 // QUERY
@@ -723,17 +751,23 @@ func Member[K, V any](k Comparable[K], d Dict[Comparable[K], V]) bool {
 }
 
 func memberHelp[K, V any](k Comparable[K], n *node[Comparable[K], V]) bool {
-	if n != nil {
-		switch k.Cmp(n.key) {
-		case -1:
-			return memberHelp(k, n.left)
-		case 0:
-			return true
-		case +1:
-			return memberHelp(k, n.right)
+memberHelpL:
+	for {
+		if n == nil {
+			return false
+		} else {
+			switch k.Cmp(n.key) {
+			case -1:
+				n = n.left
+				continue memberHelpL
+			case 0:
+				return true
+			case +1:
+				n = n.right
+				continue memberHelpL
+			}
 		}
 	}
-	return false
 }
 
 // Get the value associated with a key.
@@ -749,17 +783,23 @@ func Get[K, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V] {
 }
 
 func getHelp[K, V any](targetKey Comparable[K], n *node[Comparable[K], V]) Maybe[V] {
-	if n != nil {
-		switch targetKey.Cmp(n.key) {
-		case -1:
-			return getHelp(targetKey, n.left)
-		case 0:
-			return Just[V]{Value: n.value}
-		case +1:
-			return getHelp(targetKey, n.right)
+getHelpL:
+	for {
+		if n == nil {
+			return Nothing{}
+		} else {
+			switch targetKey.Cmp(n.key) {
+			case -1:
+				n = n.left
+				continue getHelpL
+			case 0:
+				return Just[V]{Value: n.value}
+			case +1:
+				n = n.right
+				continue getHelpL
+			}
 		}
 	}
-	return Nothing{}
 }
 
 // LISTS
