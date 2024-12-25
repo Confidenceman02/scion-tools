@@ -12,22 +12,22 @@ import (
 	"slices"
 )
 
-type _cons[A any] struct {
-	a A
-	b List[A]
-}
+// type _cons[A any] struct {
+// 	a A
+// 	b List[A]
+// }
 
 type List[T any] interface {
-	cons() *_cons[T]
+	Cons() *internal.Cons_[T, List[T]]
 	Cmp(basics.Comparable[List[T]]) int
 	T() List[T]
 }
 
-func (c empty[T]) cons() *_cons[T] {
+func (c empty[T]) Cons() *internal.Cons_[T, List[T]] {
 	return nil
 }
-func (c *list[T]) cons() *_cons[T] {
-	return c._cons
+func (c *list[T]) Cons() *internal.Cons_[T, List[T]] {
+	return c.Cons_
 }
 
 func (c empty[T]) T() List[T] {
@@ -38,11 +38,11 @@ func (c *list[T]) T() List[T] {
 }
 
 type empty[T any] struct {
-	*_cons[T]
+	*internal.Cons_[T, List[T]]
 }
 
 type list[T any] struct {
-	*_cons[T]
+	*internal.Cons_[T, List[T]]
 }
 
 // Comparable
@@ -53,26 +53,26 @@ func (x *list[T]) Cmp(y basics.Comparable[List[T]]) int {
 		return +1
 	case *list[T]:
 		// traverse conses until end of a list or a mismatch
-		var ord = cmpHelp(x.a, y.a)
+		var ord = cmpHelp(x.A, y.A)
 		var x1 *list[T] = x
 		var y1 *list[T] = y
-		for !IsEmpty(x1.b) && !IsEmpty(y1.b) && ord == 0 {
-			switch x2 := x1.b.(type) {
+		for !IsEmpty(x1.B) && !IsEmpty(y1.B) && ord == 0 {
+			switch x2 := x1.B.(type) {
 			case *list[T]:
-				switch y2 := y1.b.(type) {
+				switch y2 := y1.B.(type) {
 				case *list[T]:
 					x1 = x2
 					y1 = y2
-					ord = cmpHelp(x2.a, y2.a)
+					ord = cmpHelp(x2.A, y2.A)
 					continue
 				}
 			default:
 				panic("unreachable")
 			}
 		}
-		if IsEmpty(x1.b) && IsEmpty(y1.b) {
+		if IsEmpty(x1.B) && IsEmpty(y1.B) {
 			return ord
-		} else if !IsEmpty(x1.b) {
+		} else if !IsEmpty(x1.B) {
 			return +1
 		} else {
 			return -1
@@ -119,7 +119,7 @@ func Empty[T any]() List[T] {
 
 // Create a list with only one element.
 func Singleton[T any](val T) List[T] {
-	return &list[T]{&_cons[T]{a: val, b: Empty[T]()}}
+	return &list[T]{&internal.Cons_[T, List[T]]{A: val, B: Empty[T]()}}
 }
 
 // Create a list with *n* copies of a value.
@@ -165,7 +165,7 @@ rangeHelpL:
 
 // Add an element to the front of a list.
 func Cons[T any](val T, l List[T]) List[T] {
-	return &list[T]{&_cons[T]{a: val, b: l}}
+	return &list[T]{&internal.Cons_[T, List[T]]{A: val, B: l}}
 }
 
 // Transform
@@ -184,11 +184,11 @@ func IndexedMap[A, B any](f func(basics.Int, A) B, xs List[A]) List[B] {
 func Foldl[A, B any](f func(A, B) B, acc B, ls List[A]) B {
 foldlL:
 	for {
-		if ls.cons() == nil {
+		if ls.Cons() == nil {
 			return acc
 		} else {
-			var x = ls.cons().a
-			var xs = ls.cons().b
+			var x = ls.Cons().A
+			var xs = ls.Cons().B
 			tempFunc, tempAcc, tempList := f, f(x, acc), xs
 			f = tempFunc
 			acc = tempAcc
@@ -287,11 +287,11 @@ func All[T any](isOkay func(T) bool, l List[T]) bool {
 func Any[T any](isOkay func(T) bool, ls List[T]) bool {
 anyL:
 	for {
-		if ls.cons() == nil {
+		if ls.Cons() == nil {
 			return false
 		} else {
-			var x = ls.cons().a
-			var xs = ls.cons().b
+			var x = ls.Cons().A
+			var xs = ls.Cons().B
 			if isOkay(x) {
 				return true
 			} else {
@@ -408,8 +408,8 @@ func Map2[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B])
 
 func map2Help[A any, B any, result any](f func(A, B) result, xs List[A], ys List[B]) []result {
 	var arr []result = []result{}
-	for ; xs.cons() != nil && ys.cons() != nil; xs, ys = xs.cons().b, ys.cons().b {
-		arr = append(arr, f(xs.cons().a, ys.cons().a))
+	for ; xs.Cons() != nil && ys.Cons() != nil; xs, ys = xs.Cons().B, ys.Cons().B {
+		arr = append(arr, f(xs.Cons().A, ys.Cons().A))
 	}
 	return arr
 }
@@ -420,8 +420,8 @@ func Map3[A, B, C, result any](f func(A, B, C) result, xs List[A], ys List[B], z
 
 func map3Help[A any, B any, C any, result any](f func(A, B, C) result, xs List[A], ys List[B], zs List[C]) []result {
 	var arr []result = []result{}
-	for ; xs.cons() != nil && ys.cons() != nil && zs.cons() != nil; xs, ys, zs = xs.cons().b, ys.cons().b, zs.cons().b {
-		arr = append(arr, f(xs.cons().a, ys.cons().a, zs.cons().a))
+	for ; xs.Cons() != nil && ys.Cons() != nil && zs.Cons() != nil; xs, ys, zs = xs.Cons().B, ys.Cons().B, zs.Cons().B {
+		arr = append(arr, f(xs.Cons().A, ys.Cons().A, zs.Cons().A))
 	}
 	return arr
 }
@@ -432,8 +432,8 @@ func Map4[A, B, C, D, result any](f func(A, B, C, D) result, xs List[A], ys List
 
 func map4Help[A, B, C, D, result any](f func(A, B, C, D) result, ws List[A], xs List[B], ys List[C], zs List[D]) []result {
 	var arr []result = []result{}
-	for ; ws.cons() != nil && xs.cons() != nil && ys.cons() != nil && zs.cons() != nil; ws, xs, ys, zs = ws.cons().b, xs.cons().b, ys.cons().b, zs.cons().b {
-		arr = append(arr, f(ws.cons().a, xs.cons().a, ys.cons().a, zs.cons().a))
+	for ; ws.Cons() != nil && xs.Cons() != nil && ys.Cons() != nil && zs.Cons() != nil; ws, xs, ys, zs = ws.Cons().B, xs.Cons().B, ys.Cons().B, zs.Cons().B {
+		arr = append(arr, f(ws.Cons().A, xs.Cons().A, ys.Cons().A, zs.Cons().A))
 	}
 	return arr
 }
@@ -444,8 +444,8 @@ func Map5[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], w
 
 func map5Help[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A], ws List[B], xs List[C], ys List[D], zs List[E]) []result {
 	var arr []result = []result{}
-	for ; vs.cons() != nil && ws.cons() != nil && xs.cons() != nil && ys.cons() != nil && zs.cons() != nil; vs, ws, xs, ys, zs = vs.cons().b, ws.cons().b, xs.cons().b, ys.cons().b, zs.cons().b {
-		arr = append(arr, f(vs.cons().a, ws.cons().a, xs.cons().a, ys.cons().a, zs.cons().a))
+	for ; vs.Cons() != nil && ws.Cons() != nil && xs.Cons() != nil && ys.Cons() != nil && zs.Cons() != nil; vs, ws, xs, ys, zs = vs.Cons().B, ws.Cons().B, xs.Cons().B, ys.Cons().B, zs.Cons().B {
+		arr = append(arr, f(vs.Cons().A, ws.Cons().A, xs.Cons().A, ys.Cons().A, zs.Cons().A))
 	}
 	return arr
 }
@@ -525,7 +525,7 @@ func SortWith[A any](f func(a A, b A) basics.Order, xs List[A]) List[A] {
 
 // Determine if a list is empty.
 func IsEmpty[T any](l List[T]) bool {
-	return l.cons() == nil
+	return l.Cons() == nil
 }
 
 // Extract the first element of a list.
@@ -558,40 +558,40 @@ func takeFast[A any](ctr basics.Int, n basics.Int, list List[A]) List[A] {
 	if n <= 0 {
 		return Empty[A]()
 	} else {
-		cns := list.cons()
+		cns := list.Cons()
 	loop1:
 		for {
 		loop2:
 			for {
 				if cns == nil {
 					return list
-				} else if cns.b.cons() != nil {
+				} else if cns.B.Cons() != nil {
 					switch n {
 					case 1:
 						break loop1
 					case 2:
-						x := cns.a
-						val2 := cns.b.cons()
-						y := val2.a
+						x := cns.A
+						val2 := cns.B.Cons()
+						y := val2.A
 						return FromSlice([]A{x, y})
 					case 3:
-						if cns.b.cons() != nil && cns.b.cons().b.cons() != nil {
-							x := cns.a
-							val2 := cns.b.cons()
-							y := val2.a
-							val3 := val2.b.cons()
-							z := val3.a
+						if cns.B.Cons() != nil && cns.B.Cons().B.Cons() != nil {
+							x := cns.A
+							val2 := cns.B.Cons()
+							y := val2.A
+							val3 := val2.B.Cons()
+							z := val3.A
 							return FromSlice([]A{x, y, z})
 						} else {
 							break loop2
 						}
 					default:
-						if cns.b.cons() != nil && cns.b.cons().b.cons() != nil && cns.b.cons().b.cons().b.cons() != nil {
-							x := cns.a
-							y := cns.b.cons().a
-							z := cns.b.cons().b.cons().a
-							w := cns.b.cons().b.cons().b.cons().a
-							tl := cns.b.cons().b.cons().b.cons().b
+						if cns.B.Cons() != nil && cns.B.Cons().B.Cons() != nil && cns.B.Cons().B.Cons().B.Cons() != nil {
+							x := cns.A
+							y := cns.B.Cons().A
+							z := cns.B.Cons().B.Cons().A
+							w := cns.B.Cons().B.Cons().B.Cons().A
+							tl := cns.B.Cons().B.Cons().B.Cons().B
 							if ctr > 1000 {
 								return Cons(x, Cons(y, Cons(z, Cons(w, takeTailRec(n-4, tl)))))
 							} else {
@@ -609,7 +609,7 @@ func takeFast[A any](ctr basics.Int, n basics.Int, list List[A]) List[A] {
 			}
 			return list
 		}
-		return FromSlice([]A{cns.a})
+		return FromSlice([]A{cns.A})
 	}
 }
 
@@ -623,11 +623,11 @@ takeReverseL:
 		if n <= 0 {
 			return kept
 		} else {
-			if list.cons() == nil {
+			if list.Cons() == nil {
 				return kept
 			} else {
-				var x = list.cons().a
-				var xs = list.cons().b
+				var x = list.Cons().A
+				var xs = list.Cons().B
 				tempN, tempList, tempKept := n-1, xs, Cons(x, kept)
 				n = tempN
 				list = tempList
@@ -677,15 +677,16 @@ func Unzip[A, B any](pairs List[Tuple2[A, B]]) Tuple2[List[A], List[B]] {
 // Pattern Match
 
 func ListWith[T any, R any](l1 List[T], e func(List[T]) R, ab func(T, List[T]) R) R {
-	if l1.cons() == nil {
+	if l1.Cons() == nil {
 		return e(l1)
 	} else {
-		return ab(l1.cons().a, l1.cons().b)
+		return ab(l1.Cons().A, l1.Cons().B)
 	}
 }
 
 // Utils
 
+// Create a List from a Go slice
 func FromSlice[T any](arr []T) List[T] {
 	var result List[T] = Empty[T]()
 	for i := len(arr) - 1; i >= 0; i-- {
@@ -703,16 +704,16 @@ func FromSliceMap[A any, B any](f func(A) B, arr []A) List[B] {
 
 func ToSlice[T any](xs List[T]) []T {
 	var arr []T = []T{}
-	for ; xs.cons() != nil; xs = xs.cons().b {
-		arr = append(arr, xs.cons().a)
+	for ; xs.Cons() != nil; xs = xs.Cons().B {
+		arr = append(arr, xs.Cons().A)
 	}
 	return arr
 }
 
 func ToSliceMap[A any, B any](f func(A) B, xs List[A]) []B {
 	var arr []B = []B{}
-	for ; xs.cons() != nil; xs = xs.cons().b {
-		arr = append(arr, f(xs.cons().a))
+	for ; xs.Cons() != nil; xs = xs.Cons().B {
+		arr = append(arr, f(xs.Cons().A))
 	}
 	return arr
 }

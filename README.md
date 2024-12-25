@@ -149,22 +149,22 @@
     </ul>
     <ul>
         <li>
+            <a href="#insert">Insert</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#update">Update</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
             <a href="#remove">Remove</a>
         </li>
     </ul>
     <ul>
         <li>
-            <a href="#Insert">Insert</a>
-        </li>
-    </ul>
-    <ul>
-        <li>
-            <a href="#Remove">Remove</a>
-        </li>
-    </ul>
-    <ul>
-        <li>
-            <a href="#IsEmpty">IsEmpty</a>
+            <a href="#isEmpty">IsEmpty</a>
         </li>
     </ul>
     <ul>
@@ -172,9 +172,104 @@
             <a href="#memberdict">Member</a>
         </li>
     </ul>
+    <ul>
+        <li>
+            <a href="#get">Get</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#size">Size</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#keys">Keys</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#values">Values</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#toList">ToList</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#fromList">FromList</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#mapdict">Map</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#foldldict">Foldl</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#foldrdict">Foldr</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#filter">Filter</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#partitiondict">Partition</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#union">Union</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#intersect">Intersect</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#diff">Diff</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#merge">Merge</a>
+        </li>
+    </ul>
   </details>
 - <details>
     <summary><a href="#list">List</a></summary>
+    <ul>
+        <li>
+            <a href="#fromSlice">FromSlice</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#fromSliceMap">FromSliceMap</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#toSlice">ToSlice</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#toSliceMap">ToSliceMap</a>
+        </li>
+    </ul>
     <ul>
         <li>
             <a href="#emptylist">Empty</a>
@@ -702,7 +797,7 @@ The following scenarios provide some good uses cases where you may benefit from 
 or other functional programming packages that are similar:
 
 - Function composition
-- Correctness
+- Tail-Call Optimization
 - Immutability and persistence
 - Sorted maps
 - Error handling
@@ -1241,6 +1336,14 @@ Insert(2, "two", Singleton(1,"one"))
 
 [Back to top](#table-of-content)
 
+## Update
+
+`func Update[K, V any](targetKey Comparable[K], f func(maybe.Maybe[V]) maybe.Maybe[V], d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Update the value of a dictionary for a specific key with a given function.
+
+[Back to top](#table-of-content)
+
 ## Remove
 
 `func Remove[K any, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
@@ -1277,6 +1380,159 @@ Member(1, Singleton(1, "one")) // true
 
 [Back to top](#table-of-content)
 
+## Get
+
+`func Get[K, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V]`
+
+Get the value associated with a key.
+If the key is not found, return [Nothing].
+This is useful when you are not sure if a key will be in the dictionary.
+
+```go
+Get(1, Singleton(1, "one")) // Just "one"
+```
+
+[Back to top](#table-of-content)
+
+## Size
+
+`func Size[K, V any](d Dict[Comparable[K], V]) Int`
+
+Determine the number of key-value pairs in the dictionary.
+
+[Back to top](#table-of-content)
+
+## Keys
+
+`func Keys[K, V any](d Dict[Comparable[K], V]) list.List[Comparable[K]]`
+
+Get all of the keys in a dictionary, sorted from lowest to highest.
+
+```go
+Keys(fromList([(0,"Alice"),(1,"Bob")])) == [0,1]
+```
+
+[Back to top](#table-of-content)
+
+## Values
+
+`func Values[K, V any](d Dict[Comparable[K], V]) list.List[V]`
+
+Get all of the values in a dictionary, in the order of their keys.
+
+```go
+Values(fromList([(0,"Alice"),(1,"Bob")])) == ["Alice","Bob"]
+```
+
+[Back to top](#table-of-content)
+
+## ToList
+
+`func ToList[K, V any](d Dict[Comparable[K], V]) list.List[tuple.Tuple2[Comparable[K], V]]`
+
+Convert a dictionary into an association list of key-value pairs, sorted by keys.
+
+[Back to top](#table-of-content)
+
+## FromList
+
+`func FromList[K, V any](l list.List[tuple.Tuple2[Comparable[K], V]]) Dict[Comparable[K], V]`
+
+Convert an association list into a dictionary.
+
+[Back to top](#table-of-content)
+
+## Map(Dict)
+
+`func Map[K, V, B any](f func(key Comparable[K], value V) B, d Dict[Comparable[K], V]) Dict[Comparable[K], B]`
+
+Apply a function to all values in a dictionary.
+
+[Back to top](#table-of-content)
+
+## Foldl(Dict)
+
+`func Foldl[K, V, B any](f func(Comparable[K], V, B) B, acc B, d Dict[Comparable[K], V]) B`
+
+Fold over the key-value pairs in a dictionary from lowest key to highest key.
+
+[Back to top](#table-of-content)
+
+## Foldr(Dict)
+
+`func Foldr[K, V, B any](f func(Comparable[K], V, B) B, acc B, d Dict[Comparable[K], V]) B`
+
+Fold over the key-value pairs in a dictionary from highest key to lowest key.
+
+[Back to top](#table-of-content)
+
+## Filter
+
+`func Filter[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Keep only the key-value pairs that pass the given test.
+
+[Back to top](#table-of-content)
+
+## Partition
+
+`func Partition[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], V]) tuple.Tuple2[Dict[Comparable[K], V], Dict[Comparable[K], V]]`
+
+Partition a dictionary according to some test. The first dictionary
+contains all key-value pairs which passed the test, and the second contains
+the pairs that did not.
+
+[Back to top](#table-of-content)
+
+## Union
+
+`func Union[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Combine two dictionaries. If there is a collision, preference is given
+to the first dictionary.
+
+[Back to top](#table-of-content)
+
+## Intersect
+
+`func Intersect[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Keep a key-value pair when its key appears in the second dictionary.
+Preference is given to values in the first dictionary.
+
+[Back to top](#table-of-content)
+
+## Diff
+
+`func Diff[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+
+Keep a key-value pair when its key does not appear in the second dictionary.
+
+[Back to top](#table-of-content)
+
+## Merge
+
+`func Merge[K, A, B, R any](
+	leftStep func(Comparable[K], A, R) R,
+	bothStep func(Comparable[K], A, B, R) R,
+	rightStep func(Comparable[K], B, R) R,
+	leftDict Dict[Comparable[K], A],
+	rightDict Dict[Comparable[K], B],
+	initialResult R,
+) R`
+
+The most general way of combining two dictionaries. You provide three
+accumulators for when a given key appears:
+
+1. Only in the left dictionary.
+2. In both dictionaries.
+3. Only in the right dictionary.
+
+You then traverse all the keys from lowest to highest, building up whatever
+you want.
+
+[Back to top](#table-of-content)
+
 # List
 
 ```go
@@ -1284,6 +1540,54 @@ import "github.com/Confidenceman02/scion-tools/pkg/list"
 ```
 
 You can create a `List` from any Go slice with the `FromSlice` function. This module has a bunch of functions to help you work with them!
+
+## FromSlice
+
+`func FromSlice[T any](arr []T) List[T]`
+
+Create a [List](#list) from a Go slice.
+
+```go
+FromSlice([]int{1,2,3,4}) // [1,2,3,4]
+```
+
+[Back to top](#table-of-content)
+
+## FromSliceMap
+
+`func FromSliceMap[A any, B any](f func(A) B, arr []A) List[B]`
+
+Create a [List](#list) from a Go slice applying a function to every element of the slice.
+
+```go
+FromSliceMap(func(i int) Int { return Int(i) },[]int{1,2,3,4}) // [1,2,3,4]
+```
+
+[Back to top](#table-of-content)
+
+## ToSlice
+
+`func ToSlice[T any](xs List[T]) []T`
+
+Create a Go slice from a [List](#list).
+
+```go
+ToSlice([1,2,3,4]) // []int{1,2,3,4}
+```
+
+[Back to top](#table-of-content)
+
+## ToSliceMap
+
+`func ToSliceMap[A any, B any](f func(A) B, xs List[A]) []B`
+
+Create a Go slice from a [List](#list) applying a function to every element of the list.
+
+```go
+ToSliceMap(func(i Int) int { return i.T() },[1,2,3,4]) // []int{1,2,3,4}
+```
+
+[Back to top](#table-of-content)
 
 ## Empty
 
@@ -1294,6 +1598,8 @@ Create a list with no elements.
 ```go
 Empty[int]() // []
 ```
+
+[Back to top](#table-of-content)
 
 ## Singleton(List)
 

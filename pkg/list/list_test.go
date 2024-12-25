@@ -2,6 +2,7 @@ package list
 
 import (
 	"github.com/Confidenceman02/scion-tools/pkg/basics"
+	"github.com/Confidenceman02/scion-tools/pkg/internal"
 	"github.com/Confidenceman02/scion-tools/pkg/maybe"
 	. "github.com/Confidenceman02/scion-tools/pkg/tuple"
 	"github.com/stretchr/testify/assert"
@@ -93,7 +94,7 @@ func TestCreateFunctions(t *testing.T) {
 	t.Run("Singleton", func(t *testing.T) {
 		SUT := Singleton[basics.Int](10)
 
-		asserts.Equal(&list[basics.Int]{&_cons[basics.Int]{a: 10, b: empty[basics.Int]{}}}, SUT)
+		asserts.Equal(&list[basics.Int]{&internal.Cons_[basics.Int, List[basics.Int]]{A: 10, B: empty[basics.Int]{}}}, SUT)
 	})
 
 	t.Run("Repeat", func(t *testing.T) {
@@ -101,12 +102,12 @@ func TestCreateFunctions(t *testing.T) {
 
 		asserts.Equal(
 			&list[int]{
-				&_cons[int]{
-					a: 10,
-					b: &list[int]{
-						&_cons[int]{
-							a: 10,
-							b: empty[int]{},
+				&internal.Cons_[int, List[int]]{
+					A: 10,
+					B: &list[int]{
+						&internal.Cons_[int, List[int]]{
+							A: 10,
+							B: empty[int]{},
 						},
 					},
 				},
@@ -120,12 +121,12 @@ func TestCreateFunctions(t *testing.T) {
 
 		asserts.Equal(
 			&list[basics.Int]{
-				&_cons[basics.Int]{
-					a: 2,
-					b: &list[basics.Int]{
-						&_cons[basics.Int]{
-							a: 3,
-							b: empty[basics.Int]{},
+				&internal.Cons_[basics.Int, List[basics.Int]]{
+					A: 2,
+					B: &list[basics.Int]{
+						&internal.Cons_[basics.Int, List[basics.Int]]{
+							A: 3,
+							B: empty[basics.Int]{},
 						},
 					},
 				},
@@ -144,9 +145,9 @@ func TestCreateFunctions(t *testing.T) {
 
 		asserts.Equal(
 			&list[int]{
-				&_cons[int]{
-					a: 20,
-					b: ls,
+				&internal.Cons_[int, List[int]]{
+					A: 20,
+					B: ls,
 				},
 			},
 			SUT,
@@ -162,15 +163,15 @@ func TestTransformFunctions(t *testing.T) {
 		SUT2 := FromSlice([]bool{true, false, true})
 
 		asserts.Equal(&list[basics.Float]{
-			&_cons[basics.Float]{
-				a: 1,
-				b: &list[basics.Float]{
-					&_cons[basics.Float]{
-						a: 2,
-						b: &list[basics.Float]{
-							&_cons[basics.Float]{
-								a: 3,
-								b: empty[basics.Float]{},
+			&internal.Cons_[basics.Float, List[basics.Float]]{
+				A: 1,
+				B: &list[basics.Float]{
+					&internal.Cons_[basics.Float, List[basics.Float]]{
+						A: 2,
+						B: &list[basics.Float]{
+							&internal.Cons_[basics.Float, List[basics.Float]]{
+								A: 3,
+								B: empty[basics.Float]{},
 							},
 						},
 					},
@@ -181,15 +182,15 @@ func TestTransformFunctions(t *testing.T) {
 		)
 
 		asserts.Equal(&list[bool]{
-			&_cons[bool]{
-				a: false,
-				b: &list[bool]{
-					&_cons[bool]{
-						a: true,
-						b: &list[bool]{
-							&_cons[bool]{
-								a: false,
-								b: empty[bool]{},
+			&internal.Cons_[bool, List[bool]]{
+				A: false,
+				B: &list[bool]{
+					&internal.Cons_[bool, List[bool]]{
+						A: true,
+						B: &list[bool]{
+							&internal.Cons_[bool, List[bool]]{
+								A: false,
+								B: empty[bool]{},
 							},
 						},
 					},
@@ -207,15 +208,15 @@ func TestTransformFunctions(t *testing.T) {
 
 		asserts.Equal(
 			&list[basics.Int]{
-				&_cons[basics.Int]{
-					a: basics.Int(0),
-					b: &list[basics.Int]{
-						&_cons[basics.Int]{
-							a: basics.Int(2),
-							b: &list[basics.Int]{
-								&_cons[basics.Int]{
-									a: basics.Int(4),
-									b: empty[basics.Int]{},
+				&internal.Cons_[basics.Int, List[basics.Int]]{
+					A: basics.Int(0),
+					B: &list[basics.Int]{
+						&internal.Cons_[basics.Int, List[basics.Int]]{
+							A: basics.Int(2),
+							B: &list[basics.Int]{
+								&internal.Cons_[basics.Int, List[basics.Int]]{
+									A: basics.Int(4),
+									B: empty[basics.Int]{},
 								},
 							},
 						},
@@ -239,15 +240,15 @@ func TestTransformFunctions(t *testing.T) {
 
 			asserts.Equal(
 				&list[basics.Int]{
-					&_cons[basics.Int]{
-						a: 3,
-						b: &list[basics.Int]{
-							&_cons[basics.Int]{
-								a: 2,
-								b: &list[basics.Int]{
-									&_cons[basics.Int]{
-										a: 1,
-										b: empty[basics.Int]{},
+					&internal.Cons_[basics.Int, List[basics.Int]]{
+						A: 3,
+						B: &list[basics.Int]{
+							&internal.Cons_[basics.Int, List[basics.Int]]{
+								A: 2,
+								B: &list[basics.Int]{
+									&internal.Cons_[basics.Int, List[basics.Int]]{
+										A: 1,
+										B: empty[basics.Int]{},
 									},
 								},
 							},
@@ -267,15 +268,15 @@ func TestTransformFunctions(t *testing.T) {
 		asserts.Equal(basics.Int(6), SUT1)
 		asserts.Equal(
 			&list[basics.Int]{
-				&_cons[basics.Int]{
-					a: 1,
-					b: &list[basics.Int]{
-						&_cons[basics.Int]{
-							a: 2,
-							b: &list[basics.Int]{
-								&_cons[basics.Int]{
-									a: 3,
-									b: empty[basics.Int]{},
+				&internal.Cons_[basics.Int, List[basics.Int]]{
+					A: 1,
+					B: &list[basics.Int]{
+						&internal.Cons_[basics.Int, List[basics.Int]]{
+							A: 2,
+							B: &list[basics.Int]{
+								&internal.Cons_[basics.Int, List[basics.Int]]{
+									A: 3,
+									B: empty[basics.Int]{},
 								},
 							},
 						},
@@ -293,15 +294,15 @@ func TestTransformFunctions(t *testing.T) {
 
 		asserts.Equal(
 			&list[basics.Int]{
-				&_cons[basics.Int]{
-					a: basics.Int(2),
-					b: &list[basics.Int]{
-						&_cons[basics.Int]{
-							a: basics.Int(4),
-							b: &list[basics.Int]{
-								&_cons[basics.Int]{
-									a: basics.Int(6),
-									b: empty[basics.Int]{},
+				&internal.Cons_[basics.Int, List[basics.Int]]{
+					A: basics.Int(2),
+					B: &list[basics.Int]{
+						&internal.Cons_[basics.Int, List[basics.Int]]{
+							A: basics.Int(4),
+							B: &list[basics.Int]{
+								&internal.Cons_[basics.Int, List[basics.Int]]{
+									A: basics.Int(6),
+									B: empty[basics.Int]{},
 								},
 							},
 						},
@@ -335,15 +336,15 @@ func TestUtilityFunctions(t *testing.T) {
 
 		asserts.Equal(
 			&list[basics.Int]{
-				&_cons[basics.Int]{
-					a: 3,
-					b: &list[basics.Int]{
-						&_cons[basics.Int]{
-							a: 2,
-							b: &list[basics.Int]{
-								&_cons[basics.Int]{
-									a: 1,
-									b: empty[basics.Int]{},
+				&internal.Cons_[basics.Int, List[basics.Int]]{
+					A: 3,
+					B: &list[basics.Int]{
+						&internal.Cons_[basics.Int, List[basics.Int]]{
+							A: 2,
+							B: &list[basics.Int]{
+								&internal.Cons_[basics.Int, List[basics.Int]]{
+									A: 1,
+									B: empty[basics.Int]{},
 								},
 							},
 						},
@@ -363,16 +364,16 @@ func TestUtilityFunctions(t *testing.T) {
 		})
 		t.Run("When member is List", func(t *testing.T) {
 			haystack := &list[List[basics.Int]]{
-				&_cons[List[basics.Int]]{
-					a: &list[basics.Int]{
-						&_cons[basics.Int]{
-							a: 12,
-							b: empty[basics.Int]{},
+				&internal.Cons_[List[basics.Int], List[List[basics.Int]]]{
+					A: &list[basics.Int]{
+						&internal.Cons_[basics.Int, List[basics.Int]]{
+							A: 12,
+							B: empty[basics.Int]{},
 						},
 					},
 				}}
 
-			needle := &list[basics.Int]{&_cons[basics.Int]{a: 12, b: empty[basics.Int]{}}}
+			needle := &list[basics.Int]{&internal.Cons_[basics.Int, List[basics.Int]]{A: 12, B: empty[basics.Int]{}}}
 
 			asserts.True(Member[List[basics.Int]](needle, haystack))
 		})
@@ -471,17 +472,17 @@ func TestCombineFunctions(t *testing.T) {
 		SUT2 := Append(xs2, ys2)
 
 		asserts.Equal(maybe.Just[List[basics.Int]]{Value: ys1}, SUT1)
-		asserts.Equal(&list[basics.Int]{&_cons[basics.Int]{a: 1, b: empty[basics.Int]{}}}, xs1)
+		asserts.Equal(&list[basics.Int]{&internal.Cons_[basics.Int, List[basics.Int]]{A: 1, B: empty[basics.Int]{}}}, xs1)
 		asserts.Equal([]basics.Int{1, 1, 2, 3, 5, 8}, ToSlice(SUT2))
 		// Structure sharing
 		asserts.Equal(&list[basics.Int]{
-			&_cons[basics.Int]{
-				a: 1,
-				b: &list[basics.Int]{
-					&_cons[basics.Int]{
-						a: 1,
-						b: &list[basics.Int]{
-							&_cons[basics.Int]{a: 2, b: ys2},
+			&internal.Cons_[basics.Int, List[basics.Int]]{
+				A: 1,
+				B: &list[basics.Int]{
+					&internal.Cons_[basics.Int, List[basics.Int]]{
+						A: 1,
+						B: &list[basics.Int]{
+							&internal.Cons_[basics.Int, List[basics.Int]]{A: 2, B: ys2},
 						},
 					},
 				},
@@ -522,8 +523,8 @@ func TestCombineFunctions(t *testing.T) {
 
 			asserts.Equal(
 				&list[basics.Int]{
-					&_cons[basics.Int]{
-						a: 2, b: Empty[basics.Int]()}},
+					&internal.Cons_[basics.Int, List[basics.Int]]{
+						A: 2, B: Empty[basics.Int]()}},
 				SUT,
 			)
 		})
@@ -647,9 +648,9 @@ func TestDeconstructFunctions(t *testing.T) {
 			asserts.Equal(
 				maybe.Just[List[int]]{
 					Value: &list[int]{
-						&_cons[int]{
-							a: 23,
-							b: empty[int]{},
+						&internal.Cons_[int, List[int]]{
+							A: 23,
+							B: empty[int]{},
 						},
 					},
 				},

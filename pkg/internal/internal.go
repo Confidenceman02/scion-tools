@@ -27,3 +27,8 @@ func CmpHelp(x any, y any) int {
 		panic(fmt.Sprintf("Cmp Not implemented for: %v", reflect.TypeOf(x1)))
 	}
 }
+
+type Cons_[A, B any] struct {
+	A A
+	B B
+}
