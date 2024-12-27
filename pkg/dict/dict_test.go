@@ -1,8 +1,12 @@
 package dict
 
 import (
+	"github.com/Confidenceman02/scion-tools/pkg/basics"
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
-	. "github.com/Confidenceman02/scion-tools/pkg/maybe"
+	"github.com/Confidenceman02/scion-tools/pkg/list"
+	"github.com/Confidenceman02/scion-tools/pkg/maybe"
+	s "github.com/Confidenceman02/scion-tools/pkg/string"
+	"github.com/Confidenceman02/scion-tools/pkg/tuple"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,22 +15,94 @@ func TestBuild(t *testing.T) {
 	asserts := assert.New(t)
 
 	t.Run("Empty", func(t *testing.T) {
-		asserts.Equal(&dict[Comparable[Int], struct{}]{root: nil}, Empty[Int, struct{}]())
+		asserts.Equal(FromList(list.Empty[tuple.Tuple2[Comparable[Int], any]]()), Empty[Int, any]())
 	})
-
 	t.Run("Singleton", func(t *testing.T) {
-		d := Singleton(Int(1), struct{}{})
-		SUT := d.rbt()
-		asserts.Equal(&dict[Comparable[Int], struct{}]{
-			root: &node[Comparable[Int], struct{}]{
-				key:   Int(1),
-				value: struct{}{},
-				color: black,
-				left:  nil,
-				right: nil},
-		},
-			SUT,
-		)
+		expected := FromList(list.FromSlice(
+			[]tuple.Tuple2[Comparable[s.String], s.String]{
+				tuple.Pair(Comparable[s.String](s.String("k")), s.String("v")),
+			}))
+		SUT := Singleton(s.String("k"), s.String("v"))
+
+		asserts.Equal(expected, SUT)
+	})
+	t.Run("Insert", func(t *testing.T) {
+		expected := FromList(list.FromSlice(
+			[]tuple.Tuple2[Comparable[s.String], s.String]{
+				tuple.Pair(Comparable[s.String](s.String("k")), s.String("v")),
+			}))
+		SUT := Insert(s.String("k"), s.String("v"), Empty[s.String, s.String]())
+
+		asserts.Equal(expected, SUT)
+	})
+	t.Run("Insert replace", func(t *testing.T) {
+		expected := FromList(list.FromSlice(
+			[]tuple.Tuple2[Comparable[s.String], s.String]{
+				tuple.Pair(Comparable[s.String](s.String("k")), s.String("vv")),
+			}))
+		SUT := Insert(s.String("k"), s.String("vv"), Singleton(s.String("k"), s.String("v")))
+
+		asserts.Equal(expected, SUT)
+	})
+	t.Run("Insert on Singleton", func(t *testing.T) {
+		d := Singleton(Int(1), 2)
+		d1 := Insert(Int(2), 2, d)
+
+		asserts.Equal(Int(1), d.rbt().root.key)
+		asserts.Equal(Int(1), d1.rbt().root.key)
+		asserts.Nil(d.rbt().root.right)
+		asserts.NotNil(d1.rbt().root.right)
+		asserts.Equal(Int(2), d1.rbt().root.right.key)
+	})
+	t.Run("Insert on Empty", func(t *testing.T) {
+		d := Empty[Int, Int]()
+		d1 := Insert(Int(2), 2, d)
+
+		asserts.Equal(&dict[Comparable[Int], Int]{root: nil}, d.rbt())
+		asserts.Equal(Int(2), d1.rbt().root.key)
+	})
+	t.Run("Insert into existing entry", func(t *testing.T) {
+		d := Singleton(Int(10), 233)
+		d1 := Insert(Int(10), 233, d)
+
+		SUT := d1.rbt()
+
+		asserts.Equal(233, d.rbt().root.value)
+		asserts.Equal(233, SUT.root.value)
+		asserts.NotSame(d.rbt().root, SUT.root)
+	})
+	t.Run("Insert with color pushdown", func(t *testing.T) {
+		d := Singleton(Int(40), 1)
+		d1 := Insert(Int(50), 2, d)
+		d2 := Insert(Int(30), 3, d1)
+		// Will cause color pushdown of parent node (40)
+		d3 := Insert(Int(35), 3, d2)
+
+		asserts.Equal(d1.rbt().root.right, d2.rbt().root.right)
+		asserts.NotEqual(d2.rbt().root.right, d3.rbt().root.right)
+	})
+	t.Run("Update", func(t *testing.T) {
+		expected := FromList(list.FromSlice(
+			[]tuple.Tuple2[Comparable[s.String], s.String]{
+				tuple.Pair(Comparable[s.String](s.String("k")), s.String("vv")),
+			}))
+		SUT := Update(s.String("k"), func(m maybe.Maybe[s.String]) maybe.Maybe[s.String] {
+			return maybe.Just[s.String]{Value: s.String("vv")}
+		}, Singleton(s.String("k"), s.String("v")))
+
+		asserts.Equal(expected, SUT)
+	})
+	t.Run("Remove", func(t *testing.T) {
+		expected := Empty[s.String, s.String]()
+		SUT := Remove(s.String("k"), Singleton(s.String("k"), s.String("v")))
+
+		asserts.Equal(expected, SUT)
+	})
+	t.Run("Remove not found", func(t *testing.T) {
+		expected := Singleton(s.String("k"), s.String("v"))
+		SUT := Remove(s.String("kk"), Singleton(s.String("k"), s.String("v")))
+
+		asserts.Equal(expected, SUT)
 	})
 }
 
@@ -71,60 +147,34 @@ func TestGet(t *testing.T) {
 		d := Singleton(Int(10), 23)
 		SUT := Get(Int(10), d)
 
-		asserts.Equal(Just[int]{Value: 23}, SUT)
+		asserts.Equal(maybe.Just[int]{Value: 23}, SUT)
 	})
 
 	t.Run("Get non-existing entry", func(t *testing.T) {
 		d := Empty[Int, Int]()
 		SUT := Get(Int(10), d)
 
-		asserts.Equal(Nothing{}, SUT)
+		asserts.Equal(maybe.Nothing{}, SUT)
+	})
+}
+
+func TestSize(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Size", func(t *testing.T) {
+		xs := list.FromSlice([]Int{1, 2, 3, 4, 5})
+		SUT := list.Foldl(
+			func(i Int, d Dict[Comparable[Int], Int]) Dict[Comparable[Int], Int] { return Insert(i, i, d) },
+			Empty[Int, Int](),
+			xs,
+		)
+
+		asserts.Equal(Int(5), Size(SUT))
 	})
 }
 
 func TestInsert(t *testing.T) {
 	asserts := assert.New(t)
-
-	t.Run("Insert on Singleton", func(t *testing.T) {
-		d := Singleton(Int(1), 2)
-		d1 := Insert(Int(2), 2, d)
-
-		asserts.Equal(Int(1), d.rbt().root.key)
-		asserts.Equal(Int(1), d1.rbt().root.key)
-		asserts.Nil(d.rbt().root.right)
-		asserts.NotNil(d1.rbt().root.right)
-		asserts.Equal(Int(2), d1.rbt().root.right.key)
-	})
-
-	t.Run("Insert on Empty", func(t *testing.T) {
-		d := Empty[Int, Int]()
-		d1 := Insert(Int(2), 2, d)
-
-		asserts.Equal(&dict[Comparable[Int], Int]{root: nil}, d.rbt())
-		asserts.Equal(Int(2), d1.rbt().root.key)
-	})
-
-	t.Run("Insert into existing entry", func(t *testing.T) {
-		d := Singleton(Int(10), 233)
-		d1 := Insert(Int(10), 233, d)
-
-		SUT := d1.rbt()
-
-		asserts.Equal(233, d.rbt().root.value)
-		asserts.Equal(233, SUT.root.value)
-		asserts.NotSame(d.rbt().root, SUT.root)
-	})
-
-	t.Run("Insert with color pushdown", func(t *testing.T) {
-		d := Singleton(Int(40), 1)
-		d1 := Insert(Int(50), 2, d)
-		d2 := Insert(Int(30), 3, d1)
-		// Will cause color pushdown of parent node (40)
-		d3 := Insert(Int(35), 3, d2)
-
-		asserts.Equal(d1.rbt().root.right, d2.rbt().root.right)
-		asserts.NotEqual(d2.rbt().root.right, d3.rbt().root.right)
-	})
 
 	t.Run("Empty", func(t *testing.T) {
 		asserts.Equal(&dict[Comparable[Int], struct{}]{root: nil}, Empty[Int, struct{}]())
@@ -799,5 +849,317 @@ func TestRemove(t *testing.T) {
 		SUT10 := tree10.rbt()
 
 		asserts.Nil(SUT10.root)
+	})
+}
+
+type User struct {
+	Name string
+	Age  int
+}
+
+func TestListFunctions(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Keys", func(t *testing.T) {
+		xs := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		dxs := FromList(xs)
+		SUT := Keys(dxs)
+
+		asserts.Equal([]Comparable[Int]{Int(1), Int(2), Int(3)}, list.ToSlice(SUT))
+	})
+	t.Run("Values", func(t *testing.T) {
+		xs := list.FromSlice([]tuple.Tuple2[Comparable[Int], string]{
+			tuple.Pair(Comparable[Int](Int(1)), "Alice"),
+			tuple.Pair(Comparable[Int](Int(2)), "Bob"),
+		})
+		dxs := FromList(xs)
+		SUT := Values(dxs)
+
+		asserts.Equal([]string{"Alice", "Bob"}, list.ToSlice(SUT))
+	})
+
+	t.Run("ToList", func(t *testing.T) {
+		xs := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+		})
+		SUT := ToList(FromList(xs))
+
+		asserts.Equal([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+		},
+			list.ToSlice(SUT),
+		)
+	})
+
+	t.Run("FromList", func(t *testing.T) {
+		xs := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		SUT := FromList(xs)
+
+		asserts.Equal([]Comparable[Int]{Int(1), Int(2), Int(3)}, list.ToSlice(Keys(SUT)))
+	})
+}
+
+func insertBoth[K, B any](key Comparable[K], leftVal list.List[B], rightVal list.List[B], dict Dict[Comparable[K], list.List[B]]) Dict[Comparable[K], list.List[B]] {
+	return Insert(key, list.Append(leftVal, rightVal), dict)
+}
+func TestTransformFunctions(t *testing.T) {
+	asserts := assert.New(t)
+
+	t.Run("Map", func(t *testing.T) {
+		xs := list.FromSlice([]tuple.Tuple2[Comparable[basics.Int], int]{tuple.Pair(Comparable[Int](Int(1)), 1), tuple.Pair(Comparable[Int](Int(2)), 2), tuple.Pair(Comparable[Int](Int(3)), 3)})
+		d := FromList(xs)
+		mapper := func(k Comparable[Int], v int) int { return v + 1 }
+		SUT := Map(mapper, d)
+
+		asserts.Equal([]int{2, 3, 4}, list.ToSlice(Values(SUT)))
+	})
+
+	t.Run("Foldl", func(t *testing.T) {
+		xs := list.FromSlice([]tuple.Tuple2[Comparable[Int], string]{
+			tuple.Pair(Comparable[Int](Int(1)), "hello"),
+			tuple.Pair(Comparable[Int](Int(2)), "my"),
+			tuple.Pair(Comparable[Int](Int(3)), "name"),
+			tuple.Pair(Comparable[Int](Int(4)), "is"),
+		})
+		d := FromList(xs)
+		SUT := Foldl(func(k Comparable[Int], v string, acc string) string {
+			return acc + v + "pause"
+		},
+			"",
+			d,
+		)
+
+		asserts.Equal("hellopausemypausenamepauseispause", SUT)
+	})
+
+	t.Run("Foldr", func(t *testing.T) {
+		getAges := func(_ Comparable[Int], user User, ages list.List[Int]) list.List[Int] {
+			return list.Cons(Int(user.Age), ages)
+		}
+		user1 := User{
+			Name: "Jdawg",
+			Age:  42,
+		}
+		user2 := User{
+			Name: "TDawg",
+			Age:  30,
+		}
+		users := list.FromSlice([]User{user1, user2})
+		d := list.Foldl(func(usr User, acc Dict[Comparable[Int], User]) Dict[Comparable[Int], User] {
+			return Insert(Int(usr.Age), usr, acc)
+		},
+			Empty[basics.Int, User](),
+			users,
+		)
+		SUT := Foldr(getAges, list.Empty[Int](), d)
+
+		asserts.Equal([]Int{30, 42}, list.ToSlice(SUT))
+	})
+
+	t.Run("Filter", func(t *testing.T) {
+		xxs := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		d := FromList(xxs)
+		filterer := func(k Comparable[Int], v int) bool { return v > 2 }
+		SUT := Filter(filterer, d)
+
+		asserts.Equal([]int{3}, list.ToSlice(Values(SUT)))
+	})
+
+	t.Run("Partition", func(t *testing.T) {
+		xxs := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		d := FromList(xxs)
+		isGood := func(k Comparable[Int], v int) bool { return v > 2 }
+		SUT := Partition(isGood, d)
+
+		asserts.Equal([]int{3}, list.ToSlice(Values(tuple.First(SUT))))
+		asserts.Equal([]int{1, 2}, list.ToSlice(Values(tuple.Second(SUT))))
+	})
+
+	t.Run("Union", func(t *testing.T) {
+		xs1 := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 2),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		xs2 := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		d1 := FromList(xs1)
+		d2 := FromList(xs2)
+
+		SUT := Union(d1, d2)
+
+		asserts.Equal([]int{2, 2, 3}, list.ToSlice(Values(SUT)))
+	})
+
+	t.Run("Intersect", func(t *testing.T) {
+		xs1 := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 23),
+			tuple.Pair(Comparable[Int](Int(2)), 2),
+			tuple.Pair(Comparable[Int](Int(3)), 3),
+		})
+		xs2 := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(5)), 2),
+			tuple.Pair(Comparable[Int](Int(6)), 3),
+		})
+
+		d1 := FromList(xs1)
+		d2 := FromList(xs2)
+
+		SUT := Intersect(d1, d2)
+
+		asserts.Equal([]Comparable[Int]{Comparable[Int](Int(1))}, list.ToSlice(Keys(SUT)))
+		asserts.Equal([]int{23}, list.ToSlice(Values(SUT)))
+	})
+
+	t.Run("Diff", func(t *testing.T) {
+		xs1 := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(23)), 23),
+			tuple.Pair(Comparable[Int](Int(5)), 2),
+			tuple.Pair(Comparable[Int](Int(6)), 3),
+		})
+		xs2 := list.FromSlice([]tuple.Tuple2[Comparable[Int], int]{
+			tuple.Pair(Comparable[Int](Int(1)), 1),
+			tuple.Pair(Comparable[Int](Int(5)), 2),
+			tuple.Pair(Comparable[Int](Int(6)), 3),
+		})
+
+		d1 := FromList(xs1)
+		d2 := FromList(xs2)
+
+		SUT := Diff(d1, d2)
+
+		asserts.Equal([]Comparable[Int]{Comparable[Int](Int(23))}, list.ToSlice(Keys(SUT)))
+		asserts.Equal([]int{23}, list.ToSlice(Values(SUT)))
+	})
+
+	t.Run("Merge", func(t *testing.T) {
+		s1 := Insert(s.String("u1"), list.Singleton(Int(1)), Empty[s.String, list.List[Int]]())
+		s2 := Insert(s.String("u2"), list.Singleton(Int(2)), Empty[s.String, list.List[Int]]())
+		s23 := Insert(s.String("u2"), list.Singleton(Int(3)), Empty[s.String, list.List[Int]]())
+		b1 := FromList(list.Map(func(i Int) tuple.Tuple2[Comparable[Int], list.List[Int]] {
+			return tuple.Pair(Comparable[Int](i), list.Singleton(i))
+		},
+			list.Range(1, 10),
+		))
+		b2 := FromList(list.Map(func(i Int) tuple.Tuple2[Comparable[Int], list.List[Int]] {
+			return tuple.Pair(Comparable[Int](i), list.Singleton(i))
+		},
+			list.Range(5, 15),
+		))
+
+		t.Run("merge empties", func(t *testing.T) {
+			SUT := Merge(
+				Insert[s.String, list.List[any]],
+				insertBoth[s.String, any],
+				Insert[s.String, list.List[any]],
+				Empty[s.String, list.List[any]](),
+				Empty[s.String, list.List[any]](),
+				Empty[s.String, list.List[any]](),
+			)
+
+			asserts.True(IsEmpty(SUT))
+		})
+		t.Run("merge singletons in order", func(t *testing.T) {
+			SUT := Merge(
+				Insert[s.String, list.List[Int]],
+				insertBoth[s.String, Int],
+				Insert[s.String, list.List[Int]],
+				s1,
+				s2,
+				Empty[s.String, list.List[Int]](),
+			)
+
+			expected := list.FromSlice([]tuple.Tuple2[Comparable[s.String], list.List[Int]]{
+				tuple.Pair(Comparable[s.String](s.String("u1")), list.Singleton(Int(1))),
+				tuple.Pair(Comparable[s.String](s.String("u2")), list.Singleton(Int(2))),
+			})
+
+			asserts.Equal(expected, ToList(SUT))
+		})
+		t.Run("merge singletons out of order", func(t *testing.T) {
+			SUT := Merge(
+				Insert[s.String, list.List[Int]],
+				insertBoth[s.String, Int],
+				Insert[s.String, list.List[Int]],
+				s2,
+				s1,
+				Empty[s.String, list.List[Int]](),
+			)
+
+			expected := list.FromSlice([]tuple.Tuple2[Comparable[s.String], list.List[Int]]{
+				tuple.Pair(Comparable[s.String](s.String("u1")), list.Singleton(Int(1))),
+				tuple.Pair(Comparable[s.String](s.String("u2")), list.Singleton(Int(2))),
+			})
+
+			asserts.Equal(expected, ToList(SUT))
+		})
+		t.Run("merge with duplicate key", func(t *testing.T) {
+			SUT := Merge(
+				Insert[s.String, list.List[Int]],
+				insertBoth[s.String, Int],
+				Insert[s.String, list.List[Int]],
+				s2,
+				s23,
+				Empty[s.String, list.List[Int]](),
+			)
+
+			expected := list.FromSlice([]tuple.Tuple2[Comparable[s.String], list.List[Int]]{
+				tuple.Pair(Comparable[s.String](s.String("u2")), list.FromSlice([]Int{2, 3})),
+			})
+
+			asserts.Equal(expected, ToList(SUT))
+		})
+		t.Run("partially overlapping", func(t *testing.T) {
+			SUT := Merge(
+				Insert[Int, list.List[Int]],
+				insertBoth[Int, Int],
+				Insert[Int, list.List[Int]],
+				b1,
+				b2,
+				Empty[Int, list.List[Int]](),
+			)
+
+			expected := list.FromSlice([]tuple.Tuple2[Comparable[Int], list.List[Int]]{
+				tuple.Pair(Comparable[Int](Int(1)), list.FromSlice([]Int{Int(1)})),
+				tuple.Pair(Comparable[Int](Int(2)), list.FromSlice([]Int{Int(2)})),
+				tuple.Pair(Comparable[Int](Int(3)), list.FromSlice([]Int{Int(3)})),
+				tuple.Pair(Comparable[Int](Int(4)), list.FromSlice([]Int{Int(4)})),
+				tuple.Pair(Comparable[Int](Int(5)), list.FromSlice([]Int{Int(5), Int(5)})),
+				tuple.Pair(Comparable[Int](Int(6)), list.FromSlice([]Int{Int(6), Int(6)})),
+				tuple.Pair(Comparable[Int](Int(7)), list.FromSlice([]Int{Int(7), Int(7)})),
+				tuple.Pair(Comparable[Int](Int(8)), list.FromSlice([]Int{Int(8), Int(8)})),
+				tuple.Pair(Comparable[Int](Int(9)), list.FromSlice([]Int{Int(9), Int(9)})),
+				tuple.Pair(Comparable[Int](Int(10)), list.FromSlice([]Int{Int(10), Int(10)})),
+				tuple.Pair(Comparable[Int](Int(11)), list.FromSlice([]Int{Int(11)})),
+				tuple.Pair(Comparable[Int](Int(12)), list.FromSlice([]Int{Int(12)})),
+				tuple.Pair(Comparable[Int](Int(13)), list.FromSlice([]Int{Int(13)})),
+				tuple.Pair(Comparable[Int](Int(14)), list.FromSlice([]Int{Int(14)})),
+				tuple.Pair(Comparable[Int](Int(15)), list.FromSlice([]Int{Int(15)})),
+			})
+
+			asserts.Equal(expected, ToList(SUT))
+		})
 	})
 }
