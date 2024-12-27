@@ -4,7 +4,6 @@
 package dict
 
 import (
-	"cmp"
 	"errors"
 	. "github.com/Confidenceman02/scion-tools/pkg/basics"
 	"github.com/Confidenceman02/scion-tools/pkg/list"
@@ -37,7 +36,7 @@ The rules are as follows for Red-Black trees:
 
 // Dict represents a dictionary of keys and values.
 // So a Dict[string, User] is a dictionary that lets you look up a string (such as user names) and find the associated User.
-type Dict[K, V any] interface {
+type Dict[K Comparable[K], V any] interface {
 	rbt() *dict[K, V]
 }
 
@@ -48,11 +47,14 @@ func (d *dict[K, V]) rbt() *dict[K, V] {
 	return d
 }
 
-type dict[K, V any] struct {
+// The raw constructor you can instantiate a Dict with.
+// This should have limited use, the Empty or Singleton
+// functions are better ways to contstruct a Dict.
+type dict[K Comparable[K], V any] struct {
 	root *node[K, V]
 }
 
-type node[K, V any] struct {
+type node[K Comparable[K], V any] struct {
 	key   K
 	value V
 	color int
@@ -60,12 +62,12 @@ type node[K, V any] struct {
 	right *node[K, V]
 }
 
-type stack[K, V any] struct {
+type stack[K Comparable[K], V any] struct {
 	pp *stack[K, V]
 	p  *node[K, V]
 }
 
-type nodeStack[K, V any] struct {
+type nodeStack[K Comparable[K], V any] struct {
 	stack *stack[K, V]
 	node  *node[K, V]
 }
@@ -73,24 +75,24 @@ type nodeStack[K, V any] struct {
 // BUILD
 
 // Create an empty dictionary.
-func Empty[K, V any]() Dict[Comparable[K], V] {
-	return &dict[Comparable[K], V]{root: nil}
+func Empty[K Comparable[K], V any]() Dict[K, V] {
+	return &dict[K, V]{}
 }
 
 // Update the value of a dictionary for a specific key with a given function.
-func Update[K, V any](targetKey Comparable[K], f func(maybe.Maybe[V]) maybe.Maybe[V], d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+func Update[K Comparable[K], V any](targetKey K, f func(maybe.Maybe[V]) maybe.Maybe[V], d Dict[K, V]) Dict[K, V] {
 	return maybe.MaybeWith(
 		f(Get(targetKey, d)),
-		func(j maybe.Just[V]) Dict[Comparable[K], V] { return Insert(targetKey, j.Value, d) },
-		func(n maybe.Nothing) Dict[Comparable[K], V] { return Remove(targetKey, d) },
+		func(j maybe.Just[V]) Dict[K, V] { return Insert(targetKey, j.Value, d) },
+		func(n maybe.Nothing) Dict[K, V] { return Remove(targetKey, d) },
 	)
 }
 
 // Create a dictionary with one key-value pair.
-func Singleton[K, V any](key Comparable[K], value V) Dict[Comparable[K], V] {
+func Singleton[K Comparable[K], V any](key K, value V) Dict[K, V] {
 	// Root nodes are always black
-	return &dict[Comparable[K], V]{
-		root: &node[Comparable[K], V]{
+	return &dict[K, V]{
+		root: &node[K, V]{
 			key:   key,
 			value: value,
 			color: black,
@@ -130,18 +132,22 @@ Case 4 - Parent is red and uncle is Black
 */
 
 // Insert a key-value pair into a dictionary. Replaces the value when there is a collision.
-func Insert[K, V any](key Comparable[K], v V, d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
-	root := d.rbt().root
+func Insert[K Comparable[K], V any](key K, v V, d Dict[K, V]) Dict[K, V] {
+	rbt := d.rbt()
 
-	if root == nil {
-		return &dict[Comparable[K], V]{root: &node[Comparable[K], V]{key: key, value: v, color: black, left: nil, right: nil}}
+	if rbt.root == nil {
+		return &dict[K, V]{
+			root: &node[K, V]{
+				key: key, value: v, color: black, left: nil, right: nil,
+			},
+		}
 	} else {
-		valRoot := *root
-		ns := &nodeStack[Comparable[K], V]{node: &valRoot, stack: &stack[Comparable[K], V]{p: nil, pp: nil}}
+		valRoot := *rbt.root
+		ns := &nodeStack[K, V]{node: &valRoot, stack: &stack[K, V]{p: nil, pp: nil}}
 		insertedNs := insertHelp(key, v, ns)
 		newNs := balance(insertedNs)
 		rootNs := getNodeStackRoot(newNs)
-		return &dict[Comparable[K], V]{root: rootNs.node}
+		return &dict[K, V]{root: rootNs.node}
 	}
 }
 
@@ -182,41 +188,41 @@ Case 6 - DB sibling is black and far nephew is red
 */
 
 // Remove a key-value pair from a dictionary. If the key is not found, no changes are made.
-func Remove[K, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
-	root := d.rbt().root
-	if root == nil {
+func Remove[K Comparable[K], V any](key K, d Dict[K, V]) Dict[K, V] {
+	rbt := d.rbt()
+	if rbt.root == nil {
 		// Empty tree
 		return d
 	}
 
 	// Find nodeStack to delete
-	maybeNodeStack := getNodeStack(d.rbt(), key)
+	maybeNodeStack := getNodeStack(rbt.root, key)
 
 	return maybe.MaybeWith(
 		maybeNodeStack,
-		func(j maybe.Just[*nodeStack[Comparable[K], V]]) Dict[Comparable[K], V] {
+		func(j maybe.Just[*nodeStack[K, V]]) Dict[K, V] {
 			ns := removeHelp(j.Value)
 			rootNs := getNodeStackRoot(ns)
-			return &dict[Comparable[K], V]{root: rootNs.node}
+			return &dict[K, V]{root: rootNs.node}
 		},
-		func(n maybe.Nothing) Dict[Comparable[K], V] { return d },
+		func(n maybe.Nothing) Dict[K, V] { return d },
 	)
 }
 
 // Get a Just nodeStack or Nothing if node doesn't exist
-func getNodeStack[K, V any](d *dict[Comparable[K], V], targetKey Comparable[K]) maybe.Maybe[*nodeStack[Comparable[K], V]] {
-	if d.root == nil {
+func getNodeStack[K Comparable[K], V any](n *node[K, V], targetKey K) maybe.Maybe[*nodeStack[K, V]] {
+	if n == nil {
 		return maybe.Nothing{}
 	} else {
-		valRoot := *d.root
-		return getNodeStackHelp(targetKey, &nodeStack[Comparable[K], V]{stack: &stack[Comparable[K], V]{p: nil, pp: nil}, node: &valRoot})
+		valRoot := *n
+		return getNodeStackHelp(targetKey, &nodeStack[K, V]{stack: &stack[K, V]{p: nil, pp: nil}, node: &valRoot})
 	}
 }
 
 /*
 Gets a 'Just' nodeStack or 'Nothing' if it doesn't exist
 */
-func getNodeStackHelp[K, V any](targetKey Comparable[K], ns *nodeStack[Comparable[K], V]) maybe.Maybe[*node[Comparable[K], V]] {
+func getNodeStackHelp[K Comparable[K], V any](targetKey K, ns *nodeStack[K, V]) maybe.Maybe[*node[K, V]] {
 getNodeStackHelpL:
 	for {
 		switch targetKey.Cmp(ns.node.key) {
@@ -224,23 +230,23 @@ getNodeStackHelpL:
 			if ns.node.left == nil {
 				return maybe.Nothing{}
 			} else {
-				newStack := &stack[Comparable[K], V]{pp: ns.stack, p: ns.node}
+				newStack := &stack[K, V]{pp: ns.stack, p: ns.node}
 				valL := *ns.node.left
 				ns.node.left = &valL
-				newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStack}
+				newNs := &nodeStack[K, V]{node: ns.node.left, stack: newStack}
 				ns = newNs
 				continue getNodeStackHelpL
 			}
 		case 0:
-			return maybe.Just[*nodeStack[Comparable[K], V]]{Value: ns}
+			return maybe.Just[*nodeStack[K, V]]{Value: ns}
 		case +1:
 			if ns.node.right == nil {
 				return maybe.Nothing{}
 			} else {
-				newStack := &stack[Comparable[K], V]{pp: ns.stack, p: ns.node}
+				newStack := &stack[K, V]{pp: ns.stack, p: ns.node}
 				valR := *ns.node.right
 				ns.node.right = &valR
-				newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStack}
+				newNs := &nodeStack[K, V]{node: ns.node.right, stack: newStack}
 				ns = newNs
 				continue getNodeStackHelpL
 			}
@@ -248,22 +254,22 @@ getNodeStackHelpL:
 	}
 }
 
-func insertHelp[K, V any](key Comparable[K], value V, ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func insertHelp[K Comparable[K], V any](key K, value V, ns *nodeStack[K, V]) *nodeStack[K, V] {
 insertHelpL:
 	for {
 		nKey := ns.node.key
 		switch key.Cmp(nKey) {
 		case -1:
 			if ns.node.left == nil {
-				ns.node.left = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
-				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-				newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
+				ns.node.left = &node[K, V]{key: key, value: value, color: red, left: nil, right: nil}
+				newStk := &stack[K, V]{p: ns.node, pp: ns.stack}
+				newNs := &nodeStack[K, V]{node: ns.node.left, stack: newStk}
 				return newNs
 			} else {
 				valL := *ns.node.left
 				ns.node.left = &valL
-				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-				tempNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStk}
+				newStk := &stack[K, V]{p: ns.node, pp: ns.stack}
+				tempNs := &nodeStack[K, V]{node: ns.node.left, stack: newStk}
 				ns = tempNs
 				continue insertHelpL
 			}
@@ -272,15 +278,15 @@ insertHelpL:
 			return ns
 		case +1:
 			if ns.node.right == nil {
-				ns.node.right = &node[Comparable[K], V]{key: key, value: value, color: red, left: nil, right: nil}
-				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-				newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
+				ns.node.right = &node[K, V]{key: key, value: value, color: red, left: nil, right: nil}
+				newStk := &stack[K, V]{p: ns.node, pp: ns.stack}
+				newNs := &nodeStack[K, V]{node: ns.node.right, stack: newStk}
 				return newNs
 			} else {
 				valR := *ns.node.right
 				ns.node.right = &valR
-				newStk := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-				newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStk}
+				newStk := &stack[K, V]{p: ns.node, pp: ns.stack}
+				newNs := &nodeStack[K, V]{node: ns.node.right, stack: newStk}
 				ns = newNs
 				continue insertHelpL
 			}
@@ -288,7 +294,7 @@ insertHelpL:
 	}
 }
 
-func removeHelp[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func removeHelp[K Comparable[K], V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 removeHelpL:
 	for {
 		// 2 non-nil children
@@ -298,7 +304,7 @@ removeHelpL:
 			ns.node.right = &valR
 
 			// Create new stack for right child
-			rightStack := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}}
+			rightStack := &nodeStack[K, V]{node: ns.node.right, stack: &stack[K, V]{p: ns.node, pp: ns.stack}}
 
 			// Find in order successor
 			succStk := findSuccessor(rightStack)
@@ -348,8 +354,8 @@ removeHelpL:
 			ns.node.value = ns.node.right.value
 
 			// New nodeStack
-			newStack := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.right, stack: newStack}
+			newStack := &stack[K, V]{p: ns.node, pp: ns.stack}
+			newNs := &nodeStack[K, V]{node: ns.node.right, stack: newStack}
 			ns = newNs
 			continue removeHelpL
 		} else {
@@ -362,15 +368,15 @@ removeHelpL:
 			ns.node.value = ns.node.left.value
 
 			// New nodeStack
-			newStack := &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}
-			newNs := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: newStack}
+			newStack := &stack[K, V]{p: ns.node, pp: ns.stack}
+			newNs := &nodeStack[K, V]{node: ns.node.left, stack: newStack}
 			ns = newNs
 			continue removeHelpL
 		}
 	}
 }
 
-func fixDB[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func fixDB[K Comparable[K], V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 fixDBL:
 	for {
 		// Case 2 - DB is root
@@ -403,7 +409,7 @@ fixDBL:
 				if pColor != black {
 					return ns
 				} else {
-					ns = &nodeStack[Comparable[K], V]{stack: ns.stack.pp, node: ns.stack.p}
+					ns = &nodeStack[K, V]{stack: ns.stack.pp, node: ns.stack.p}
 					continue fixDBL
 				}
 			}
@@ -431,7 +437,7 @@ fixDBL:
 					// 6.2 Rotate DB parent in DB direction
 					grandparentStk := ns.stack.pp
 					newRoot := slRotationV2(ns.stack.p, grandparentStk)
-					newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
+					newNs := &nodeStack[K, V]{stack: grandparentStk, node: newRoot}
 					// 6.3 Turn far nephew's color to black
 					valSR.color = black
 					newNs.node.right = &valSR
@@ -464,7 +470,7 @@ fixDBL:
 					// 6.2 Rotate DB parent in DB direction
 					grandparentStk := ns.stack.pp
 					newRoot := srRotationV2(ns.stack.p, grandparentStk)
-					newNs := &nodeStack[Comparable[K], V]{stack: grandparentStk, node: newRoot}
+					newNs := &nodeStack[K, V]{stack: grandparentStk, node: newRoot}
 					// 6.3 Turn far nephew's color to black
 					valSL.color = black
 					newNs.node.left = &valSL
@@ -483,7 +489,7 @@ fixDBL:
 
 		// 4.2 Rotate parent towards n's direction
 		grandparentStk := ns.stack.pp
-		var newRoot = &node[Comparable[K], V]{}
+		var newRoot = &node[K, V]{}
 		switch pSide {
 		case left:
 			newRoot = slRotationV2(ns.stack.p, grandparentStk)
@@ -492,8 +498,8 @@ fixDBL:
 			newRoot = srRotationV2(ns.stack.p, grandparentStk)
 		}
 		// Add new root to stack as parent
-		newRootStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
-		newPStk := &stack[Comparable[K], V]{p: ns.stack.p, pp: newRootStk}
+		newRootStk := &stack[K, V]{p: newRoot, pp: ns.stack.pp}
+		newPStk := &stack[K, V]{p: ns.stack.p, pp: newRootStk}
 		ns.stack = newPStk
 		continue fixDBL
 	}
@@ -514,32 +520,32 @@ func (n *node[K, V]) isRed() bool {
 	return n != nil && n.color == red
 }
 
-func findSuccessor[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func findSuccessor[K Comparable[K], V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 	if ns.node.left == nil {
 		return ns
 	} else {
 		valL := *ns.node.left
 		ns.node.left = &valL
-		newStack := &nodeStack[Comparable[K], V]{node: ns.node.left, stack: &stack[Comparable[K], V]{p: ns.node, pp: ns.stack}}
+		newStack := &nodeStack[K, V]{node: ns.node.left, stack: &stack[K, V]{p: ns.node, pp: ns.stack}}
 		return findSuccessor(newStack)
 	}
 }
 
 // Find sibling nodeStack
-func findSibling[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func findSibling[K Comparable[K], V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 	pDir := parentSide(ns)
 	if pDir == left {
 		valR := *ns.stack.p.right
 		ns.stack.p.right = &valR
-		return &nodeStack[Comparable[K], V]{stack: ns.stack, node: ns.stack.p.right}
+		return &nodeStack[K, V]{stack: ns.stack, node: ns.stack.p.right}
 	} else {
 		valL := *ns.stack.p.left
 		ns.stack.p.left = &valL
-		return &nodeStack[Comparable[K], V]{stack: ns.stack, node: ns.stack.p.left}
+		return &nodeStack[K, V]{stack: ns.stack, node: ns.stack.p.left}
 	}
 }
 
-func balance[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func balance[K Comparable[K], V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 balanceL:
 	for {
 		// Root case
@@ -554,7 +560,7 @@ balanceL:
 		}
 		// Parent and node are red
 		nDir := parentSide(ns)
-		pDir := parentSide(&nodeStack[Comparable[K], V]{node: ns.stack.p, stack: ns.stack.pp})
+		pDir := parentSide(&nodeStack[K, V]{node: ns.stack.p, stack: ns.stack.pp})
 		uncle := getUncle(ns)
 		grandparent := ns.stack.pp.p
 
@@ -569,7 +575,7 @@ balanceL:
 			ns.stack.p.color = grandparent.color
 			grandparent.color = red
 			setUncle(ns, cpU)
-			newNs := &nodeStack[Comparable[K], V]{node: grandparent, stack: ns.stack.pp.pp}
+			newNs := &nodeStack[K, V]{node: grandparent, stack: ns.stack.pp.pp}
 			ns = newNs
 			continue balanceL
 		}
@@ -587,7 +593,7 @@ balanceL:
 				newRoot.color = rCol
 
 				// balance newRoot
-				newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
+				newNs := &nodeStack[K, V]{node: newRoot, stack: ns.stack.pp.pp}
 				ns = newNs
 				continue balanceL
 			case right:
@@ -595,8 +601,8 @@ balanceL:
 				newRoot := slRotationV2(ns.stack.p, ns.stack.pp)
 
 				// Add new root to stack as parent
-				newStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
-				newNs := &nodeStack[Comparable[K], V]{node: newRoot.left, stack: newStk}
+				newStk := &stack[K, V]{p: newRoot, pp: ns.stack.pp}
+				newNs := &nodeStack[K, V]{node: newRoot.left, stack: newStk}
 				ns = newNs
 				continue balanceL
 			}
@@ -612,7 +618,7 @@ balanceL:
 				newRoot.color = lCol
 
 				// balance newRoot
-				newNs := &nodeStack[Comparable[K], V]{node: newRoot, stack: ns.stack.pp.pp}
+				newNs := &nodeStack[K, V]{node: newRoot, stack: ns.stack.pp.pp}
 				ns = newNs
 				continue balanceL
 			case left:
@@ -620,8 +626,8 @@ balanceL:
 				newRoot := srRotationV2(ns.stack.p, ns.stack.pp)
 
 				// Add newRoot to stack as parent
-				newStk := &stack[Comparable[K], V]{p: newRoot, pp: ns.stack.pp}
-				newNs := &nodeStack[Comparable[K], V]{node: newRoot.right, stack: newStk}
+				newStk := &stack[K, V]{p: newRoot, pp: ns.stack.pp}
+				newNs := &nodeStack[K, V]{node: newRoot.right, stack: newStk}
 				ns = newNs
 				continue balanceL
 			}
@@ -630,12 +636,12 @@ balanceL:
 	}
 }
 
-func srRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
+func srRotationV2[K Comparable[K], V any](x *node[K, V], stk *stack[K, V]) *node[K, V] {
 	leftNode := x.left
 
 	// Handle x's parent
 	if stk.p != nil {
-		pSide := parentSide(&nodeStack[Comparable[K], V]{node: x, stack: stk})
+		pSide := parentSide(&nodeStack[K, V]{node: x, stack: stk})
 
 		switch pSide {
 		case left:
@@ -653,12 +659,12 @@ func srRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K],
 	return leftNode
 }
 
-func slRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K], V]) *node[Comparable[K], V] {
+func slRotationV2[K Comparable[K], V any](x *node[K, V], stk *stack[K, V]) *node[K, V] {
 	rightNode := x.right
 
 	// Handle x's parent
 	if stk.p != nil {
-		pSide := parentSide(&nodeStack[Comparable[K], V]{node: x, stack: stk})
+		pSide := parentSide(&nodeStack[K, V]{node: x, stack: stk})
 
 		switch pSide {
 		case left:
@@ -676,20 +682,20 @@ func slRotationV2[K, V any](x *node[Comparable[K], V], stk *stack[Comparable[K],
 	return rightNode
 }
 
-func parentSide[K, V any](ns *nodeStack[Comparable[K], V]) int {
+func parentSide[K Comparable[K], V any](ns *nodeStack[K, V]) int {
 	p := ns.stack.p
-	if p.left != nil && ns.node.key == p.left.key {
+	if p.left != nil && Eq(ns.node.key, p.left.key) {
 		return left
 	} else {
 		return right
 	}
 }
 
-func setUncle[K, V any](ns *nodeStack[Comparable[K], V], unc *node[Comparable[K], V]) {
+func setUncle[K Comparable[K], V any](ns *nodeStack[K, V], unc *node[K, V]) {
 	parent := ns.stack.p
 	gp := ns.stack.pp.p
 
-	if parentSide(&nodeStack[Comparable[K], V]{node: parent, stack: ns.stack.pp}) == left {
+	if parentSide(&nodeStack[K, V]{node: parent, stack: ns.stack.pp}) == left {
 		// Uncle is right side
 		gp.right = unc
 	} else {
@@ -697,10 +703,10 @@ func setUncle[K, V any](ns *nodeStack[Comparable[K], V], unc *node[Comparable[K]
 	}
 }
 
-func getUncle[K, V any](ns *nodeStack[Comparable[K], V]) *node[Comparable[K], V] {
+func getUncle[K Comparable[K], V any](ns *nodeStack[K, V]) *node[K, V] {
 	parent := ns.stack.p
 	gp := ns.stack.pp.p
-	if parentSide(&nodeStack[Comparable[K], V]{node: parent, stack: ns.stack.pp}) == left {
+	if parentSide(&nodeStack[K, V]{node: parent, stack: ns.stack.pp}) == left {
 		// Uncle is right side
 		return gp.right
 	} else {
@@ -708,19 +714,19 @@ func getUncle[K, V any](ns *nodeStack[Comparable[K], V]) *node[Comparable[K], V]
 	}
 }
 
-func getNodeStackRoot[K, V any](ns *nodeStack[Comparable[K], V]) *nodeStack[Comparable[K], V] {
+func getNodeStackRoot[K Comparable[K], V any](ns *nodeStack[K, V]) *nodeStack[K, V] {
 	if ns.stack.p == nil {
 		return ns
 	} else {
-		newNs := &nodeStack[Comparable[K], V]{node: ns.stack.p, stack: ns.stack.pp}
+		newNs := &nodeStack[K, V]{node: ns.stack.p, stack: ns.stack.pp}
 		return getNodeStackRoot(newNs)
 	}
 }
 
-func getStackHelp[K cmp.Ordered, V any](k K, n *node[K, V], st *stack[K, V]) (*stack[K, V], error) {
+func getStackHelp[K Comparable[K], V any](k K, n *node[K, V], st *stack[K, V]) (*stack[K, V], error) {
 getNodeStackHelpL:
 	for {
-		switch cmp.Compare(k, n.key) {
+		switch k.Cmp(n.key) {
 		case -1:
 			if n.left == nil {
 				return st, errors.New("Node does not exist in tree")
@@ -746,22 +752,22 @@ getNodeStackHelpL:
 // QUERY
 
 // Determine if a dictionary is empty.
-func IsEmpty[K, V any](d Dict[Comparable[K], V]) bool {
+func IsEmpty[K Comparable[K], V any](d Dict[K, V]) bool {
 	return d.rbt().root == nil
 }
 
 // Member - Determine if a key is in a dictionary.
-func Member[K, V any](k Comparable[K], d Dict[Comparable[K], V]) bool {
-	root := d.rbt().root
+func Member[K Comparable[K], V any](k K, d Dict[K, V]) bool {
+	rbt := d.rbt()
 
-	if root == nil {
+	if rbt.root == nil {
 		return false
 	} else {
-		return memberHelp(k, root)
+		return memberHelp(k, rbt.root)
 	}
 }
 
-func memberHelp[K, V any](k Comparable[K], n *node[Comparable[K], V]) bool {
+func memberHelp[K Comparable[K], V any](k K, n *node[K, V]) bool {
 memberHelpL:
 	for {
 		if n == nil {
@@ -784,23 +790,23 @@ memberHelpL:
 // Get the value associated with a key.
 // If the key is not found, return [Nothing].
 // This is useful when you are not sure if a key will be in the dictionary.
-func Get[K, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) maybe.Maybe[V] {
-	root := d.rbt().root
-	if root == nil {
+func Get[K Comparable[K], V any](targetKey K, d Dict[K, V]) maybe.Maybe[V] {
+	rbt := d.rbt()
+	if rbt.root == nil {
 		return maybe.Nothing{}
 	} else {
-		return getHelp(targetKey, root)
+		return getHelp(targetKey, rbt.root)
 	}
 }
 
 // Determine the number of key-value pairs in the dictionary.
-func Size[K, V any](d Dict[Comparable[K], V]) Int {
-	root := d.rbt().root
+func Size[K Comparable[K], V any](d Dict[K, V]) Int {
+	rbt := d.rbt()
 
-	if root == nil {
+	if rbt.root == nil {
 		return 0
 	}
-	queue := []*node[Comparable[K], V]{root}
+	queue := []*node[K, V]{rbt.root}
 	count := 0
 
 	for len(queue) > 0 {
@@ -819,7 +825,7 @@ func Size[K, V any](d Dict[Comparable[K], V]) Int {
 	return Int(count)
 }
 
-func getHelp[K, V any](targetKey Comparable[K], n *node[Comparable[K], V]) maybe.Maybe[V] {
+func getHelp[K Comparable[K], V any](targetKey K, n *node[K, V]) maybe.Maybe[V] {
 getHelpL:
 	for {
 		if n == nil {
@@ -842,20 +848,20 @@ getHelpL:
 // LISTS
 
 // Get all of the keys in a dictionary, sorted from lowest to highest.
-func Keys[K, V any](d Dict[Comparable[K], V]) list.List[Comparable[K]] {
+func Keys[K Comparable[K], V any](d Dict[K, V]) list.List[K] {
 	return Foldr(
-		func(key Comparable[K], _ V, keyList list.List[Comparable[K]]) list.List[Comparable[K]] {
+		func(key K, _ V, keyList list.List[K]) list.List[K] {
 			return list.Cons(key, keyList)
 		},
-		list.Empty[Comparable[K]](),
+		list.Empty[K](),
 		d,
 	)
 }
 
 // Get all of the values in a dictionary, in the order of their keys.
-func Values[K, V any](d Dict[Comparable[K], V]) list.List[V] {
+func Values[K Comparable[K], V any](d Dict[K, V]) list.List[V] {
 	return Foldr(
-		func(_ Comparable[K], value V, valueList list.List[V]) list.List[V] {
+		func(_ K, value V, valueList list.List[V]) list.List[V] {
 			return list.Cons(value, valueList)
 		},
 		list.Empty[V](),
@@ -864,20 +870,20 @@ func Values[K, V any](d Dict[Comparable[K], V]) list.List[V] {
 }
 
 // Convert a dictionary into an association list of key-value pairs, sorted by keys.
-func ToList[K, V any](d Dict[Comparable[K], V]) list.List[tuple.Tuple2[Comparable[K], V]] {
+func ToList[K Comparable[K], V any](d Dict[K, V]) list.List[tuple.Tuple2[K, V]] {
 	return Foldr(
-		func(key Comparable[K], value V, xs list.List[tuple.Tuple2[Comparable[K], V]]) list.List[tuple.Tuple2[Comparable[K], V]] {
+		func(key K, value V, xs list.List[tuple.Tuple2[K, V]]) list.List[tuple.Tuple2[K, V]] {
 			return list.Cons(tuple.Pair(key, value), xs)
 		},
-		list.Empty[tuple.Tuple2[Comparable[K], V]](),
+		list.Empty[tuple.Tuple2[K, V]](),
 		d,
 	)
 }
 
 // Convert an association list into a dictionary.
-func FromList[K, V any](l list.List[tuple.Tuple2[Comparable[K], V]]) Dict[Comparable[K], V] {
+func FromList[K Comparable[K], V any](l list.List[tuple.Tuple2[K, V]]) Dict[K, V] {
 	return list.Foldl(
-		func(t tuple.Tuple2[Comparable[K], V], d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+		func(t tuple.Tuple2[K, V], d Dict[K, V]) Dict[K, V] {
 			return Insert(tuple.First(t), tuple.Second(t), d)
 		},
 		Empty[K, V](),
@@ -888,28 +894,28 @@ func FromList[K, V any](l list.List[tuple.Tuple2[Comparable[K], V]]) Dict[Compar
 // TRANSFORM
 
 // Apply a function to all values in a dictionary.
-func Map[K, V, B any](f func(key Comparable[K], value V) B, d Dict[Comparable[K], V]) Dict[Comparable[K], B] {
+func Map[K Comparable[K], V, B any](f func(key K, value V) B, d Dict[K, V]) Dict[K, B] {
 	if d.rbt().root == nil {
 		return Empty[K, B]()
 	} else {
-		return &dict[Comparable[K], B]{root: mapHelp(f, d.rbt().root)}
+		return &dict[K, B]{root: mapHelp(f, d.rbt().root)}
 	}
 }
 
-func mapHelp[K, V, B any](f func(Comparable[K], V) B, t *node[Comparable[K], V]) *node[Comparable[K], B] {
+func mapHelp[K Comparable[K], V, B any](f func(K, V) B, t *node[K, V]) *node[K, B] {
 	if t == nil {
 		return nil
 	} else {
-		return &node[Comparable[K], B]{key: t.key, value: f(t.key, t.value), color: t.color, left: mapHelp(f, t.left), right: mapHelp(f, t.right)}
+		return &node[K, B]{key: t.key, value: f(t.key, t.value), color: t.color, left: mapHelp(f, t.left), right: mapHelp(f, t.right)}
 	}
 }
 
 // Fold over the key-value pairs in a dictionary from lowest key to highest key.
-func Foldl[K, V, B any](f func(Comparable[K], V, B) B, acc B, d Dict[Comparable[K], V]) B {
+func Foldl[K Comparable[K], V, B any](f func(K, V, B) B, acc B, d Dict[K, V]) B {
 	return foldlHelp(f, acc, d.rbt().root)
 }
 
-func foldlHelp[K, V, B any](f func(Comparable[K], V, B) B, acc B, t *node[Comparable[K], V]) B {
+func foldlHelp[K Comparable[K], V, B any](f func(K, V, B) B, acc B, t *node[K, V]) B {
 foldlHelpL:
 	for {
 		if t == nil {
@@ -929,11 +935,11 @@ foldlHelpL:
 }
 
 // Fold over the key-value pairs in a dictionary from highest key to lowest key.
-func Foldr[K, V, B any](f func(Comparable[K], V, B) B, acc B, d Dict[Comparable[K], V]) B {
+func Foldr[K Comparable[K], V, B any](f func(K, V, B) B, acc B, d Dict[K, V]) B {
 	return foldrHelp(f, acc, d.rbt().root)
 }
 
-func foldrHelp[K, V, B any](f func(Comparable[K], V, B) B, acc B, t *node[Comparable[K], V]) B {
+func foldrHelp[K Comparable[K], V, B any](f func(K, V, B) B, acc B, t *node[K, V]) B {
 foldrHelpL:
 	for {
 		if t == nil {
@@ -953,9 +959,9 @@ foldrHelpL:
 }
 
 // Keep only the key-value pairs that pass the given test.
-func Filter[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+func Filter[K Comparable[K], V any](isGood func(K, V) bool, d Dict[K, V]) Dict[K, V] {
 	return Foldl(
-		func(k Comparable[K], v V, d Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+		func(k K, v V, d Dict[K, V]) Dict[K, V] {
 			if isGood(k, v) {
 				return Insert(k, v, d)
 			} else {
@@ -970,12 +976,12 @@ func Filter[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], 
 // Partition a dictionary according to some test. The first dictionary
 // contains all key-value pairs which passed the test, and the second contains
 // the pairs that did not.
-func Partition[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], V]) tuple.Tuple2[Dict[Comparable[K], V], Dict[Comparable[K], V]] {
+func Partition[K Comparable[K], V any](isGood func(K, V) bool, d Dict[K, V]) tuple.Tuple2[Dict[K, V], Dict[K, V]] {
 	add := func(
-		key Comparable[K],
+		key K,
 		value V,
-		td tuple.Tuple2[Dict[Comparable[K], V], Dict[Comparable[K], V]],
-	) tuple.Tuple2[Dict[Comparable[K], V], Dict[Comparable[K], V]] {
+		td tuple.Tuple2[Dict[K, V], Dict[K, V]],
+	) tuple.Tuple2[Dict[K, V], Dict[K, V]] {
 		t1, t2 := tuple.First(td), tuple.Second(td)
 		if isGood(key, value) {
 			return tuple.Pair(Insert(key, value, t1), t2)
@@ -990,20 +996,20 @@ func Partition[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K
 
 // Combine two dictionaries. If there is a collision, preference is given
 // to the first dictionary.
-func Union[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V] {
-	return Foldl[K, V, Dict[Comparable[K], V]](Insert, t2, t1)
+func Union[K Comparable[K], V any](t1 Dict[K, V], t2 Dict[K, V]) Dict[K, V] {
+	return Foldl[K, V, Dict[K, V]](Insert, t2, t1)
 }
 
 // Keep a key-value pair when its key appears in the second dictionary.
 // Preference is given to values in the first dictionary.
-func Intersect[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V] {
-	return Filter(func(k Comparable[K], _ V) bool { return Member(k, t2) }, t1)
+func Intersect[K Comparable[K], V any](t1 Dict[K, V], t2 Dict[K, V]) Dict[K, V] {
+	return Filter(func(k K, _ V) bool { return Member(k, t2) }, t1)
 }
 
 // Keep a key-value pair when its key does not appear in the second dictionary.
-func Diff[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V] {
+func Diff[K Comparable[K], V any](t1 Dict[K, V], t2 Dict[K, V]) Dict[K, V] {
 	return Foldl(
-		func(k Comparable[K], _ V, t Dict[Comparable[K], V]) Dict[Comparable[K], V] { return Remove(k, t) },
+		func(k K, _ V, t Dict[K, V]) Dict[K, V] { return Remove(k, t) },
 		t1,
 		t2,
 	)
@@ -1016,15 +1022,15 @@ func Diff[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[C
 // 3. Only in the right dictionary.
 // You then traverse all the keys from lowest to highest, building up whatever
 // you want.
-func Merge[K, A, B, R any](
-	leftStep func(Comparable[K], A, R) R,
-	bothStep func(Comparable[K], A, B, R) R,
-	rightStep func(Comparable[K], B, R) R,
-	leftDict Dict[Comparable[K], A],
-	rightDict Dict[Comparable[K], B],
+func Merge[K Comparable[K], A, B, R any](
+	leftStep func(K, A, R) R,
+	bothStep func(K, A, B, R) R,
+	rightStep func(K, B, R) R,
+	leftDict Dict[K, A],
+	rightDict Dict[K, B],
 	initialResult R,
 ) R {
-	stepState := func(rKey Comparable[K], rValue B, _v0 tuple.Tuple2[list.List[tuple.Tuple2[Comparable[K], A]], R]) tuple.Tuple2[list.List[tuple.Tuple2[Comparable[K], A]], R] {
+	stepState := func(rKey K, rValue B, _v0 tuple.Tuple2[list.List[tuple.Tuple2[K, A]], R]) tuple.Tuple2[list.List[tuple.Tuple2[K, A]], R] {
 	stepStateL:
 		for {
 			list_ := tuple.First(_v0)
@@ -1056,7 +1062,7 @@ func Merge[K, A, B, R any](
 	leftovers := tuple.First(_v3)
 	intermediateResult := tuple.Second(_v3)
 	return list.Foldl(
-		func(_v4 tuple.Tuple2[Comparable[K], A], result R) R {
+		func(_v4 tuple.Tuple2[K, A], result R) R {
 			k := tuple.First(_v4)
 			v := tuple.Second(_v4)
 			return leftStep(k, v, result)

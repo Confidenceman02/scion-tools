@@ -352,11 +352,6 @@
     </ul>
     <ul>
         <li>
-            <a href="#maximum_unsafe">Maximum_UNSAFE</a>
-        </li>
-    </ul>
-    <ul>
-        <li>
             <a href="#minimum">Minimum</a>
         </li>
     </ul>
@@ -413,11 +408,6 @@
     <ul>
         <li>
             <a href="#sort">Sort</a>
-        </li>
-    </ul>
-    <ul>
-        <li>
-            <a href="#sort_unsafe">Sort_UNSAFE</a>
         </li>
     </ul>
     <ul>
@@ -514,6 +504,95 @@
         </li>
     </ul>
   </details>
+- <details>
+    <summary><a href="#set">Set</a></summary>
+    <ul>
+        <li>
+            <a href="#emptyset">Empty</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#singletonset">Singleton</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#insertset">Insert</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#removeset">Remove</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#isEmptyset">IsEmpty</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#memberset">Member</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#sizeset">Size</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#unionset">Union</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#intersectset">Intersect</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#diffset">Diff</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#toListset">ToList</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#fromList">FromList</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#mapset">Map</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#foldlset">Foldl</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#foldrset">Foldr</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#filterset">Filter</a>
+        </li>
+    </ul>
+    <ul>
+        <li>
+            <a href="#partitionset">Partition</a>
+        </li>
+    </ul>
+  </details>
+
 - <details>
     <summary><a href="#string">String</a></summary>
     <ul>
@@ -1027,7 +1106,7 @@ Eq(arg1, arg2) // true
 
 ## Lt
 
-`func Lt[T any](x Comparable[T], y Comparable[T]) bool`
+`func Lt[T Comparable[T]](x T, y T) bool`
 
 (<)
 
@@ -1040,7 +1119,7 @@ Lt(arg1, arg2) // true
 
 ## Gt
 
-`func Gt[T any](x Comparable[T], y Comparable[T]) bool`
+`func Gt[T Comparable[T]](x T, y T) bool`
 
 (>)
 
@@ -1055,7 +1134,7 @@ Gt(arg1, arg2) // false
 
 ## Le
 
-`func Le[T any](x Comparable[T], y Comparable[T]) bool`
+`func Le[T Comparable[T]](x T, y T) bool`
 
 (<=)
 
@@ -1070,7 +1149,7 @@ Le(arg1, arg2) // True
 
 ## Ge
 
-`func Ge[T any](x Comparable[T], y Comparable[T]) bool`
+`func Ge[T Comparable[T]](x T, y T) bool`
 
 (>=)
 
@@ -1085,7 +1164,7 @@ Ge(arg1, arg2) // False
 
 ## Max
 
-`func Max[T any](x Comparable[T], y Comparable[T]) Comparable[T]`
+`func Max[T Comparable[T]](x T, y T) T`
 
 Find the larger of two comparables.
 
@@ -1098,7 +1177,7 @@ Max("abc","xyz") // "xyz"
 
 ## Min
 
-`func Min[T any](x Comparable[T], y Comparable[T]) Comparable[T]`
+`func Min[T Comparable[T]](x T, y T) T`
 
 Find the smaller of two comparables.
 
@@ -1111,7 +1190,7 @@ Min("abc","xyz") // "abc"
 
 ## Compare
 
-`func Compare[T any](x Comparable[T], y Comparable[T]) Order`
+`func Compare[T Comparable[T]](x T, y T) Order`
 
 Compare any two comparable values. Comparable values include String, Char,
 Int, Float, or a list or tuple containing comparable values. These are also the
@@ -1302,7 +1381,7 @@ Insert, remove, and query operations all take O(log n) time.
 
 ## Empty
 
-`func Empty[K any, V any]() Dict[Comparable[K], V]`
+`func Empty[K Comparable[K], V any]() Dict[K, V]`
 
 Create an empty dictionary.
 
@@ -1314,7 +1393,7 @@ Empty()
 
 ## Singleton(Dict)
 
-`func Singleton[K any, V any](key Comparable[K], value V) Dict[Comparable[K], V]`
+`func Singleton[K Comparable[K], V any](key K, value V) Dict[K, V]`
 
 Create a dictionary with one key-value pair.
 
@@ -1326,7 +1405,7 @@ Singleton("hello", "world") // Dict[String,string]
 
 ## Insert
 
-`func Insert[K any, V any](key Comparable[K], v V, d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Insert[K Comparable[K], V any](key K, v V, d Dict[K, V]) Dict[K, V]`
 
 Insert a key-value pair into a dictionary. Replaces value when there is a collision.
 
@@ -1338,7 +1417,7 @@ Insert(2, "two", Singleton(1,"one"))
 
 ## Update
 
-`func Update[K, V any](targetKey Comparable[K], f func(maybe.Maybe[V]) maybe.Maybe[V], d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Update[K Comparable[K], V any](targetKey K, f func(maybe.Maybe[V]) maybe.Maybe[V], d Dict[K, V]) Dict[K, V]`
 
 Update the value of a dictionary for a specific key with a given function.
 
@@ -1346,7 +1425,7 @@ Update the value of a dictionary for a specific key with a given function.
 
 ## Remove
 
-`func Remove[K any, V any](key Comparable[K], d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Remove[K Comparable[K], V any](key K, d Dict[K, V]) Dict[K, V]`
 
 Remove a key-value pair from a dictionary. If the key is not found, no changes are made.
 
@@ -1358,7 +1437,7 @@ Remove(1, Singleton(1,"one"))
 
 ## IsEmpty
 
-`func IsEmpty[K any, V any](d Dict[Comparable[K], V]) bool`
+`func IsEmpty[K Comparable[K], V any](d Dict[K, V]) bool`
 
 Determine if a dictionary is empty.
 
@@ -1370,7 +1449,7 @@ IsEmpty(Empty()) // true
 
 ## Member(Dict)
 
-`func Member[K any, V any](k Comparable[K], d Dict[Comparable[K], V]) bool`
+`func Member[K Comparable[K], V any](k K, d Dict[K, V]) bool`
 
 Determine if a key is in a dictionary.
 
@@ -1382,7 +1461,7 @@ Member(1, Singleton(1, "one")) // true
 
 ## Get
 
-`func Get[K, V any](targetKey Comparable[K], d Dict[Comparable[K], V]) Maybe[V]`
+`func Get[K Comparable[K], V any](targetKey K, d Dict[K, V]) maybe.Maybe[V]`
 
 Get the value associated with a key.
 If the key is not found, return [Nothing].
@@ -1396,7 +1475,7 @@ Get(1, Singleton(1, "one")) // Just "one"
 
 ## Size
 
-`func Size[K, V any](d Dict[Comparable[K], V]) Int`
+`func Size[K Comparable[K], V any](d Dict[K, V]) Int`
 
 Determine the number of key-value pairs in the dictionary.
 
@@ -1404,7 +1483,7 @@ Determine the number of key-value pairs in the dictionary.
 
 ## Keys
 
-`func Keys[K, V any](d Dict[Comparable[K], V]) list.List[Comparable[K]]`
+`func Keys[K Comparable[K], V any](d Dict[K, V]) list.List[K]`
 
 Get all of the keys in a dictionary, sorted from lowest to highest.
 
@@ -1416,7 +1495,7 @@ Keys(fromList([(0,"Alice"),(1,"Bob")])) == [0,1]
 
 ## Values
 
-`func Values[K, V any](d Dict[Comparable[K], V]) list.List[V]`
+`func Values[K Comparable[K], V any](d Dict[K, V]) list.List[V]`
 
 Get all of the values in a dictionary, in the order of their keys.
 
@@ -1428,7 +1507,7 @@ Values(fromList([(0,"Alice"),(1,"Bob")])) == ["Alice","Bob"]
 
 ## ToList
 
-`func ToList[K, V any](d Dict[Comparable[K], V]) list.List[tuple.Tuple2[Comparable[K], V]]`
+`func ToList[K Comparable[K], V any](d Dict[K, V]) list.List[tuple.Tuple2[K, V]]`
 
 Convert a dictionary into an association list of key-value pairs, sorted by keys.
 
@@ -1436,7 +1515,7 @@ Convert a dictionary into an association list of key-value pairs, sorted by keys
 
 ## FromList
 
-`func FromList[K, V any](l list.List[tuple.Tuple2[Comparable[K], V]]) Dict[Comparable[K], V]`
+`func FromList[K Comparable[K], V any](l list.List[tuple.Tuple2[K, V]]) Dict[K, V]`
 
 Convert an association list into a dictionary.
 
@@ -1444,7 +1523,7 @@ Convert an association list into a dictionary.
 
 ## Map(Dict)
 
-`func Map[K, V, B any](f func(key Comparable[K], value V) B, d Dict[Comparable[K], V]) Dict[Comparable[K], B]`
+`func Map[K Comparable[K], V, B any](f func(key K, value V) B, d Dict[K, V]) Dict[K, B]`
 
 Apply a function to all values in a dictionary.
 
@@ -1452,7 +1531,7 @@ Apply a function to all values in a dictionary.
 
 ## Foldl(Dict)
 
-`func Foldl[K, V, B any](f func(Comparable[K], V, B) B, acc B, d Dict[Comparable[K], V]) B`
+`func Foldl[K Comparable[K], V, B any](f func(K, V, B) B, acc B, d Dict[K, V]) B`
 
 Fold over the key-value pairs in a dictionary from lowest key to highest key.
 
@@ -1460,7 +1539,7 @@ Fold over the key-value pairs in a dictionary from lowest key to highest key.
 
 ## Foldr(Dict)
 
-`func Foldr[K, V, B any](f func(Comparable[K], V, B) B, acc B, d Dict[Comparable[K], V]) B`
+`func Foldr[K Comparable[K], V, B any](f func(K, V, B) B, acc B, d Dict[K, V]) B`
 
 Fold over the key-value pairs in a dictionary from highest key to lowest key.
 
@@ -1468,7 +1547,7 @@ Fold over the key-value pairs in a dictionary from highest key to lowest key.
 
 ## Filter
 
-`func Filter[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Filter[K Comparable[K], V any](isGood func(K, V) bool, d Dict[K, V]) Dict[K, V]`
 
 Keep only the key-value pairs that pass the given test.
 
@@ -1476,7 +1555,7 @@ Keep only the key-value pairs that pass the given test.
 
 ## Partition
 
-`func Partition[K, V any](isGood func(Comparable[K], V) bool, d Dict[Comparable[K], V]) tuple.Tuple2[Dict[Comparable[K], V], Dict[Comparable[K], V]]`
+`func Partition[K Comparable[K], V any](isGood func(K, V) bool, d Dict[K, V]) tuple.Tuple2[Dict[K, V], Dict[K, V]]`
 
 Partition a dictionary according to some test. The first dictionary
 contains all key-value pairs which passed the test, and the second contains
@@ -1486,7 +1565,7 @@ the pairs that did not.
 
 ## Union
 
-`func Union[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Union[K Comparable[K], V any](t1 Dict[K, V], t2 Dict[K, V]) Dict[K, V]`
 
 Combine two dictionaries. If there is a collision, preference is given
 to the first dictionary.
@@ -1495,7 +1574,7 @@ to the first dictionary.
 
 ## Intersect
 
-`func Intersect[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Intersect[K Comparable[K], V any](t1 Dict[K, V], t2 Dict[K, V]) Dict[K, V]`
 
 Keep a key-value pair when its key appears in the second dictionary.
 Preference is given to values in the first dictionary.
@@ -1504,7 +1583,7 @@ Preference is given to values in the first dictionary.
 
 ## Diff
 
-`func Diff[K, V any](t1 Dict[Comparable[K], V], t2 Dict[Comparable[K], V]) Dict[Comparable[K], V]`
+`func Diff[K Comparable[K], V any](t1 Dict[K, V], t2 Dict[K, V]) Dict[K, V]`
 
 Keep a key-value pair when its key does not appear in the second dictionary.
 
@@ -1512,12 +1591,12 @@ Keep a key-value pair when its key does not appear in the second dictionary.
 
 ## Merge
 
-`func Merge[K, A, B, R any](
-	leftStep func(Comparable[K], A, R) R,
-	bothStep func(Comparable[K], A, B, R) R,
-	rightStep func(Comparable[K], B, R) R,
-	leftDict Dict[Comparable[K], A],
-	rightDict Dict[Comparable[K], B],
+`func Merge[K Comparable[K], A, B, R any](
+	leftStep func(K, A, R) R,
+	bothStep func(K, A, B, R) R,
+	rightStep func(K, B, R) R,
+	leftDict Dict[K, A],
+	rightDict Dict[K, B],
 	initialResult R,
 ) R`
 
@@ -1792,7 +1871,7 @@ Any(isEven, [2,3]) // true
 
 ## Maximum
 
-`func Maximum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T]`
+`func Maximum[T basics.Comparable[T]](xs List[T]) maybe.Maybe[T]`
 
 Find the maximum element in a non-empty list.
 
@@ -1802,22 +1881,9 @@ Maximum([1,4,2]) == Just 4
 
 [Back to top](#table-of-content)
 
-## Maximum_UNSAFE
-
-`func Maximum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T]`
-
-Find the maximum element in a non-empty list of generic elements.
-If elements do not implement the [Comparable[T]](#comparable) interface the function will panic.
-
-```go
-Maximum_UNSAFE([1,4,2]) == Just 4
-```
-
-[Back to top](#table-of-content)
-
 ## Minimum
 
-`func Minimum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T]`
+`func Minimum[T basics.Comparable[T]](xs List[T]) maybe.Maybe[T]`
 
 Find the minimum element in a non-empty list.
 
@@ -2140,6 +2206,153 @@ Chain together many computations that may fail.
 `func MaybeWith[V, R any](m Maybe[V],j func(Just[V]) R,n func(Nothing) R) R`
 
 Provide functions for a Maybe's Just and Nothing variants
+
+[Back to top](#table-of-content)
+
+# Set
+
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/set"
+```
+
+A set of unique values. The values can be any comparable type.
+This includes Int, Float, Char, String, and tuples or lists of comparable types.
+Insert, remove, and query operations all take O(log n) time.
+
+## Empty(Set)
+
+`func Empty[K Comparable[K]]() Set[K]`
+
+Create an empty set.
+
+[Back to top](#table-of-content)
+
+## Singleton(Set)
+
+`func Singleton[K Comparable[K]](v K) Set[K]`
+
+Create a set with one value.
+
+[Back to top](#table-of-content)
+
+## Insert(Set)
+
+`func Insert[K Comparable[K]](k K, s Set[K]) Set[K]`
+
+Insert a value into a set.
+
+[Back to top](#table-of-content)
+
+## Remove(Set)
+
+`func Remove[K Comparable[K]](k K, s Set[K]) Set[K]`
+
+Remove a value from a set. If the value is not found, no changes are made.
+
+[Back to top](#table-of-content)
+
+## IsEmpty(Set)
+
+`func IsEmpty[K Comparable[K]](s Set[K]) bool`
+
+Determine if a set is empty.
+
+[Back to top](#table-of-content)
+
+## Member(Set)
+
+`func Member[K Comparable[K]](k K, s Set[K]) bool`
+
+Determine if a value is in a set.
+
+[Back to top](#table-of-content)
+
+## Size(Set)
+
+`func Size[K Comparable[K]](s Set[K]) Int`
+
+Determine the number of elements in a set.
+
+[Back to top](#table-of-content)
+
+## Union(Set)
+
+`func Union[K Comparable[K]](s1 Set[K], s2 Set[K]) Set[K]`
+
+Get the union of two sets. Keep all values.
+
+[Back to top](#table-of-content)
+
+## Intersect(Set)
+
+`func Intersect[K Comparable[K]](s1 Set[K], s2 Set[K]) Set[K]`
+
+Get the intersection of two sets. Keeps values that appear in both sets.
+
+[Back to top](#table-of-content)
+
+## Diff(Set)
+
+`func Diff[K Comparable[K]](s1 Set[K], s2 Set[K]) Set[K]`
+
+Get the difference between the first set and the second. Keeps values that do not appear in the second set.
+
+[Back to top](#table-of-content)
+
+## ToList(Set)
+
+`func ToList[K Comparable[K]](s Set[K]) list.List[K]`
+
+Convert a set into a list, sorted from lowest to highest.
+
+[Back to top](#table-of-content)
+
+## FromList(Set)
+
+`func FromList[K Comparable[K]](xs list.List[K]) Set[K]`
+
+Convert a list into a set, removing any duplicates.
+
+[Back to top](#table-of-content)
+
+## Map(Set)
+
+`func Map[A Comparable[A], B Comparable[B]](f func(A) B, s Set[A]) Set[B]`
+
+Map a function onto a set, creating a new set with no duplicates.
+
+[Back to top](#table-of-content)
+
+## Foldl(Set)
+
+`func Foldl[A Comparable[A], B any](f func(A, B) B, initialState B, s Set[A]) B`
+
+Fold over the values in a set, in order from lowest to highest.
+
+[Back to top](#table-of-content)
+
+## Foldr(Set)
+
+`func Foldr[A Comparable[A], B any](f func(A, B) B, initialState B, s Set[A]) B`
+
+Fold over the values in a set, in order from highest to lowest.
+
+[Back to top](#table-of-content)
+
+## Filter(Set)
+
+`func Filter[A Comparable[A]](isGood func(A) bool, s Set[A]) Set[A]`
+
+Only keep elements that pass the given test.
+
+[Back to top](#table-of-content)
+
+## Partition(Set)
+
+`func Partition[A Comparable[A]](isGood func(A) bool, s Set[A]) tuple.Tuple2[Set[A], Set[A]]`
+
+Create two new sets. The first contains all the elements that passed the
+given test, and the second contains all the elements that did not.
 
 [Back to top](#table-of-content)
 

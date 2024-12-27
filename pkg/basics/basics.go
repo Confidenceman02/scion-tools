@@ -102,27 +102,27 @@ func Eq[T any](x, y T) bool {
 // COMPARISON
 
 // <
-func Lt[T any](x Comparable[T], y Comparable[T]) bool {
+func Lt[T Comparable[T]](x T, y T) bool {
 	return x.Cmp(y) < 0
 }
 
 // >
-func Gt[T any](x Comparable[T], y Comparable[T]) bool {
+func Gt[T Comparable[T]](x T, y T) bool {
 	return x.Cmp(y) > 0
 }
 
 // <=
-func Le[T any](x Comparable[T], y Comparable[T]) bool {
+func Le[T Comparable[T]](x T, y T) bool {
 	return x.Cmp(y) <= 0
 }
 
 // >=
-func Ge[T any](x Comparable[T], y Comparable[T]) bool {
+func Ge[T Comparable[T]](x T, y T) bool {
 	return x.Cmp(y) >= 0
 }
 
 // Find the larger of two comparables.
-func Max[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
+func Max[T Comparable[T]](x T, y T) T {
 	if Gt(x, y) {
 		return x
 	} else {
@@ -131,7 +131,7 @@ func Max[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
 }
 
 // Find the smaller of two comparables.
-func Min[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
+func Min[T Comparable[T]](x T, y T) T {
 	if Lt(x, y) {
 		return x
 	} else {
@@ -142,7 +142,7 @@ func Min[T any](x Comparable[T], y Comparable[T]) Comparable[T] {
 // Compare any two comparable values. Comparable values include String, Char,
 // Int, Float, or a list or tuple containing comparable values. These are also the
 // only values that work as Dict keys or Set members.
-func Compare[T any](x Comparable[T], y Comparable[T]) Order {
+func Compare[T Comparable[T]](x T, y T) Order {
 	n := x.Cmp(y)
 	if n < 0 {
 		return LT{}
@@ -223,6 +223,11 @@ func Sqrt(n Float) Float {
 // Given a value, returns exactly the same value. This is called the identity function.
 func Identity[A any](x A) A {
 	return x
+}
+
+// Create a function that always returns the same value. Useful with functions like map
+func Always[A, B any](a A, b B) A {
+	return a
 }
 
 // Function composition, passing results along to the left direction.

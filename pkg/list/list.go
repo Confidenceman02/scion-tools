@@ -12,11 +12,6 @@ import (
 	"slices"
 )
 
-// type _cons[A any] struct {
-// 	a A
-// 	b List[A]
-// }
-
 type List[T any] interface {
 	Cons() *internal.Cons_[T, List[T]]
 	Cmp(basics.Comparable[List[T]]) int
@@ -305,49 +300,23 @@ anyL:
 }
 
 // Find the maximum element in a non-empty list.
-func Maximum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T] {
-	return ListWith(
-		xs,
-		func(List[basics.Comparable[T]]) maybe.Maybe[T] { return maybe.Nothing{} },
-		func(x basics.Comparable[T], xs List[basics.Comparable[T]]) maybe.Maybe[T] {
-			return maybe.Just[T]{Value: Foldl[basics.Comparable[T], basics.Comparable[T]](basics.Max, x, xs).T()}
-		},
-	)
-}
-
-// Find the maximum element in a non-empty list of generic elements.
-// If elements do not implement the Comparable[T] interface the function will panic.
-func Maximum_UNSAFE[T any](xs List[T]) maybe.Maybe[T] {
+func Maximum[T basics.Comparable[T]](xs List[T]) maybe.Maybe[T] {
 	return ListWith(
 		xs,
 		func(List[T]) maybe.Maybe[T] { return maybe.Nothing{} },
-		func(x T, xt List[T]) maybe.Maybe[T] {
-			restSlice := ToSlice(xt)
-
-			if comp1, ok := any(x).(basics.Comparable[T]); ok {
-				var ret basics.Comparable[T] = comp1
-				for idx := 0; idx < len(restSlice); idx++ {
-					if comp2, ok := any(restSlice[idx]).(basics.Comparable[T]); ok {
-						ret = basics.Max(ret, comp2)
-					} else {
-						panic("Cannot find Maximum_UNSAFE on non-comparable types")
-					}
-				}
-				return maybe.Just[T]{Value: ret.T()}
-			} else {
-				panic("Cannot find Maximum_UNSAFE on non-comparable types")
-			}
+		func(x T, xs List[T]) maybe.Maybe[T] {
+			return maybe.Just[T]{Value: Foldl[T, T](basics.Max, x, xs).T()}
 		},
 	)
 }
 
 // Find the minimum element in a non-empty list.
-func Minimum[T any](xs List[basics.Comparable[T]]) maybe.Maybe[T] {
+func Minimum[T basics.Comparable[T]](xs List[T]) maybe.Maybe[T] {
 	return ListWith(
 		xs,
-		func(List[basics.Comparable[T]]) maybe.Maybe[T] { return maybe.Nothing{} },
-		func(x basics.Comparable[T], xs List[basics.Comparable[T]]) maybe.Maybe[T] {
-			return maybe.Just[T]{Value: Foldl[basics.Comparable[T], basics.Comparable[T]](basics.Min, x, xs).T()}
+		func(List[T]) maybe.Maybe[T] { return maybe.Nothing{} },
+		func(x T, xs List[T]) maybe.Maybe[T] {
+			return maybe.Just[T]{Value: Foldl[T, T](basics.Min, x, xs).T()}
 		},
 	)
 }
@@ -453,52 +422,24 @@ func map5Help[A, B, C, D, E, result any](f func(A, B, C, D, E) result, vs List[A
 // Sort
 
 // Sort values from lowest to highest.
-func Sort[T any](xs List[basics.Comparable[T]]) List[basics.Comparable[T]] {
+func Sort[T basics.Comparable[T]](xs List[T]) List[T] {
 	slc := ToSlice(xs)
 	slices.SortFunc(
 		slc,
-		func(a, b basics.Comparable[T]) int {
+		func(a, b T) int {
 			return a.Cmp(b)
 		},
 	)
 	return FromSlice(slc)
 }
 
-// Sort generic values from lowest to highest.
-// This function will panic if T is not a Comparable[T]
-func Sort_UNSAFE[T any](xs List[T]) List[T] {
-	return SortBy_UNSAFE(basics.Identity, xs)
-}
-
 // Sort values by a derived property.
-func SortBy[A any](f func(A) basics.Comparable[A], xs List[A]) List[A] {
+func SortBy[A basics.Comparable[A]](f func(A) A, xs List[A]) List[A] {
 	slc := ToSlice(xs)
 	slices.SortFunc(
 		slc,
 		func(a, b A) int {
 			return f(a).Cmp(f(b))
-		},
-	)
-	return FromSlice(slc)
-}
-
-// Sort values by a derived property.
-// This function will panic if the passed in func doesn't return a Comparable.
-func SortBy_UNSAFE[A any](f func(A) A, xs List[A]) List[A] {
-	slc := ToSlice(xs)
-	slices.SortFunc(
-		slc,
-		func(a, b A) int {
-			if comp1, ok := any(f(a)).(basics.Comparable[A]); ok {
-				if comp2, ok := any(f(b)).(basics.Comparable[A]); ok {
-					return comp1.Cmp(comp2)
-				} else {
-					panic("I was expecting a Comparable type")
-
-				}
-			} else {
-				panic("I was expecting a Comparable type")
-			}
 		},
 	)
 	return FromSlice(slc)

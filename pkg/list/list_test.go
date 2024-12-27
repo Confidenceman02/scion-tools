@@ -408,21 +408,15 @@ func TestUtilityFunctions(t *testing.T) {
 		})
 	})
 	t.Run("Maximum", func(t *testing.T) {
-		xs := FromSlice([]basics.Comparable[basics.Int]{basics.Int(1), basics.Int(4), basics.Int(2)})
+		xs := FromSlice([]basics.Int{basics.Int(1), basics.Int(4), basics.Int(2)})
 		SUT := Maximum(xs)
 
 		asserts.Equal(maybe.Just[basics.Int]{Value: basics.Int(4)}, SUT)
 	})
-	t.Run("Maximum_UNSAFE", func(t *testing.T) {
-		xs := FromSlice([]basics.Int{basics.Int(1), basics.Int(2), basics.Int(4)})
-		SUT := Maximum_UNSAFE(xs)
-
-		asserts.Equal(maybe.Just[basics.Int]{Value: basics.Int(4)}, SUT)
-	})
 	t.Run("Minimum", func(t *testing.T) {
-		xs1 := FromSlice([]basics.Comparable[basics.Int]{basics.Int(3), basics.Int(2), basics.Int(1)})
+		xs1 := FromSlice([]basics.Int{basics.Int(3), basics.Int(2), basics.Int(1)})
 		SUT1 := Minimum(xs1)
-		SUT2 := Minimum(Empty[basics.Comparable[basics.Int]]())
+		SUT2 := Minimum(Empty[basics.Int]())
 
 		asserts.Equal(maybe.Just[basics.Int]{Value: basics.Int(1)}, SUT1)
 		asserts.Equal(maybe.Nothing{}, SUT2)

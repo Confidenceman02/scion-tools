@@ -65,13 +65,11 @@ func ExampleMember() {
 }
 
 func ExampleMaximum() {
-	Maximum(FromSlice([]basics.Comparable[basics.Int]{basics.Int(1), basics.Int(2)})) // Just 2
-	Maximum_UNSAFE(FromSlice([]basics.Int{1, 2}))                                     // Just 2
+	Maximum(FromSlice([]basics.Int{basics.Int(1), basics.Int(2)})) // Just 2
 }
 
 func ExampleMinimum() {
-	Minimum(FromSlice([]basics.Comparable[basics.Int]{basics.Int(1), basics.Int(2)})) // Just 1
-	Maximum_UNSAFE(FromSlice([]basics.Int{1, 2}))                                     // Just 2
+	Minimum(FromSlice([]basics.Int{basics.Int(1), basics.Int(2)})) // Just 1
 }
 
 func ExampleSum() {
@@ -98,8 +96,7 @@ func ExampleIntersperse() {
 }
 
 func ExampleSort() {
-	Sort(FromSlice([]basics.Comparable[basics.Int]{basics.Int(3), basics.Int(2), basics.Int(1)})) // [1,2,3]
-	Sort_UNSAFE(FromSlice([]basics.Int{3, 2, 1}))                                                 // [1,2,3]
+	Sort(FromSlice([]basics.Int{basics.Int(3), basics.Int(2), basics.Int(1)})) // [1,2,3]
 }
 
 func ExampleHead() {
