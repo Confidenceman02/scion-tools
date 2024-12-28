@@ -22,22 +22,15 @@ func TestList(t *testing.T) {
 		)
 	})
 	t.Run("Sort", func(t *testing.T) {
-		xs := list.FromSlice([]basics.Comparable[string.String]{string.String("chuck"), string.String("alice"), string.String("bob")})
+		xs := list.FromSlice([]string.String{string.String("chuck"), string.String("alice"), string.String("bob")})
 		SUT := list.Sort(xs)
 
-		asserts.Equal([]basics.Comparable[string.String]{string.String("alice"), string.String("bob"), string.String("chuck")}, list.ToSlice(SUT))
-	})
-
-	t.Run("Sort_UNSASFE", func(t *testing.T) {
-		xs := list.FromSlice([]string.String{"chuck", "alice", "bob"})
-		SUT := list.Sort_UNSAFE(xs)
-
-		asserts.Equal([]string.String{"alice", "bob", "chuck"}, list.ToSlice(SUT))
+		asserts.Equal([]string.String{string.String("alice"), string.String("bob"), string.String("chuck")}, list.ToSlice(SUT))
 	})
 
 	t.Run("SortBy", func(t *testing.T) {
 		xs := list.FromSlice([]string.String{"chuck", "alice", "bob"})
-		SUT := list.SortBy(func(s string.String) basics.Comparable[string.String] { return s }, xs)
+		SUT := list.SortBy(func(s string.String) string.String { return s }, xs)
 
 		asserts.Equal([]string.String{"alice", "bob", "chuck"}, list.ToSlice(SUT))
 	})

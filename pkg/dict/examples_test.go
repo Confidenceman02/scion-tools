@@ -6,7 +6,7 @@ import (
 )
 
 func ExampleEmpty() {
-	Empty[int, int]()
+	Empty[Int, int]()
 }
 
 func ExampleSingleton() {
@@ -28,7 +28,7 @@ func ExampleRemove() {
 
 func ExampleIsEmpty() {
 	var key Int = 1
-	fmt.Println(IsEmpty(Empty[int, int]()))
+	fmt.Println(IsEmpty(Empty[Int, int]()))
 	fmt.Println(IsEmpty(Singleton(key, 24)))
 
 	// Output:
