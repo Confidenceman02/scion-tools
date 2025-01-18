@@ -505,6 +505,41 @@
     </ul>
   </details>
 - <details>
+    <summary><a href="#result">Result</a></summary>
+    <ul>
+        <li>
+            <a href="#mapresult">Map</a>
+        </li>
+        <li>
+            <a href="#map2result">Map2</a>
+        </li>
+        <li>
+            <a href="#map3result">Map3</a>
+        </li>
+        <li>
+            <a href="#map4result">Map4</a>
+        </li>
+        <li>
+            <a href="#map5result">Map5</a>
+        </li>
+        <li>
+            <a href="#andthenResult">AndThen</a>
+        </li>
+        <li>
+            <a href="#withDefault">WithDefault</a>
+        </li>
+        <li>
+            <a href="#tomaybe">ToMaybe</a>
+        </li>
+        <li>
+            <a href="#frommaybe">FromMaybe</a>
+        </li>
+        <li>
+            <a href="#maperror">MapError</a>
+        </li>
+    </ul>
+  </details>
+- <details>
     <summary><a href="#set">Set</a></summary>
     <ul>
         <li>
@@ -2353,6 +2388,125 @@ Only keep elements that pass the given test.
 
 Create two new sets. The first contains all the elements that passed the
 given test, and the second contains all the elements that did not.
+
+[Back to top](#table-of-content)
+
+# Result
+
+```go
+import "github.com/Confidenceman02/scion-tools/pkg/result"
+```
+
+A Result is the result of a computation that may fail. This is a great way to manage errors.
+
+## ResultWith
+
+`func ResultWith[E, V, R any](
+	r Result[E, V],
+	err func(Err[E, V]) R,
+	ok func(Ok[E, V]) R) R`
+
+## Map(Result)
+
+`func Map[X, A, V any](f func(A) V, ra Result[X, A]) Result[X, V]`
+
+Apply a function to a result. If the result is Ok, it will be converted. If the result is an Err, the same error value will propagate through.
+
+```go
+Map(sqrt, (Ok[String, Float]{Val: 4.0}))          // Ok 2.0
+Map(sqrt, (Err[String, Float]{Err: "bad input"})) // Err "bad input"
+```
+
+[Back to top](#table-of-content)
+
+## Map2(Result)
+
+`func Map2[X, A, B, value any](f func(A, B) value, ra Result[X, A], rb Result[X, B]) Result[X, value]`
+
+Apply a function if both results are Ok. If not, the first Err will propagate through.
+
+```go
+Map2(max, Ok[String, Int]{42}, Ok[String, Int]{13})   // Ok 42
+Map2(max, Err[String, Int]{"x"} Ok[String, Int]{13})  // Err "x"
+Map2(max, Ok[String, Int]{42} Err[String, Int]{"y"})  // Err "y"
+Map2(max, Err[String, Int]{"x"} Err[String, Int]{"y"} // Err "x"
+```
+
+[Back to top](#table-of-content)
+
+## Map3(Result)
+
+`func Map3[X, A, B, C, value any](
+	f func(A, B, C) value,
+	ra Result[X, A],
+	rb Result[X, B],
+	rc Result[X, C],
+) Result[X, value]`
+
+[Back to top](#table-of-content)
+
+## Map4(Result)
+
+`func Map4[X, A, B, C, D, value any](
+	f func(A, B, C, D) value,
+	ra Result[X, A],
+	rb Result[X, B],
+	rc Result[X, C],
+	rd Result[X, D],
+) Result[X, value]`
+
+[Back to top](#table-of-content)
+
+## Map5(Result)
+
+`func Map5[X, A, B, C, D, E, value any](
+	f func(A, B, C, D, E) value,
+	ra Result[X, A],
+	rb Result[X, B],
+	rc Result[X, C],
+	rd Result[X, D],
+	re Result[X, E],
+) Result[X, value]`
+
+[Back to top](#table-of-content)
+
+## AndThen(Result)
+
+`func AndThen[X, A, B any](f func(A) Result[X, B], r Result[X, A]) Result[X, B]`
+
+Chain together a sequence of computations that may fail.
+
+[Back to top](#table-of-content)
+
+## WithDefault
+
+`func WithDefault[E, V any](r Result[E, V], defaultValue V) V`
+
+If the result is Ok return the value, but if the result is an Err then return a given default value.
+
+[Back to top](#table-of-content)
+
+## ToMaybe
+
+`func ToMaybe[E, V any](r Result[E, V]) maybe.Maybe[V]`
+
+Convert to a simpler Maybe if the actual error message is not needed or you need to interact with some code that primarily uses maybes.
+
+[Back to top](#table-of-content)
+
+## FromMaybe
+
+`func FromMaybe[X, V any](e X, m maybe.Maybe[V]) Result[X, V]`
+
+Convert from a simple Maybe to interact with some code that primarily uses Results.
+
+[Back to top](#table-of-content)
+
+## MapError
+
+`func MapError[X, Y, V any](f func(X) Y, r Result[X, V]) Result[Y, V]`
+
+Transform an Err value. For example, say the errors we get have too much information:
 
 [Back to top](#table-of-content)
 
