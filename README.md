@@ -2027,19 +2027,6 @@ Sort([3,1,5]) == [1,3,5]
 
 [Back to top](#table-of-content)
 
-## Sort_UNSAFE
-
-`func Sort_UNSAFE[T any](xs List[T]) List[T]`
-
-Sort generic values from lowest to highest.
-This function will panic if T is not a Comparable[T]
-
-```go
-Sort_UNSAFE([3,1,5]) == [1,3,5]
-```
-
-[Back to top](#table-of-content)
-
 ## SortBy
 
 `func SortBy[A any](f func(A) basics.Comparable[A], xs List[A]) List[A]`
@@ -2048,19 +2035,6 @@ Sort values by a derived property.
 
 ```go
 SortBy(String.length,["mouse","cat"]) // ["cat","mouse"]
-```
-
-[Back to top](#table-of-content)
-
-## SortBy_UNSAFE
-
-`func SortBy_UNSAFE[A any](f func(A) A, xs List[A]) List[A]`
-
-Sort values by a derived property.
-This function will panic if the passed in func doesn't return a Comparable.
-
-```go
-SortBy_UNSAFE(String.length,["mouse","cat"]) // ["cat","mouse"]
 ```
 
 [Back to top](#table-of-content)
