@@ -1394,12 +1394,12 @@ Functions for working with runes. Rune literals are enclosed in 'a' pair of sing
 Detect digits 0123456789
 
 ```go
-isDigit('0') // True
-isDigit('1') // True
-isDigit('9') // True
-isDigit('a') // False
-isDigit('b') // False
-isDigit('A') // False
+IsDigit('0') // True
+IsDigit('1') // True
+IsDigit('9') // True
+IsDigit('a') // False
+IsDigit('b') // False
+IsDigit('A') // False
 ```
 
 [Back to top](#table-of-content)
@@ -1698,7 +1698,7 @@ ToSlice([1,2,3,4]) // []int{1,2,3,4}
 Create a Go slice from a [List](#list) applying a function to every element of the list.
 
 ```go
-ToSliceMap(func(i Int) int { return i.T() },[1,2,3,4]) // []int{1,2,3,4}
+ToSliceMap(func(i Int) int { return int(i) },[1,2,3,4]) // []int{1,2,3,4}
 ```
 
 [Back to top](#table-of-content)
