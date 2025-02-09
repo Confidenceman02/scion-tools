@@ -299,4 +299,17 @@ func TestFunctionHelpers(t *testing.T) {
 		asserts.True(SUT2(4))
 		asserts.True(SUT2(36))
 	})
+
+	t.Run("ComposeR", func(t *testing.T) {
+		isEven := func(i Float) bool { return ModBy(2, Int(i)) == 0 }
+
+		SUT1 := ComposeR(Sqrt, ComposeR(isEven, Not))
+		SUT2 := ComposeR(Sqrt, isEven)
+
+		asserts.False(SUT1(4))
+		asserts.False(SUT1(36))
+		asserts.True(SUT1(2))
+		asserts.True(SUT2(4))
+		asserts.True(SUT2(36))
+	})
 }

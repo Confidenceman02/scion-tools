@@ -234,3 +234,8 @@ func Always[A, B any](a A, b B) A {
 func ComposeL[A, B, C any](g func(B) C, f func(A) B) func(A) C {
 	return func(x A) C { return g(f(x)) }
 }
+
+// Function composition, passing results along to the right direction.
+func ComposeR[A, B, C any](f func(A) B, g func(B) C) func(A) C {
+	return func(x A) C { return g(f(x)) }
+}
