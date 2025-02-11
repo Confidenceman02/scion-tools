@@ -26,4 +26,10 @@ func TestBitShifts(t *testing.T) {
 
 		asserts.Equal(Int(1), SUT)
 	})
+
+	t.Run("ShiftLeftBy", func(t *testing.T) {
+		SUT := ShiftLeftBy(1, 5)
+
+		asserts.Equal(Int(10), SUT)
+	})
 }

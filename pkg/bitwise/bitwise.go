@@ -15,3 +15,9 @@ func And(a, b Int) Int {
 func ShiftRightBy(offset Int, a Int) Int {
 	return a >> offset
 }
+
+// Shift bits to the left by a given offset, filling new bits with zeros. This can be used to
+// multiply numbers by powers of two.
+func ShiftLeftBy(offset Int, a Int) Int {
+	return a << offset
+}

@@ -1379,6 +1379,20 @@ ShiftRightBy(1,-32) // -16
 
 [Back to top](#table-of-content)
 
+## ShiftLeftBy
+
+`func ShiftLeftBy(offset Int, a Int) Int`
+
+Shift bits to the left by a given offset, filling new bits with zeros.
+This can be used to multiply numbers by powers of two.
+
+```go
+ShiftLeftBy(1, 5) // 10
+ShiftLeftBy(5, 1) // 32
+```
+
+[Back to top](#table-of-content)
+
 # Char
 
 ```go
