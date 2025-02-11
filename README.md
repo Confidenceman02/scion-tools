@@ -125,6 +125,9 @@
         <li>
             <a href="#shiftrightby">ShiftRightBy</a>
         </li>
+        <li>
+            <a href="#shiftleftby">ShiftLeftBy</a>
+        </li>
     </ul>
   </details>
 - <details>
